@@ -73,7 +73,7 @@
           "widgets": [
             {
               "name": "HatsNow",
-              "label": "Hats \u00b7 Now",
+              "label": "Hats · Now",
               "description": "Your one thing, with Focus and Done. Shows your class when you're teaching.",
               "minWidth": "250dp",
               "minHeight": "110dp",
@@ -85,7 +85,7 @@
             },
             {
               "name": "HatsLog",
-              "label": "Hats \u00b7 Caseload +1",
+              "label": "Hats · Caseload +1",
               "description": "Tap a student to log a data point. The class in front of you comes first.",
               "minWidth": "250dp",
               "minHeight": "110dp",
@@ -97,7 +97,7 @@
             },
             {
               "name": "HatsSay",
-              "label": "Hats \u00b7 Say anything",
+              "label": "Hats · Say anything",
               "description": "One tap to capture a thought out loud.",
               "minWidth": "110dp",
               "minHeight": "50dp",
@@ -107,6 +107,15 @@
               "previewImage": "./assets/widget-preview/say.png"
             }
           ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": false,
+            "enableShrinkResourcesInReleaseBuilds": false
+          }
         }
       ]
     ],

@@ -37,7 +37,11 @@ jobs:
 
       - name: Build for the emulator (x86_64)
         working-directory: android
-        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
+        run: |
+          mkdir -p ../smoke
+          set -o pipefail
+          ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64 2>&1 | tee ../smoke/build.log | grep -E "BUILD|FAILURE|error:|What went wrong" || true
+          test -f app/build/outputs/apk/release/app-release.apk
 
       - name: Enable KVM
         run: |
@@ -70,6 +74,8 @@ jobs:
           B="logs/${GITHUB_REF_NAME//\//-}-${GITHUB_RUN_ID}"
           git checkout --orphan "$B"
           git rm -rq --cached . || true
+          mkdir -p smoke && touch smoke/.keep
+          [ -f smoke/build.log ] && tail -c 400000 smoke/build.log > smoke/build-tail.log && rm smoke/build.log
           git add -f smoke
           git commit -qm "Smoke logs for $GITHUB_SHA"
           git push -q origin "$B"
