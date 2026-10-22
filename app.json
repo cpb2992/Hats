@@ -1,0 +1,126 @@
+{
+  "expo": {
+    "name": "Hats",
+    "slug": "hats-focus",
+    "scheme": "hats",
+    "version": "1.0.0",
+    "orientation": "default",
+    "icon": "./assets/icon.png",
+    "userInterfaceStyle": "dark",
+    "backgroundColor": "#0D110F",
+    "ios": {
+      "supportsTablet": true,
+      "bundleIdentifier": "com.hatsfocus.app",
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
+    },
+    "android": {
+      "package": "com.hatsfocus.app",
+      "adaptiveIcon": {
+        "backgroundColor": "#161C19",
+        "foregroundImage": "./assets/android-icon-foreground.png",
+        "backgroundImage": "./assets/android-icon-background.png",
+        "monochromeImage": "./assets/android-icon-monochrome.png"
+      },
+      "predictiveBackGestureEnabled": false
+    },
+    "web": {
+      "favicon": "./assets/favicon.png",
+      "output": "single"
+    },
+    "plugins": [
+      "expo-router",
+      "expo-font",
+      [
+        "expo-splash-screen",
+        {
+          "image": "./assets/splash-icon.png",
+          "imageWidth": 120,
+          "backgroundColor": "#0D110F",
+          "dark": {
+            "image": "./assets/splash-icon.png",
+            "backgroundColor": "#0D110F"
+          }
+        }
+      ],
+      [
+        "expo-notifications",
+        {
+          "icon": "./assets/notification-icon.png",
+          "color": "#F2C14E"
+        }
+      ],
+      [
+        "expo-speech-recognition",
+        {
+          "microphonePermission": "Hats listens when you tap Say anything, so you can capture tasks out loud.",
+          "speechRecognitionPermission": "Hats turns what you say into tasks.",
+          "androidSpeechServicePackages": [
+            "com.google.android.googlequicksearchbox"
+          ]
+        }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "fonts": [
+            "./assets/fonts/BricolageGrotesque-SemiBold.ttf",
+            "./assets/fonts/InterTight-Medium.ttf",
+            "./assets/fonts/InterTight-SemiBold.ttf",
+            "./assets/fonts/InterTight-Bold.ttf"
+          ],
+          "widgets": [
+            {
+              "name": "HatsNow",
+              "label": "Hats · Now",
+              "description": "Your one thing, with Focus and Done. Shows your class when you're teaching.",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-preview/now.png",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "HatsLog",
+              "label": "Hats · Caseload +1",
+              "description": "Tap a student to log a data point. The class in front of you comes first.",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-preview/log.png",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "HatsSay",
+              "label": "Hats · Say anything",
+              "description": "One tap to capture a thought out loud.",
+              "minWidth": "110dp",
+              "minHeight": "50dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 1,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-preview/say.png"
+            }
+          ]
+        }
+      ],
+      [
+        "expo-build-properties",
+        {
+          "android": {
+            "enableMinifyInReleaseBuilds": false,
+            "enableShrinkResourcesInReleaseBuilds": false
+          }
+        }
+      ]
+    ],
+    "experiments": {
+      "typedRoutes": false
+    }
+  }
+}
