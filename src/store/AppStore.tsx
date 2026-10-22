@@ -7,8 +7,8 @@ import { freshData, makeDemo } from '../engine/seed';
 import type { AppData } from '../engine/types';
 import { clone } from '../engine/util';
 import { syncReminders } from '../services/notifications';
-
-const DATA_KEY = 'hats.data.v1';
+import { updateWidgets } from '../widgets/update';
+import { DATA_KEY, loadData, onExternalChange } from './storage';
 
 export interface ToastMsg {
   id: number;
@@ -44,6 +44,7 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [toast, setToast] = useState<ToastMsg | null>(null);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const widgetTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const toastId = useRef(0);
 
   useEffect(() => {
@@ -59,13 +60,27 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     })();
   }, []);
 
+  // Picks up changes a home-screen widget saved (Done or +1 tapped on the widget).
+  const reload = useCallback(async () => {
+    try { const d = await loadData(); if (d) setReal(d); } catch { /* keep what's in memory */ }
+  }, []);
+  useEffect(() => onExternalChange(() => { reload(); }), [reload]);
+
   // Keep "today" and the clock current, including after the phone wakes up.
   useEffect(() => {
     const tick = () => { setToday(todayISO()); setNowMin(nowMinutes()); };
     const iv = setInterval(tick, 30000);
-    const sub = AppState.addEventListener('change', s => { if (s === 'active') tick(); });
+    const sub = AppState.addEventListener('change', s => { if (s === 'active') { tick(); reload(); } });
     return () => { clearInterval(iv); sub.remove(); };
-  }, []);
+  }, [reload]);
+
+  // Home-screen widgets follow your real data, and refresh as the school day moves between blocks.
+  const tenMin = Math.floor(nowMin / 10);
+  useEffect(() => {
+    if (!ready) return;
+    if (widgetTimer.current) clearTimeout(widgetTimer.current);
+    widgetTimer.current = setTimeout(() => { updateWidgets(real).catch(() => {}); }, 800);
+  }, [real, ready, today, tenMin]);
 
   // Reminders always follow your real data, never sample data.
   useEffect(() => {

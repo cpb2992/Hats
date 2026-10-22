@@ -11,6 +11,7 @@ import { currentBlock, isTeaching, nextBoost, nextFree, openTime, sectionNow, se
 import { evidenceMonths, monthSummary } from '../pulse';
 import { freshData, makeDemo } from '../seed';
 import type { AppData } from '../types';
+import { logView, nowView } from '../widgets';
 
 // Thursday, October 22, 2026
 const TODAY = '2026-10-22';
@@ -243,4 +244,32 @@ test('free-block reminders and the school-day timeline', () => {
   const items = dayTimeline(d, TODAY, 10 * 60 + 40, null);
   assert.ok(items.some(i => i.kind === 'block' && i.current && i.block.section === '7D'));
   assert.ok(!items.some(i => i.kind === 'anchor' && i.anchor.kind === 'school'), 'blocks replace the generic school-day anchor');
+});
+
+
+test('Now widget follows the block you are in', () => {
+  const d = demo();
+  // 10:40 Thursday: teaching 7D, the next task waits for RBR.
+  const cls = nowView(d, TODAY, 10 * 60 + 40);
+  assert.equal(cls.mode, 'class');
+  assert.equal(cls.title, '7D');
+  assert.match(cls.waiting ?? '', /^RBR at 11:23: /);
+  // 11:30 Thursday: RBR is free, so the task shows with focus sized to the time left.
+  const free = nowView(d, TODAY, 11 * 60 + 30);
+  assert.equal(free.mode, 'task');
+  assert.equal(free.status, 'RBR · 46 min free');
+  assert.ok((free.focusMin ?? 0) <= 46);
+  // 8:50 Thursday: CPT.
+  assert.equal(nowView(d, TODAY, 8 * 60 + 50).mode, 'meeting');
+});
+
+test('Caseload widget puts the class in front of you first', () => {
+  const d = demo();
+  const v = logView(d, TODAY, 10 * 60 + 40);
+  assert.equal(v.header, '7D · in class');
+  assert.deepEqual(v.students.map(s => s.initials), ['J.S.']);
+  const off = logView(d, TODAY, 18 * 60);
+  assert.equal(off.header, 'Caseload');
+  assert.equal(off.students.length, 4);
+  assert.equal(off.students.find(s => s.initials === 'A.R.')?.trials, true);
 });

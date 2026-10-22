@@ -7,6 +7,8 @@ import { HATS } from '../engine/hats';
 import type { Chore, KidColor, Settings } from '../engine/types';
 import { uid } from '../engine/util';
 import { sendTestReminder } from '../services/notifications';
+import { WIDGETS } from '../widgets/render';
+import { pinWidget, widgetsSupported } from '../widgets/update';
 import { useApp } from '../store/AppStore';
 import { Icon } from '../ui/icons';
 import { BackLink, Btn, Card, Chip, Field, Label, Patch, Screen, Segmented, Stepper, tap, Txt } from '../ui/kit';
@@ -45,6 +47,11 @@ export default function SettingsScreen() {
   const [chore, setChore] = useState('');
   const [choreKind, setChoreKind] = useState<Chore['kind']>('other');
   const [testNote, setTestNote] = useState<string | null>(null);
+  const [widgetNote, setWidgetNote] = useState<string | null>(null);
+  const addWidget = async (name: string) => {
+    const ok = await pinWidget(name);
+    setWidgetNote(ok ? 'Your phone will ask where to put it.' : 'Long-press an empty spot on your home screen, tap Widgets, then find Hats.');
+  };
   const setS = (patch: Partial<Settings>) => mutate(d => { d.settings = { ...d.settings, ...patch }; });
 
   return (
@@ -105,6 +112,21 @@ export default function SettingsScreen() {
       </Section>
       <Btn title="Send a test reminder" kind="quiet" small icon="clock" onPress={async () => { const ok = await sendTestReminder(); setTestNote(ok ? 'Sent. It should arrive in a couple of seconds.' : 'Reminders are off for Hats. Turn on notifications for Hats in your phone’s settings.'); }} />
       {testNote ? <Txt v="fine">{testNote}</Txt> : null}
+
+      {widgetsSupported ? (
+        <Section title="Home-screen widgets">
+          {([[WIDGETS.now, 'Now', 'Your one thing, with Focus and Done'], [WIDGETS.log, 'Caseload +1', 'Log a data point without opening Hats'], [WIDGETS.say, 'Say anything', 'One tap to capture out loud']] as const).map(([name, title, sub], i) => (
+            <Line key={name} last={i === 2}>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Txt v="semi">{title}</Txt>
+                <Txt v="fine">{sub}</Txt>
+              </View>
+              <Btn title="Add" small kind="quiet" onPress={() => addWidget(name)} accessibilityLabel={`Add the ${title} widget`} />
+            </Line>
+          ))}
+        </Section>
+      ) : null}
+      {widgetNote ? <Txt v="fine">{widgetNote}</Txt> : null}
 
       <View style={{ gap: 12 }}>
         <Label>Kids’ board</Label>

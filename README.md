@@ -15,6 +15,7 @@ Built with Expo (React Native), the same way as Pace. Everything is stored on th
 - **Kids' board.** A bedtime routine board for a tablet or an unfolded phone: tap steps, earn team stars toward a reward, "Caught being kind". Checkmarks clear each night.
 - **Shutdown and Friday recap.** At 4:45, see the day's wins and give each open school task a date. Fridays end with the week's wins by hat. No streaks.
 - **Reminders.** 6:15 morning plan (with the defrost reminder), free-block starts, shutdown, and tasks with a time. A running focus timer shows on the lock screen.
+- **Home-screen widgets.** *Now* shows your one thing with Focus and Done (or your class while you're teaching). *Caseload +1* logs a data point with one tap, with the class in front of you first. *Say anything* opens capture. Add them from Settings → Home-screen widgets, or long-press the home screen → Widgets → Hats.
 - **Foldables and tablets.** Wide screens switch to two columns.
 
 The bell schedule is in `src/engine/schedule.ts` and editable in Settings → Bell schedule.
@@ -57,7 +58,8 @@ src/app/            screens (Expo Router): tabs (Now, Caseload, Pulse, Home), fo
 src/engine/         logic with no UI: parser, Now queue, bell schedule, progress reports, Pulse, reminders plan
 src/store/          app state and on-device persistence
 src/services/       notifications and speech recognition
+src/widgets/        home-screen widgets: designs, tap handler, live updates
 src/ui/             theme, components, icons, spot illustrations, boot screen, toasts
-assets/             icon (embroidered gold cap), adaptive icon, splash
+assets/             icon (embroidered gold cap), adaptive icon, splash, widget fonts and previews
 .github/workflows/  Android APK build on every push
 ```

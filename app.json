@@ -60,6 +60,54 @@
             "com.google.android.googlequicksearchbox"
           ]
         }
+      ],
+      [
+        "react-native-android-widget",
+        {
+          "fonts": [
+            "./assets/fonts/BricolageGrotesque-SemiBold.ttf",
+            "./assets/fonts/InterTight-Medium.ttf",
+            "./assets/fonts/InterTight-SemiBold.ttf",
+            "./assets/fonts/InterTight-Bold.ttf"
+          ],
+          "widgets": [
+            {
+              "name": "HatsNow",
+              "label": "Hats \u00b7 Now",
+              "description": "Your one thing, with Focus and Done. Shows your class when you're teaching.",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-preview/now.png",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "HatsLog",
+              "label": "Hats \u00b7 Caseload +1",
+              "description": "Tap a student to log a data point. The class in front of you comes first.",
+              "minWidth": "250dp",
+              "minHeight": "110dp",
+              "targetCellWidth": 4,
+              "targetCellHeight": 2,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-preview/log.png",
+              "updatePeriodMillis": 1800000
+            },
+            {
+              "name": "HatsSay",
+              "label": "Hats \u00b7 Say anything",
+              "description": "One tap to capture a thought out loud.",
+              "minWidth": "110dp",
+              "minHeight": "50dp",
+              "targetCellWidth": 2,
+              "targetCellHeight": 1,
+              "resizeMode": "horizontal|vertical",
+              "previewImage": "./assets/widget-preview/say.png"
+            }
+          ]
+        }
       ]
     ],
     "experiments": {
