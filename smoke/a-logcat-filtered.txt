@@ -1,0 +1,538 @@
+10-22 16:00:55.554 W/ConfigFileUtils( 1438): Failed to read asset ChimeraModuleSetList.pb: java.io.FileNotFoundException: ChimeraModuleSetList.pb
+10-22 16:00:55.577 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:55.577 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:55.663 I/PodcastAudioPlayer( 1685): onPlaybackStateChanged: PlaybackState {state=0, position=0, buffered position=0, speed=0.0, updated=33145, actions=2359815, error code=0, error message=null, custom actions=[], active item id=-1}
+10-22 16:00:55.668 I/PodcastAudioPlayer( 1685): onPlaybackStateChanged: PlaybackState {state=0, position=0, buffered position=0, speed=0.0, updated=33153, actions=2409991, error code=0, error message=null, custom actions=[], active item id=-1}
+10-22 16:00:55.668 I/PodcastAudioPlayer( 1685): onPlaybackStateChanged: PlaybackState {state=0, position=0, buffered position=0, speed=0.0, updated=33154, actions=2409991, error code=0, error message=null, custom actions=[Action:mName='Rewind 10 seconds, mIcon=2131234345, mExtras=null, Action:mName='Fast forward 30 second, mIcon=2131234125, mExtras=null, Action:mName='Skip to next episode, mIcon=2131234405, mExtras=null], active item id=-1}
+10-22 16:00:55.720 I/ActivityTaskManager(  522): START u0 {flg=0x10000000 cmp=com.hatsfocus.app/.MainActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+10-22 16:00:55.810 I/ActivityManager(  522): Start proc 2688:com.hatsfocus.app/u0a192 for next-top-activity {com.hatsfocus.app/com.hatsfocus.app.MainActivity}
+10-22 16:00:55.812 I/m.hatsfocus.app( 2688): Using CollectorTypeCC GC.
+10-22 16:00:55.812 W/m.hatsfocus.app( 2688): Unexpected CPU variant for x86: x86_64.
+10-22 16:00:55.812 W/m.hatsfocus.app( 2688): Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+10-22 16:00:55.813 E/m.hatsfocus.app( 2688): Not starting debugger since process cannot load the jdwp agent.
+10-22 16:00:55.935 W/OpenGLRenderer(  833): Failed to initialize 101010-2 format, error = EGL_SUCCESS
+10-22 16:00:55.975 W/WPCategoryProvider( 2505): android.content.pm.PackageManager$NameNotFoundException: com.google.pixel.livewallpaper
+10-22 16:00:55.988 D/nativeloader( 2688): Configuring clns-6 for other apk /data/app/~~ChTF7Tdgf1FAx_OO8OrpCw==/com.hatsfocus.app-dmncFk4Lmx7wFm4DBOdG7w==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~ChTF7Tdgf1FAx_OO8OrpCw==/com.hatsfocus.app-dmncFk4Lmx7wFm4DBOdG7w==/lib/x86_64:/data/app/~~ChTF7Tdgf1FAx_OO8OrpCw==/com.hatsfocus.app-dmncFk4Lmx7wFm4DBOdG7w==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.hatsfocus.app
+10-22 16:00:56.006 V/GraphicsEnvironment( 2688): ANGLE GameManagerService for com.hatsfocus.app: false
+10-22 16:00:56.006 V/GraphicsEnvironment( 2688): com.hatsfocus.app is not listed in per-application setting
+10-22 16:00:56.007 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:56.007 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:56.020 D/WM-WrkMgrInitializer( 2688): Initializing WorkManager with default configuration.
+10-22 16:00:56.021 D/AndroidRuntime( 2688): Shutting down VM
+10-22 16:00:56.021 E/AndroidRuntime( 2688): FATAL EXCEPTION: main
+10-22 16:00:56.021 E/AndroidRuntime( 2688): Process: com.hatsfocus.app, PID: 2688
+10-22 16:00:56.021 E/AndroidRuntime( 2688): java.lang.RuntimeException: Unable to get provider androidx.startup.InitializationProvider: pi: java.lang.RuntimeException: Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.app.ActivityThread.installProvider(ActivityThread.java:7770)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.app.ActivityThread.installContentProviders(ActivityThread.java:7276)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.app.ActivityThread.handleBindApplication(ActivityThread.java:6983)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.app.ActivityThread.-$$Nest$mhandleBindApplication(Unknown Source:0)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2236)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.os.Handler.dispatchMessage(Handler.java:106)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.os.Looper.loopOnce(Looper.java:205)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.os.Looper.loop(Looper.java:294)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at java.lang.reflect.Method.invoke(Native Method)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): Caused by: pi: java.lang.RuntimeException: Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at c50.y(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:104)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at c50.x(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:86)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at androidx.startup.InitializationProvider.onCreate(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:57)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.content.ContentProvider.attachInfo(ContentProvider.java:2619)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.content.ContentProvider.attachInfo(ContentProvider.java:2589)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at android.app.ActivityThread.installProvider(ActivityThread.java:7765)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	... 11 more
+10-22 16:00:56.021 E/AndroidRuntime( 2688): Caused by: java.lang.RuntimeException: Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at ec4.<init>(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:1097)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at androidx.work.WorkManagerInitializer.b(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:67)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	at c50.y(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:90)
+10-22 16:00:56.021 E/AndroidRuntime( 2688): 	... 16 more
+10-22 16:00:56.044 W/SnapshotHandler( 1642): java.io.FileNotFoundException: /data/user/0/com.google.android.googlequicksearchbox/files/phenotype/shared/com.google.android.libraries.consentverifier#com.google.android.googlequicksearchbox.pb: open failed: ENOENT (No such file or directory)
+10-22 16:00:56.044 W/SnapshotHandler( 1642): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:00:56.055 W/ActivityTaskManager(  522):   Force finishing activity com.hatsfocus.app/.MainActivity
+10-22 16:00:56.082 D/CoreBackPreview(  522): Window{a3a6b82 u0 Splash Screen com.hatsfocus.app}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@92da0eb, mPriority=0, mIsAnimationCallback=false}
+10-22 16:00:56.104 I/ActivityManager(  522): Process com.hatsfocus.app (pid 2688) has died: fg  TOP 
+10-22 16:00:56.150 W/InputManager-JNI(  522): Input channel object 'a3a6b82 Splash Screen com.hatsfocus.app (client)' was disposed without first being removed with the input manager!
+10-22 16:00:56.294 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.295 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.312 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.313 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.331 E/AwarenessRouterSyncMgr( 1673): Exception while syncing fences
+10-22 16:00:56.331 E/AwarenessRouterSyncMgr( 1673): java.util.concurrent.ExecutionException: java.lang.IllegalStateException: Account associated with identity was null
+10-22 16:00:56.331 E/AwarenessRouterSyncMgr( 1673): Caused by: java.lang.IllegalStateException: Account associated with identity was null
+10-22 16:00:56.368 E/OneSearchSuggestProvider( 1097): io.grpc.StatusRuntimeException: UNKNOWN
+10-22 16:00:56.373 I/WM-WorkerWrapper( 1616): Worker result SUCCESS for Work [ id=95ac67db-adb0-4a62-92a5-5acc57f45c77, tags={ com.google.android.apps.miphone.aiai.chronicle.data.storage.datacache.workmanager.UpdateDataCacheStorageWorker, UpdateDataCacheStorageWorker } ]
+10-22 16:00:56.402 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.479 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.558 W/ActivityTaskManager(  522): Activity top resumed state loss timeout for ActivityRecord{934f970 u0 com.hatsfocus.app/.MainActivity t-1 f}}
+10-22 16:00:56.567 V/WindowManager(  522):     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+10-22 16:00:56.575 I/SdkSandboxManager(  522): No SDKs used. Skipping SDK data reconcilation for CallingInfo{mUid=10192, mPackageName='com.hatsfocus.app, mAppProcessToken='null'}
+10-22 16:00:56.589 I/WM-WorkerWrapper( 1616): Worker result SUCCESS for Work [ id=5c97e10c-bd90-441e-9682-5070f445dbaf, tags={ com.google.android.apps.miphone.aiai.chronicle.data.storage.simplestorage.impl.SimpleStorageMaintenanceWorker } ]
+10-22 16:00:56.644 E/WifiStaIfaceAidlImpl(  522): installApfPacketFilter failed with service-specific exception: android.os.ServiceSpecificException:  (code 4)
+10-22 16:00:56.644 E/WifiStaIfaceAidlImpl(  522): installApfPacketFilter failed with service-specific exception: android.os.ServiceSpecificException:  (code 4)
+10-22 16:00:56.663 I/WM-WorkerWrapper( 1616): Worker result SUCCESS for Work [ id=d309c480-89e3-4de3-b6a6-063b622cc2a1, tags={ com.google.android.apps.miphone.aiai.chronicle.impl.packagemonitor.PackageMonitoringWorker, PackageMonitoringWorker } ]
+10-22 16:00:56.702 W/AiAiFed ( 1616): java.lang.IllegalArgumentException: Unsupported response code3
+10-22 16:00:56.708 I/WM-WorkerWrapper( 1616): Worker result SUCCESS for Work [ id=6eacf9cc-7629-4892-9324-4ea825d300da, tags={ com.google.android.apps.miphone.aiai.chronicle.integration.BlobStoreMaintenanceWorker, BlobStoreMaintenanceWorker } ]
+10-22 16:00:56.720 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.854 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.856 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.856 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:56.928 W/AppSearchIcing(  522): icing-search-engine.cc:283: Error: 5, Message: Document (com.google.android.googlequicksearchbox$OneSearchZeroStateGoogleSuggestions/default, zp) not found.
+10-22 16:00:56.972 I/netd    (  336): networkAddInterface(100, wlan0) -> ServiceSpecificException(64, "Machine is not on the network") <0.04ms>
+10-22 16:00:56.976 W/ConnectivityService(  522): Exception adding interface: android.os.ServiceSpecificException: Machine is not on the network (code 64)
+10-22 16:00:56.976 I/netd    (  336): networkAddRouteParcel(100, RouteInfoParcel{destination: fe80::/64, ifName: wlan0, nextHop: , mtu: 0}) -> ServiceSpecificException(64, "Machine is not on the network") <0.01ms>
+10-22 16:00:56.978 E/WifiStaIfaceAidlImpl(  522): setDtimMultiplier failed with service-specific exception: android.os.ServiceSpecificException:  (code 4)
+10-22 16:00:56.983 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:57.013 E/WifiStaIfaceAidlImpl(  522): installApfPacketFilter failed with service-specific exception: android.os.ServiceSpecificException:  (code 4)
+10-22 16:00:57.070 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:57.070 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:57.071 D/CarrierSvcBindHelper( 1036): onPackageAdded: com.hatsfocus.app
+10-22 16:00:57.120 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:57.177 D/ImsResolver( 1036): maybeAddedImsService, packageName: com.hatsfocus.app
+10-22 16:00:57.189 I/netd    (  336): networkAddRouteParcel(100, RouteInfoParcel{destination: 10.0.2.0/24, ifName: wlan0, nextHop: , mtu: 0}) -> ServiceSpecificException(64, "Machine is not on the network") <0.03ms>
+10-22 16:00:57.235 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsNow} won't be persisted.
+10-22 16:00:57.235 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsLog} won't be persisted.
+10-22 16:00:57.235 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsSay} won't be persisted.
+10-22 16:00:57.236 E/bwfc    ( 1394): Phenotype API error. Event # edax@4902c3bc, EventCode: 5 [CONTEXT service_id=51 ]
+10-22 16:00:57.279 E/ConnectivityService(  522): Exception in networkAddRouteParcel for non-gateway: android.os.ServiceSpecificException: Machine is not on the network (code 64)
+10-22 16:00:57.279 I/netd    (  336): networkAddRouteParcel(100, RouteInfoParcel{destination: 0.0.0.0/0, ifName: wlan0, nextHop: 10.0.2.2, mtu: 0}) -> ServiceSpecificException(64, "Machine is not on the network") <0.02ms>
+10-22 16:00:57.283 E/ConnectivityService(  522): Exception in networkAddRouteParcel for gateway: android.os.ServiceSpecificException: Machine is not on the network (code 64)
+10-22 16:00:57.421 W/ModernMediaScanner( 1579): Failed to visit /system/media: java.nio.file.NoSuchFileException: /system/media
+10-22 16:00:57.421 W/ModernMediaScanner( 1579): Failed to visit /oem/media: java.nio.file.NoSuchFileException: /oem/media
+10-22 16:00:57.428 W/AsyncOperation( 1394): OperationException[Status{statusCode=unknown status code: 29503, resolution=null}]
+10-22 16:00:57.495 E/bwfc    ( 1394): Phenotype API error. Event # edax@92743682, EventCode: 5 [CONTEXT service_id=51 ]
+10-22 16:00:57.495 W/AsyncOperation( 1394): OperationException[Status{statusCode=unknown status code: 29503, resolution=null}]
+10-22 16:00:57.585 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsNow} won't be persisted.
+10-22 16:00:57.585 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsLog} won't be persisted.
+10-22 16:00:57.586 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsSay} won't be persisted.
+10-22 16:00:57.633 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:57.646 E/WifiStaIfaceAidlImpl(  522): installApfPacketFilter failed with service-specific exception: android.os.ServiceSpecificException:  (code 4)
+10-22 16:00:57.683 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:57.737 E/WifiStaIfaceAidlImpl(  522): stopRssiMonitoring failed with service-specific exception: android.os.ServiceSpecificException:  (code 5)
+10-22 16:00:57.737 E/WifiStaIfaceAidlImpl(  522): setDtimMultiplier failed with service-specific exception: android.os.ServiceSpecificException:  (code 4)
+10-22 16:00:57.896 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:57.903 E/PhenotypeFlagCommitter( 1438): java.util.concurrent.TimeoutException: Timed out waiting for Task
+10-22 16:00:57.991 I/VoiceDataManager( 2654): Caused by: java.util.concurrent.CancellationException: Task was cancelled.
+10-22 16:00:58.012 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsNow} won't be persisted.
+10-22 16:00:58.012 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsLog} won't be persisted.
+10-22 16:00:58.012 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsSay} won't be persisted.
+10-22 16:00:58.015 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsNow} won't be persisted.
+10-22 16:00:58.015 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsLog} won't be persisted.
+10-22 16:00:58.015 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsSay} won't be persisted.
+10-22 16:00:58.026 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsNow} won't be persisted.
+10-22 16:00:58.043 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:58.045 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:58.166 W/A       ( 1685): Exception while fetching versionCode for package[com.google.android.apps.tv.dreamx].
+10-22 16:00:58.166 W/A       ( 1685): android.content.pm.PackageManager$NameNotFoundException: com.google.android.apps.tv.dreamx
+10-22 16:00:58.188 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsLog} won't be persisted.
+10-22 16:00:58.188 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsSay} won't be persisted.
+10-22 16:00:58.188 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.190 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsNow} won't be persisted.
+10-22 16:00:58.190 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsLog} won't be persisted.
+10-22 16:00:58.190 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsSay} won't be persisted.
+10-22 16:00:58.190 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.191 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.200 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.201 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.316 W/A       ( 1685): Exception while fetching versionCode for package[com.google.android.apps.tv.launcherx].
+10-22 16:00:58.316 W/A       ( 1685): android.content.pm.PackageManager$NameNotFoundException: com.google.android.apps.tv.launcherx
+10-22 16:00:58.371 I/SafetyLabelChangedBroadcastReceiver(  834): received broadcast packageName: com.hatsfocus.app, current user: UserHandle{0}, packageChangeEvent: NEW_INSTALL, intent user: UserHandle{0}
+10-22 16:00:58.389 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.390 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.392 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.392 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.428 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.429 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.429 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.431 W/BestClock(  522): java.time.DateTimeException: Missing network time fix
+10-22 16:00:58.451 E/netd    (  336): Error adding route ::/0 -> fe80::2 wlan0 to table 1016: File exists
+10-22 16:00:58.481 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:58.481 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:58.605 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:58.605 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:58.661 D/MediaPlayerList( 1022): sendMediaUpdate state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=33154, actions=2409991, custom actions=[Action:mName='Rewind 10 seconds, mIcon=2131234345, mExtras=null, Action:mName='Fast forward 30 second, mIcon=2131234125, mExtras=null, Action:mName='Skip to next episode, mIcon=2131234405, mExtras=null], active item id=-1, error=null}
+10-22 16:00:58.743 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:58.743 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:58.760 E/bwfc    ( 1394): Phenotype API error. Event # edax@eb443cf4, EventCode: 5 [CONTEXT service_id=51 ]
+10-22 16:00:58.760 W/AsyncOperation( 1394): OperationException[Status{statusCode=unknown status code: 29503, resolution=null}]
+10-22 16:00:58.761 I/WM-WorkerWrapper( 2788): Worker result SUCCESS for Work [ id=4e88afde-487c-44eb-91b0-d40b51dfb03a, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.android.incallui.callscreen.impl.recording.retention.CallScreenRecordingsDeletionWorker } ]
+10-22 16:00:58.942 E/OneSearchSuggestProvider( 1097): io.grpc.StatusRuntimeException: UNKNOWN
+10-22 16:00:58.963 W/ChimeraSrvcProxy( 1394): Failed to read the buffer size file. Using default NullBinder reply size. java.io.FileNotFoundException: /data/user_de/0/com.google.android.gms/files/binder_buffer_size.txt: open failed: ENOENT (No such file or directory)
+10-22 16:00:59.113 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:59.115 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:00:59.145 I/ChimeraSrvcProxy( 1394): NullBinder for android.net.action.RECOMMEND_NETWORKS triggering remote TransactionTooLargeException due to Service without Chimera impl
+10-22 16:00:59.162 I/ChimeraSrvcProxy( 1394): NullBinder for android.net.action.RECOMMEND_NETWORKS triggering remote TransactionTooLargeException due to Service without Chimera impl
+10-22 16:00:59.225 I/WM-WorkerWrapper( 1505): Worker result SUCCESS for Work [ id=2b772540-194a-4585-b865-7e73e492d801, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.google.android.apps.wellbeing.winddown.impl.WindDownBedtimeSynchronizerWorker } ]
+10-22 16:00:59.379 E/TaskPersister(  522): File error accessing recents directory (directory doesn't exist?).
+10-22 16:00:59.379 E/TaskPersister(  522): File error accessing recents directory (directory doesn't exist?).
+10-22 16:00:59.554 W/ProviderInstaller( 1699): Failed to report request stats: java.lang.NoSuchMethodException: com.google.android.gms.common.security.ProviderInstallerImpl.reportRequestStats2 [class android.content.Context, long, long]
+10-22 16:00:59.626 D/CarrierSvcBindHelper( 1036): onPackageModified: com.hatsfocus.app
+10-22 16:00:59.631 D/ImsResolver( 1036): maybeAddedImsService, packageName: com.hatsfocus.app
+10-22 16:00:59.652 I/ChimeraSrvcProxy( 1394): NullBinder for android.net.action.RECOMMEND_NETWORKS triggering remote TransactionTooLargeException due to Service without Chimera impl
+10-22 16:00:59.784 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:00.112 E/bwfc    ( 1394): Phenotype API error. Event # edax@655e6d51, EventCode: 32 [CONTEXT service_id=51 ]
+10-22 16:01:00.112 W/AsyncOperation( 1394): OperationException[Status{statusCode=unknown status code: 29503, resolution=null}]
+10-22 16:01:00.203 E/bwfc    ( 1394): Phenotype API error. Event # edax@8ef1cf44, EventCode: 32 [CONTEXT service_id=51 ]
+10-22 16:01:00.204 E/bwfc    ( 1394): Phenotype API error. Event # edax@a37321a3, EventCode: 32 [CONTEXT service_id=51 ]
+10-22 16:01:00.204 W/AsyncOperation( 1394): OperationException[Status{statusCode=unknown status code: 29503, resolution=null}]
+10-22 16:01:00.204 W/AsyncOperation( 1394): OperationException[Status{statusCode=unknown status code: 29503, resolution=null}]
+10-22 16:01:00.265 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:00.265 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:00.353 W/AiAiFed ( 1616): java.lang.IllegalArgumentException: Unsupported response code3
+10-22 16:01:00.413 W/AiAiAutofill( 1616): java.lang.SecurityException: caller is not user's Augmented Autofill Service
+10-22 16:01:00.416 W/AiAiFed ( 1616): java.lang.IllegalArgumentException: Unsupported response code3
+10-22 16:01:00.478 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsNow} won't be persisted.
+10-22 16:01:00.478 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsLog} won't be persisted.
+10-22 16:01:00.478 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsSay} won't be persisted.
+10-22 16:01:00.567 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:00.569 D/MediaPlayerList( 1022): sendMediaUpdate state=PlaybackState {state=NONE(0), position=0, buffered position=0, speed=0.0, updated=33154, actions=2409991, custom actions=[Action:mName='Rewind 10 seconds, mIcon=2131234345, mExtras=null, Action:mName='Fast forward 30 second, mIcon=2131234125, mExtras=null, Action:mName='Skip to next episode, mIcon=2131234405, mExtras=null], active item id=-1, error=null}
+10-22 16:01:00.592 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:00.607 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsNow} won't be persisted.
+10-22 16:01:00.607 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsLog} won't be persisted.
+10-22 16:01:00.607 D/AppWidgetServiceImpl(  522): Provider info from ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.widget.HatsSay} won't be persisted.
+10-22 16:01:00.608 I/AiAiEcho( 1616): AppFetcherImplV2 updateApps package:[com.hatsfocus.app], userId:[0], reason:[package is added.].
+10-22 16:01:00.671 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:00.798 E/AstreaHttpConnection( 1616): Service error while downloading from url='https://gstatic.com/webref-ondevice/aiai/19071200_pir/2/en-us/superpacks_manifest.zip'
+10-22 16:01:01.384 W/ConfigFileUtils( 1438): Failed to read asset ChimeraModuleSetList.pb: java.io.FileNotFoundException: ChimeraModuleSetList.pb
+10-22 16:01:01.437 E/SystemServiceRegistry( 1000): android.os.ServiceManager$ServiceNotFoundException: No service published for: ethernet
+10-22 16:01:01.517 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:01.518 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:01.588 I/BootReceiver(  522): Checking for fsck errors
+10-22 16:01:01.667 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:01.667 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:01.797 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:01.826 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:01.916 I/AiAiEcho( 1616): AppFetcherImpl onPackageChanged com.hatsfocus.app.
+10-22 16:01:01.918 I/AiAiEcho( 1616): AppIndexer Package:[com.hatsfocus.app] UserProfile:[0] Enabled:[true].
+10-22 16:01:01.918 I/AiAiEcho( 1616): AppFetcherImplV2 updateApps package:[com.hatsfocus.app], userId:[0], reason:[package is updated.].
+10-22 16:01:01.926 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:01.982 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:02.379 E/CCTFlatFileLogStore( 1394): java.util.concurrent.TimeoutException: Timed out waiting for Task
+10-22 16:01:02.420 I/WM-WorkerWrapper( 2788): Worker result SUCCESS for Work [ id=04b5746f-2bc8-4cfe-bb62-a7956e2d5936, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, VvmDailyWorkerTag, TikTokWorker#com.android.dialer.voicemail.service.receivers.VvmDailyWorker } ]
+10-22 16:01:02.506 W/SP.AiAi ( 1616): Error downloading: manifests:webref-2-en-us-19071200
+10-22 16:01:02.506 W/SP.AiAi ( 1616): koy: HTTP_ERROR 404, url: https://gstatic.com/webref-ondevice/aiai/19071200_pir/2/en-us/superpacks_manifest.zip
+10-22 16:01:02.513 I/WM-WorkerWrapper( 2788): Worker result RETRY for Work [ id=b9f07817-0ed8-4f2f-9a63-52906b456569, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.android.dialer.businessvoice.control.worker.ConstellationSyncWorker } ]
+10-22 16:01:02.620 I/netd    (  336): networkAddInterface(101, eth0) -> ServiceSpecificException(64, "Machine is not on the network") <0.02ms>
+10-22 16:01:02.621 W/ConnectivityService(  522): Exception adding interface: android.os.ServiceSpecificException: Machine is not on the network (code 64)
+10-22 16:01:02.622 I/netd    (  336): networkAddRouteParcel(101, RouteInfoParcel{destination: 10.0.2.0/24, ifName: eth0, nextHop: , mtu: 0}) -> ServiceSpecificException(64, "Machine is not on the network") <0.01ms>
+10-22 16:01:02.622 E/ConnectivityService(  522): Exception in networkAddRouteParcel for non-gateway: android.os.ServiceSpecificException: Machine is not on the network (code 64)
+10-22 16:01:02.622 I/netd    (  336): networkAddRouteParcel(101, RouteInfoParcel{destination: 0.0.0.0/0, ifName: eth0, nextHop: 10.0.2.2, mtu: 1500}) -> ServiceSpecificException(64, "Machine is not on the network") <0.01ms>
+10-22 16:01:02.622 E/ConnectivityService(  522): Exception in networkAddRouteParcel for gateway: android.os.ServiceSpecificException: Machine is not on the network (code 64)
+10-22 16:01:02.798 W/resolv  (  336): SSL_connect ssl error =5, mark 0xf0065: Connection refused
+10-22 16:01:02.834 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:02.834 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:02.840 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:02.892 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:02.892 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:03.008 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:03.047 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:03.053 E/GmsCoreLogger( 1394): java.util.concurrent.ExecutionException: java.util.concurrent.TimeoutException
+10-22 16:01:03.053 E/GmsCoreLogger( 1394): Caused by: java.util.concurrent.TimeoutException
+10-22 16:01:03.192 W/resolv  (  336): SSL_connect ssl error =5, mark 0xf0065: Connection refused
+10-22 16:01:03.364 E/PackageManager(  522): java.util.concurrent.TimeoutException: [Optimistic Bind] Didn't bind to resolver in time!
+10-22 16:01:03.533 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:03.553 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:03.554 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:03.610 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:03.612 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:03.764 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:03.764 W/Telephony( 1036): registerImsRegistrationCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:03.819 E/SystemServiceRegistry( 1000): android.os.ServiceManager$ServiceNotFoundException: No service published for: ethernet
+10-22 16:01:04.083 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:04.224 I/WM-WorkerWrapper( 1505): Worker result SUCCESS for Work [ id=c5991cd7-e76b-4692-a0ee-ce35143f456f, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.google.android.apps.wellbeing.fences.FenceRecovery } ]
+10-22 16:01:04.558 W/AiAiTextClassifier( 1616): Caused by: koy: HTTP_ERROR 404, url: https://gstatic.com/webref-ondevice/aiai/19071200_pir/2/en-us/superpacks_manifest.zip
+10-22 16:01:04.558 W/AiAiTextClassifier( 1616): Caused by: koy: HTTP_ERROR 404, url: https://gstatic.com/webref-ondevice/aiai/19071200_pir/2/en-us/superpacks_manifest.zip
+10-22 16:01:04.621 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:04.647 I/WM-WorkerWrapper( 1505): Worker result SUCCESS for Work [ id=cdf50746-f5a0-4dcd-a9a7-6b23b9635499, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.google.android.apps.wellbeing.widget.WidgetFlagCheckWorker } ]
+10-22 16:01:04.710 I/WM-WorkerWrapper( 1505): Worker result SUCCESS for Work [ id=05fda387-48b6-4390-b312-d31c5d7bea8a, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.google.android.apps.wellbeing.autodnd.SettingsInjectionWorker } ]
+10-22 16:01:04.765 E/SystemServiceRegistry( 1000): android.os.ServiceManager$ServiceNotFoundException: No service published for: ethernet
+10-22 16:01:04.805 E/VS.BluetoothShim( 1642): Error locating SCO method
+10-22 16:01:04.805 E/VS.BluetoothShim( 1642): java.lang.NoSuchMethodException: android.bluetooth.BluetoothHeadset.startScoUsingVirtualVoiceCall [class android.bluetooth.BluetoothDevice]
+10-22 16:01:04.843 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:04.843 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:04.903 E/ApplicationPropertiesBu( 1685): Error when converting version: messages.android_20230529_03_RC01_alldpi.x86_64.phone
+10-22 16:01:04.903 E/ApplicationPropertiesBu( 1685): java.lang.NumberFormatException: For input string: "messages"
+10-22 16:01:04.952 E/AstreaHttpConnection( 1616): Service error while downloading from url='https://storage.googleapis.com/captions/sound_recognition_v1.zip'
+10-22 16:01:04.986 W/RingtonePlayer(  833): error loading sound for content://settings/system/notification_sound
+10-22 16:01:04.986 W/RingtonePlayer(  833): java.io.IOException: setDataSource failed.: status=0x80000000
+10-22 16:01:05.199 W/A       ( 1685): Exception while fetching versionCode for package[com.google.android.apps.tv.dreamx].
+10-22 16:01:05.199 W/A       ( 1685): android.content.pm.PackageManager$NameNotFoundException: com.google.android.apps.tv.dreamx
+10-22 16:01:05.202 W/A       ( 1685): Exception while fetching versionCode for package[com.google.android.apps.tv.launcherx].
+10-22 16:01:05.202 W/A       ( 1685): android.content.pm.PackageManager$NameNotFoundException: com.google.android.apps.tv.launcherx
+10-22 16:01:05.309 D/WM-PackageManagerHelper( 1979): androidx.work.impl.background.systemjob.SystemJobService enabled
+10-22 16:01:05.309 D/WM-Schedulers( 1979): Created SystemJobScheduler and enabled SystemJobService
+10-22 16:01:05.791 E/TaskWorkerFactory( 1979): java.lang.NoSuchMethodException: com.android.devicelockcontroller.provision.worker.DeviceCheckInWorker.<init> [class android.content.Context, class androidx.work.WorkerParameters, interface com.google.common.util.concurrent.ListeningExecutorService]
+10-22 16:01:05.896 W/Telephony( 1036): registerMmTelCapabilityCallback: registration failed, no ImsService available. Exception: code: 1
+10-22 16:01:05.966 I/WM-WorkerWrapper( 1979): Worker result RETRY for Work [ id=0c66a3b8-4d96-4d10-b16e-5a8b5180871e, tags={ com.android.devicelockcontroller.provision.worker.DeviceCheckInWorker } ]
+10-22 16:01:06.791 D/WM-WrkMgrInitializer( 3802): Initializing WorkManager with default configuration.
+10-22 16:01:06.941 D/WM-PackageManagerHelper( 3802): androidx.work.impl.background.systemjob.SystemJobService enabled
+10-22 16:01:06.941 D/WM-Schedulers( 3802): Created SystemJobScheduler and enabled SystemJobService
+10-22 16:01:07.273 W/WVCdm   (  396): [oemcrypto_adapter_dynamic.cpp(1549):OEMCrypto_InitializeAndCheckKeybox] Keybox error: 25. Falling back to L3.
+10-22 16:01:07.278 I/WM-WorkerWrapper( 3802): Worker result SUCCESS for Work [ id=e32a246f-5a88-473f-82a3-5783f9ad2266, tags={ com.android.rkpdapp.provisioner.WidevineProvisioner, WidevineProvisioner } ]
+10-22 16:01:07.442 I/WM-WorkerWrapper( 1685): Worker result SUCCESS for Work [ id=20f7b360-81a0-45f5-8355-068b7cb05d69, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.google.android.apps.gsa.staticplugins.chime.registration.tasks.PeriodicChimeRegistrationWorker } ]
+10-22 16:01:07.477 I/WM-WorkerWrapper( 1685): Worker result SUCCESS for Work [ id=11e7d7dc-882d-4c1d-b31c-ffae2d691df8, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.google.android.apps.gsa.staticplugins.opa.worker.nudgeui.ResetOpaNgaQueryCounterTask } ]
+10-22 16:01:07.482 I/WM-WorkerWrapper( 1685): Worker result SUCCESS for Work [ id=f80c8de2-679b-49d4-b835-b0e43fdb9ffc, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.google.android.apps.gsa.smartspace.task.LoggerTask } ]
+10-22 16:01:07.516 E/A       ( 1685): onError
+10-22 16:01:07.516 E/A       ( 1685): com.google.android.apps.gsa.shared.speech.a.m: errorCode: 65561, engine: 2
+10-22 16:01:07.516 E/A       ( 1685): Caused by: com.google.android.apps.gsa.shared.speech.a.o: errorCode: 65586, engine: 2
+10-22 16:01:07.516 E/A       ( 1685): Caused by: com.google.android.apps.gsa.shared.speech.a.k: errorCode: 401, engine: 2
+10-22 16:01:07.518 E/cr_CronetUrlRequestContext( 1685): Exception in upload method
+10-22 16:01:07.518 E/cr_CronetUrlRequestContext( 1685): com.google.android.apps.gsa.shared.r.d: Error code: 262182
+10-22 16:01:07.529 W/ModernMediaScanner( 1579): Failed to apply ContentProviderOperation(type=insert uri=content://media/internal/file values={instance_id=null, compilation=null, disc_number=null, duration=3000, is_ringtone=1, album_artist=null, resolution=null, orientation=null, artist=<unknown>, author=null, height=null, is_drm=0, is_audiobook=0, date_modified=1720722121, writer=null, composer=null, _modifier=3, is_recording=0, datetaken=null, mime_type=audio/ogg, is_notification=0, bitrate=80000, cd_track_number=null, xmp=[], year=null, _data=/product/media/audio/ringtones/Andromeda.ogg, _size=24973, album=ringtones, genre=null, is_alarm=0, title=Andromeda, track=null, width=null, is_music=0, document_id=null, is_podcast=0, capture_framerate=null, num_tracks=1, original_document_id=null, media_type=2} exceptionAllowed)
+10-22 16:01:07.529 W/ModernMediaScanner( 1579): android.database.sqlite.SQLiteConstraintException: UNIQUE constraint failed: files._data (code 2067 SQLITE_CONSTRAINT_UNIQUE)
+10-22 16:01:07.638 I/WM-WorkerWrapper( 3802): Worker result SUCCESS for Work [ id=a901d819-1d4b-4d9a-a3a5-3818b0ed4bb3, tags={ com.android.rkpdapp.provisioner.PeriodicProvisioner } ]
+10-22 16:01:07.894 E/FirebaseInstanceId( 1699): Topic sync or token retrieval failed on hard failure exceptions: AUTHENTICATION_FAILED. Won't retry the operation.
+10-22 16:01:07.910 E/FirebaseInstanceId( 2347): Topic sync or token retrieval failed on hard failure exceptions: AUTHENTICATION_FAILED. Won't retry the operation.
+10-22 16:01:07.944 E/FirebaseInstanceId( 1673): Topic sync or token retrieval failed on hard failure exceptions: AUTHENTICATION_FAILED. Won't retry the operation.
+10-22 16:01:08.070 E/constellation( 1438): java.io.IOException: AUTHENTICATION_FAILED
+10-22 16:01:08.427 E/dlpn    ( 1394): RuntimeException while executing runnable dlqc{qze@62f268e} with executor MoreExecutors.directExecutor()
+10-22 16:01:08.427 E/dlpn    ( 1394): java.lang.NullPointerException: Attempt to get length of null array
+10-22 16:01:08.839 W/GCM-GMS ( 1438): Failed to get registration: java.io.IOException: AUTHENTICATION_FAILED
+10-22 16:01:08.901 W/GCM-GMS ( 1438): Failed to get direct boot token: java.io.IOException: AUTHENTICATION_FAILED
+10-22 16:01:09.171 I/BlockstoreStorage( 1438): Clearing Blockstore Data for package com.hatsfocus.app [CONTEXT service_id=258 ]
+10-22 16:01:09.396 D/BoundBrokerSvc( 1394): onBind: Intent { act=com.google.android.gms.nearby.exposurenotification.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiServiceNoInstantApps }
+10-22 16:01:09.396 D/BoundBrokerSvc( 1394): Loading bound service for intent: Intent { act=com.google.android.gms.nearby.exposurenotification.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiServiceNoInstantApps }
+10-22 16:01:09.533 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:09.598 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:09.703 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:09.807 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:09.811 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:09.879 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:10.605 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:10.628 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:10.649 E/AstreaHttpConnection( 1616): Service error while downloading from url='https://gstatic.com/matchmaker/tclib_models/actions/v104/en-us/superpacks_manifest.zip'
+10-22 16:01:11.186 E/bwel    ( 1394): java.util.concurrent.TimeoutException: Timed out waiting for Task
+10-22 16:01:11.464 I/AiAiEcho( 1616): Settings changed for uri: content://settings/secure/send_action_app_error
+10-22 16:01:11.951 W/ModernMediaScanner( 1579): Failed to apply ContentProviderOperation(type=insert uri=content://media/internal/file values={instance_id=null, compilation=null, disc_number=null, duration=10170, is_ringtone=1, album_artist=null, resolution=null, orientation=null, artist=<unknown>, author=null, height=null, is_drm=0, is_audiobook=0, date_modified=1720722121, writer=null, composer=null, _modifier=3, is_recording=0, datetaken=null, mime_type=audio/ogg, is_notification=0, bitrate=192000, cd_track_number=null, xmp=[], year=null, _data=/product/media/audio/ringtones/Perseus.ogg, _size=236343, album=ringtones, genre=null, is_alarm=0, title=Perseus, track=null, width=null, is_music=0, document_id=null, is_podcast=0, capture_framerate=null, num_tracks=1, original_document_id=null, media_type=2} exceptionAllowed)
+10-22 16:01:11.951 W/ModernMediaScanner( 1579): android.database.sqlite.SQLiteConstraintException: UNIQUE constraint failed: files._data (code 2067 SQLITE_CONSTRAINT_UNIQUE)
+10-22 16:01:11.956 W/ModernMediaScanner( 1579): Failed to apply ContentProviderOperation(type=insert uri=content://media/internal/file values={instance_id=null, compilation=null, disc_number=null, duration=3498, is_ringtone=1, album_artist=null, resolution=null, orientation=null, artist=<unknown>, author=null, height=null, is_drm=0, is_audiobook=0, date_modified=1720722121, writer=null, composer=null, _modifier=3, is_recording=0, datetaken=null, mime_type=audio/ogg, is_notification=0, bitrate=80000, cd_track_number=null, xmp=[], year=null, _data=/product/media/audio/ringtones/CanisMajor.ogg, _size=31133, album=ringtones, genre=null, is_alarm=0, title=Canis Major, track=null, width=null, is_music=0, document_id=null, is_podcast=0, capture_framerate=null, num_tracks=1, original_document_id=null, media_type=2} exceptionAllowed)
+10-22 16:01:11.956 W/ModernMediaScanner( 1579): android.database.sqlite.SQLiteConstraintException: UNIQUE constraint failed: files._data (code 2067 SQLITE_CONSTRAINT_UNIQUE)
+10-22 16:01:12.383 W/ModernMediaScanner( 1579): Failed to apply ContentProviderOperation(type=insert uri=content://media/internal/file values={instance_id=null, compilation=null, disc_number=null, duration=1000, is_ringtone=0, album_artist=null, resolution=null, orientation=null, artist=pdx, author=null, height=null, is_drm=0, is_audiobook=0, date_modified=1720722121, writer=null, composer=null, _modifier=3, is_recording=0, datetaken=null, mime_type=audio/ogg, is_notification=1, bitrate=80000, cd_track_number=2dB214a, xmp=[], year=null, _data=/product/media/audio/notifications/arcturus.ogg, _size=7908, album=notifications, genre=null, is_alarm=0, title=Arcturus, track=null, width=null, is_music=0, document_id=null, is_podcast=0, capture_framerate=null, num_tracks=1, original_document_id=null, media_type=2} exceptionAllowed)
+10-22 16:01:12.383 W/ModernMediaScanner( 1579): android.database.sqlite.SQLiteConstraintException: UNIQUE constraint failed: files._data (code 2067 SQLITE_CONSTRAINT_UNIQUE)
+10-22 16:01:12.427 W/MediaProvider( 1579): java.io.IOException: Failed to update quota type for /storage/emulated/0/Android
+10-22 16:01:12.427 W/MediaProvider( 1579): java.io.IOException: Failed to update quota type for /storage/emulated/0/Android/media
+10-22 16:01:13.297 E/bwfc    ( 1394): Phenotype API error. Event # edax@9a7d34c8, EventCode: 32 [CONTEXT service_id=51 ]
+10-22 16:01:13.299 W/AsyncOperation( 1394): OperationException[Status{statusCode=unknown status code: 29503, resolution=null}]
+10-22 16:01:13.353 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:13.353 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:13.374 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:13.374 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:13.388 W/SnapshotHandler( 1685): java.io.FileNotFoundException: /data/user/0/com.google.android.googlequicksearchbox/files/phenotype/shared/com.google.android.libraries.notifications#com.google.android.googlequicksearchbox.pb: open failed: ENOENT (No such file or directory)
+10-22 16:01:13.388 W/SnapshotHandler( 1685): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:13.420 W/SnapshotHandler( 1685): java.io.FileNotFoundException: /data/user/0/com.google.android.googlequicksearchbox/files/phenotype/shared/com.google.android.libraries.notifications.platform#com.google.android.googlequicksearchbox.pb: open failed: ENOENT (No such file or directory)
+10-22 16:01:13.420 W/SnapshotHandler( 1685): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:13.590 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:13.622 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:14.246 W/SemanticLocation( 1394): java.util.concurrent.TimeoutException: Waited 5000 milliseconds (plus 200480 nanoseconds delay) for dlnx@31989a6[status=PENDING, info=[function=[bzrs@6345fe7]]]
+10-22 16:01:14.760 E/RecoverySnapshotStorage(  522): Error reading snapshot for 10128 from disk
+10-22 16:01:14.760 E/RecoverySnapshotStorage(  522): java.io.FileNotFoundException: /data/system/recoverablekeystore/snapshots/10128.xml: open failed: ENOENT (No such file or directory)
+10-22 16:01:14.760 E/RecoverySnapshotStorage(  522): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:14.910 E/bwfc    ( 1394): Phenotype API error. Event # edax@43585bd4, EventCode: 5 [CONTEXT service_id=51 ]
+10-22 16:01:14.912 W/AsyncOperation( 1394): OperationException[Status{statusCode=Stale snapshot for com.google.android.googlequicksearchbox(change count changed - expected 3  but was 2), resolution=null}]
+10-22 16:01:14.916 E/bwfc    ( 1394): Phenotype API error. Event # edax@43585bd4, EventCode: 5 [CONTEXT service_id=51 ]
+10-22 16:01:14.918 W/AsyncOperation( 1394): OperationException[Status{statusCode=Stale snapshot for com.google.android.googlequicksearchbox(change count changed - expected 3  but was 2), resolution=null}]
+10-22 16:01:15.018 E/RecoverySnapshotStorage(  522): Error reading snapshot for 10128 from disk
+10-22 16:01:15.018 E/RecoverySnapshotStorage(  522): java.io.FileNotFoundException: /data/system/recoverablekeystore/snapshots/10128.xml: open failed: ENOENT (No such file or directory)
+10-22 16:01:15.018 E/RecoverySnapshotStorage(  522): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:15.027 E/keystore2(  158): system/security/keystore2/src/error.rs:180 - system/security/keystore2/src/security_level.rs:684
+10-22 16:01:15.027 E/keystore2(  158):     3: Error::Rc(r#SYSTEM_ERROR)
+10-22 16:01:15.136 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:15.136 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:15.173 W/RecoverableKeyStoreGms( 1438): [WrappingKeyManager] InternalRecoveryServiceException during wrapping key generation [CONTEXT service_id=172 ]
+10-22 16:01:15.173 W/RecoverableKeyStoreGms( 1438): android.security.keystore.recovery.InternalRecoveryServiceException: Failed to import secret key.
+10-22 16:01:15.173 W/RecoverableKeyStoreGms( 1438): 	at android.security.keystore.recovery.RecoveryController.wrapUnexpectedServiceSpecificException(RecoveryController.java:783)
+10-22 16:01:15.173 W/RecoverableKeyStoreGms( 1438): Caused by: android.os.ServiceSpecificException: Failed to import secret key. (code 22)
+10-22 16:01:15.173 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3071)
+10-22 16:01:15.173 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 16:01:15.173 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 16:01:15.173 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 16:01:15.333 E/enyj    ( 1394): java.lang.RuntimeException: ManagedChannel allocation site
+10-22 16:01:15.387 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:15.479 I/SemanticLocation( 1394): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/default_model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 16:01:15.479 I/SemanticLocation( 1394): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:15.506 I/SemanticLocation( 1394): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 16:01:15.506 I/SemanticLocation( 1394): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:15.541 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:15.568 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:15.568 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:15.910 I/SemanticLocation( 1394): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 16:01:15.910 I/SemanticLocation( 1394): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:16.141 W/FileUtils(  522): android.system.ErrnoException: chmod failed: ENOENT (No such file or directory)
+10-22 16:01:16.159 W/PeoplePU( 1438): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ProxyGalProvider}
+10-22 16:01:16.159 W/PeoplePU( 1438): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 16:01:16.159 W/PeoplePU( 1438): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 16:01:16.159 W/PeoplePU( 1438): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 16:01:16.159 W/PeoplePU( 1438): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 16:01:16.159 W/PeoplePU( 1438): Caused by: android.os.RemoteException: Remote stack trace:
+10-22 16:01:16.199 E/enyj    ( 1438): java.lang.RuntimeException: ManagedChannel allocation site
+10-22 16:01:16.219 E/enyj    ( 1438): java.lang.RuntimeException: ManagedChannel allocation site
+10-22 16:01:16.244 W/PeoplePU( 1438): android.content.pm.PackageManager$NameNotFoundException: ComponentInfo{com.google.android.gms/com.google.android.gms.people.sync.focus.ContactsSyncAdapterService}
+10-22 16:01:16.560 I/SemanticLocation( 1394): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 16:01:16.560 I/SemanticLocation( 1394): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:16.562 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:16.618 I/SemanticLocation( 1394): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 16:01:16.618 I/SemanticLocation( 1394): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:16.644 W/Conscrypt( 1438): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:16.984 I/AiAiEcho( 1616): Settings changed for uri: content://settings/secure/send_action_app_error
+10-22 16:01:17.348 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:17.348 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:17.883 E/RecoverySnapshotStorage(  522): Error reading snapshot for 10128 from disk
+10-22 16:01:17.883 E/RecoverySnapshotStorage(  522): java.io.FileNotFoundException: /data/system/recoverablekeystore/snapshots/10128.xml: open failed: ENOENT (No such file or directory)
+10-22 16:01:17.883 E/RecoverySnapshotStorage(  522): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:17.890 E/keystore2(  158): system/security/keystore2/src/error.rs:180 - system/security/keystore2/src/security_level.rs:684
+10-22 16:01:17.890 E/keystore2(  158):     3: Error::Rc(r#SYSTEM_ERROR)
+10-22 16:01:17.893 W/RecoverableKeyStoreGms( 1438): [WrappingKeyManager] InternalRecoveryServiceException during wrapping key generation [CONTEXT service_id=172 ]
+10-22 16:01:17.893 W/RecoverableKeyStoreGms( 1438): android.security.keystore.recovery.InternalRecoveryServiceException: Failed to import secret key.
+10-22 16:01:17.893 W/RecoverableKeyStoreGms( 1438): 	at android.security.keystore.recovery.RecoveryController.wrapUnexpectedServiceSpecificException(RecoveryController.java:783)
+10-22 16:01:17.893 W/RecoverableKeyStoreGms( 1438): Caused by: android.os.ServiceSpecificException: Failed to import secret key. (code 22)
+10-22 16:01:17.893 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3071)
+10-22 16:01:17.893 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 16:01:17.893 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 16:01:17.893 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 16:01:17.920 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:17.920 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:18.035 E/AppOps  (  522): java.lang.SecurityException: Specified package "android" under uid 10171 but it is not
+10-22 16:01:18.038 E/AppOps  (  522): java.lang.SecurityException: Specified package "android" under uid 10171 but it is not
+10-22 16:01:18.038 E/AppOps  (  522): java.lang.SecurityException: Specified package "android" under uid 10171 but it is not
+10-22 16:01:18.038 E/AppOps  (  522): java.lang.SecurityException: Specified package "android" under uid 10171 but it is not
+10-22 16:01:18.428 E/PhoneInterfaceManager( 1036): isVoNrEnabled: CommandException: com.android.internal.telephony.CommandException: REQUEST_NOT_SUPPORTED
+10-22 16:01:18.429 E/PhoneInterfaceManager( 1036): isVoNrEnabled: CommandException: com.android.internal.telephony.CommandException: REQUEST_NOT_SUPPORTED
+10-22 16:01:18.505 E/SystemServiceRegistry( 1037): android.os.ServiceManager$ServiceNotFoundException: No service published for: ethernet
+10-22 16:01:18.530 W/BaseSearchIndex( 1037): Error initial controller
+10-22 16:01:18.757 W/BaseSearchIndex( 1037): Error initial controller
+10-22 16:01:19.220 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:19.220 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:19.526 E/HardwareInfoFeatureProviderImpl( 1037): java.lang.NumberFormatException: For input string: "E"
+10-22 16:01:19.821 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:19.821 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:20.146 W/NetworkScheduler( 1394): java.lang.IllegalArgumentException: Only the following extra parameter types are supported: Integer, Long, Double, String, Boolean, and nested Bundles with the same restrictions.
+10-22 16:01:20.208 D/WM-PackageManagerHelper( 4361): androidx.work.impl.background.systemjob.SystemJobService enabled
+10-22 16:01:20.208 D/WM-Schedulers( 4361): Created SystemJobScheduler and enabled SystemJobService
+10-22 16:01:20.460 W/BugleRcs( 4361): android.content.pm.PackageManager$NameNotFoundException: com.google.android.ims
+10-22 16:01:20.604 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:20.604 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:20.905 E/AppOps  (  522): java.lang.SecurityException: Specified package "android" under uid 10171 but it is not
+10-22 16:01:20.911 E/AppOps  (  522): java.lang.SecurityException: Specified package "android" under uid 10171 but it is not
+10-22 16:01:20.916 E/AppOps  (  522): java.lang.SecurityException: Specified package "android" under uid 10171 but it is not
+10-22 16:01:20.920 E/AppOps  (  522): java.lang.SecurityException: Specified package "android" under uid 10171 but it is not
+10-22 16:01:20.972 E/bwfc    ( 1394): Phenotype API error. Event # edax@938729e8, EventCode: 5 [CONTEXT service_id=51 ]
+10-22 16:01:20.972 W/AsyncOperation( 1394): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.dtdi#com.google.android.gms(change count changed - expected 3  but was 1), resolution=null}]
+10-22 16:01:21.078 E/AmbientMusicServiceMana( 1616): oxe: java.lang.reflect.InvocationTargetException
+10-22 16:01:21.078 E/AmbientMusicServiceMana( 1616): Caused by: java.lang.reflect.InvocationTargetException
+10-22 16:01:21.078 E/AmbientMusicServiceMana( 1616): Caused by: java.lang.IllegalStateException: No underlying SoundTriggerModule available
+10-22 16:01:21.296 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:21.296 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:21.407 I/WM-WorkerWrapper( 4361): Worker result SUCCESS for Work [ id=946a516b-548f-446f-b74e-f8b335097dee, tags={ com.google.android.apps.messaging.shared.datamodel.workqueue.WorkQueueWorkerShim, forward_sync_batch- } ]
+10-22 16:01:21.874 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:21.874 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:22.767 E/A       ( 1685): onError
+10-22 16:01:22.767 E/A       ( 1685): com.google.android.apps.gsa.shared.speech.a.m: errorCode: 65561, engine: 2
+10-22 16:01:22.767 E/A       ( 1685): Caused by: com.google.android.apps.gsa.shared.speech.a.o: errorCode: 65586, engine: 2
+10-22 16:01:22.767 E/A       ( 1685): Caused by: com.google.android.apps.gsa.shared.speech.a.k: errorCode: 401, engine: 2
+10-22 16:01:22.769 E/cr_CronetUrlRequestContext( 1685): Exception in upload method
+10-22 16:01:22.769 E/cr_CronetUrlRequestContext( 1685): com.google.android.apps.gsa.shared.r.d: Error code: 262182
+10-22 16:01:22.886 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:22.886 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:23.075 W/RcsClientLib( 4361): Error while stopping RCS engine.
+10-22 16:01:23.075 W/RcsClientLib( 4361): java.lang.IllegalStateException: JibeService Not Initialized
+10-22 16:01:23.075 W/RcsClientLib( 4361): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3065)
+10-22 16:01:23.075 W/RcsClientLib( 4361): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 16:01:23.075 W/RcsClientLib( 4361): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 16:01:23.075 W/RcsClientLib( 4361): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 16:01:23.075 W/RcsClientLib( 4361): 	at com.google.android.aidl.BaseProxy.transactAndReadExceptionReturnVoid(PG:3)
+10-22 16:01:23.149 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:23.149 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:23.365 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:23.365 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:23.578 W/RcsClientLib( 4361): Error while stopping RCS engine.
+10-22 16:01:23.578 W/RcsClientLib( 4361): java.lang.IllegalStateException: JibeService Not Initialized
+10-22 16:01:23.578 W/RcsClientLib( 4361): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3065)
+10-22 16:01:23.578 W/RcsClientLib( 4361): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 16:01:23.578 W/RcsClientLib( 4361): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 16:01:23.578 W/RcsClientLib( 4361): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 16:01:23.578 W/RcsClientLib( 4361): 	at com.google.android.aidl.BaseProxy.transactAndReadExceptionReturnVoid(PG:3)
+10-22 16:01:23.620 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:23.620 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:23.752 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:23.752 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:23.850 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:23.850 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:23.964 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:23.964 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:24.186 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:24.186 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:24.345 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:24.345 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:24.480 D/BoundBrokerSvc( 1394): onUnbind: Intent { act=com.google.android.gms.nearby.exposurenotification.START dat=chimera-action:/... cmp=com.google.android.gms/.chimera.PersistentApiServiceNoInstantApps }
+10-22 16:01:24.516 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:24.516 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:24.732 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:24.732 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:25.007 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:25.027 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:25.027 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:25.038 W/Conscrypt( 1394): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 16:01:25.183 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:25.183 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:25.768 I/ActivityManager(  522): Start proc 4791:com.hatsfocus.app/u0a192 for broadcast {com.hatsfocus.app/expo.modules.notifications.service.NotificationsService}
+10-22 16:01:25.807 I/m.hatsfocus.app( 4791): Using CollectorTypeCC GC.
+10-22 16:01:25.810 W/m.hatsfocus.app( 4791): Unexpected CPU variant for x86: x86_64.
+10-22 16:01:25.810 W/m.hatsfocus.app( 4791): Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+10-22 16:01:25.848 E/m.hatsfocus.app( 4791): Not starting debugger since process cannot load the jdwp agent.
+10-22 16:01:25.994 D/nativeloader( 4791): Configuring clns-6 for other apk /data/app/~~ChTF7Tdgf1FAx_OO8OrpCw==/com.hatsfocus.app-dmncFk4Lmx7wFm4DBOdG7w==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~ChTF7Tdgf1FAx_OO8OrpCw==/com.hatsfocus.app-dmncFk4Lmx7wFm4DBOdG7w==/lib/x86_64:/data/app/~~ChTF7Tdgf1FAx_OO8OrpCw==/com.hatsfocus.app-dmncFk4Lmx7wFm4DBOdG7w==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.hatsfocus.app
+10-22 16:01:25.998 V/GraphicsEnvironment( 4791): ANGLE GameManagerService for com.hatsfocus.app: false
+10-22 16:01:25.999 V/GraphicsEnvironment( 4791): com.hatsfocus.app is not listed in per-application setting
+10-22 16:01:26.001 D/WM-WrkMgrInitializer( 4791): Initializing WorkManager with default configuration.
+10-22 16:01:26.001 D/AndroidRuntime( 4791): Shutting down VM
+10-22 16:01:26.002 E/AndroidRuntime( 4791): FATAL EXCEPTION: main
+10-22 16:01:26.002 E/AndroidRuntime( 4791): Process: com.hatsfocus.app, PID: 4791
+10-22 16:01:26.002 E/AndroidRuntime( 4791): java.lang.RuntimeException: Unable to get provider androidx.startup.InitializationProvider: pi: java.lang.RuntimeException: Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.app.ActivityThread.installProvider(ActivityThread.java:7770)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.app.ActivityThread.installContentProviders(ActivityThread.java:7276)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.app.ActivityThread.handleBindApplication(ActivityThread.java:6983)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.app.ActivityThread.-$$Nest$mhandleBindApplication(Unknown Source:0)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2236)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.os.Handler.dispatchMessage(Handler.java:106)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.os.Looper.loopOnce(Looper.java:205)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.os.Looper.loop(Looper.java:294)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at java.lang.reflect.Method.invoke(Native Method)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): Caused by: pi: java.lang.RuntimeException: Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at c50.y(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:104)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at c50.x(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:86)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at androidx.startup.InitializationProvider.onCreate(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:57)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.content.ContentProvider.attachInfo(ContentProvider.java:2619)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.content.ContentProvider.attachInfo(ContentProvider.java:2589)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at android.app.ActivityThread.installProvider(ActivityThread.java:7765)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	... 11 more
+10-22 16:01:26.002 E/AndroidRuntime( 4791): Caused by: java.lang.RuntimeException: Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at ec4.<init>(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:1097)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at androidx.work.WorkManagerInitializer.b(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:67)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	at c50.y(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:90)
+10-22 16:01:26.002 E/AndroidRuntime( 4791): 	... 16 more
+10-22 16:01:26.013 W/ActivityManager(  522): Process com.hatsfocus.app has crashed too many times, killing! Reason: crashed quickly
+10-22 16:01:26.015 W/AppStandbyController(  522): Tried to restrict recently used app: com.hatsfocus.app due to 1540
+10-22 16:01:26.016 I/ActivityManager(  522): Killing 4791:com.hatsfocus.app/u0a192 (adj 0): crash
+10-22 16:01:26.050 V/ActivityManager(  522): Got obituary of 4791:com.hatsfocus.app
+10-22 16:01:26.120 W/ModernMediaScanner( 1579): Failed to visit /data/data/com.android.providers.downloads/cache/model.smfb.metadata: java.nio.file.NoSuchFileException: /data/data/com.android.providers.downloads/cache/model.smfb.metadata
+10-22 16:01:26.200 W/ModernMediaScanner( 1579): Failed to visit /data/data/com.android.providers.downloads/cache/model.smfb: java.nio.file.NoSuchFileException: /data/data/com.android.providers.downloads/cache/model.smfb
+10-22 16:01:26.387 W/ModernMediaScanner( 1579): Failed to visit /data/data/com.android.providers.downloads/cache/en.fb.metadata: java.nio.file.NoSuchFileException: /data/data/com.android.providers.downloads/cache/en.fb.metadata
+10-22 16:01:26.398 W/ModernMediaScanner( 1579): Failed to visit /data/data/com.android.providers.downloads/cache/en.fb: java.nio.file.NoSuchFileException: /data/data/com.android.providers.downloads/cache/en.fb
+10-22 16:01:26.472 E/RecoverySnapshotStorage(  522): Error reading snapshot for 10128 from disk
+10-22 16:01:26.472 E/RecoverySnapshotStorage(  522): java.io.FileNotFoundException: /data/system/recoverablekeystore/snapshots/10128.xml: open failed: ENOENT (No such file or directory)
+10-22 16:01:26.472 E/RecoverySnapshotStorage(  522): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:01:26.474 E/keystore2(  158): system/security/keystore2/src/error.rs:180 - system/security/keystore2/src/security_level.rs:684
+10-22 16:01:26.474 E/keystore2(  158):     3: Error::Rc(r#SYSTEM_ERROR)
+10-22 16:01:26.474 W/RecoverableKeyStoreGms( 1438): [WrappingKeyManager] InternalRecoveryServiceException during wrapping key generation [CONTEXT service_id=172 ]
+10-22 16:01:26.474 W/RecoverableKeyStoreGms( 1438): android.security.keystore.recovery.InternalRecoveryServiceException: Failed to import secret key.
+10-22 16:01:26.474 W/RecoverableKeyStoreGms( 1438): 	at android.security.keystore.recovery.RecoveryController.wrapUnexpectedServiceSpecificException(RecoveryController.java:783)
+10-22 16:01:26.474 W/RecoverableKeyStoreGms( 1438): Caused by: android.os.ServiceSpecificException: Failed to import secret key. (code 22)
+10-22 16:01:26.474 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3071)
+10-22 16:01:26.474 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 16:01:26.474 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 16:01:26.474 W/RecoverableKeyStoreGms( 1438): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 16:01:26.541 W/NetworkScheduler( 1394): java.lang.IllegalArgumentException: Only the following extra parameter types are supported: Integer, Long, Double, String, Boolean, and nested Bundles with the same restrictions.
+10-22 16:01:26.724 W/ModernMediaScanner( 1579): Failed to visit /data/data/com.android.providers.downloads/cache/en.model.metadata: java.nio.file.NoSuchFileException: /data/data/com.android.providers.downloads/cache/en.model.metadata
+10-22 16:01:26.773 W/ModernMediaScanner( 1579): Failed to visit /data/data/com.android.providers.downloads/cache/en.model: java.nio.file.NoSuchFileException: /data/data/com.android.providers.downloads/cache/en.model

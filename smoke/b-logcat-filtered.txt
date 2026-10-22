@@ -1,0 +1,131 @@
+10-22 16:01:42.400 I/ActivityManager(  522): Broadcasting: Intent { act=android.appwidget.action.APPWIDGET_UPDATE flg=0x400000 cmp=com.hatsfocus.app/.widget.HatsNow (has extras) }
+10-22 16:01:42.554 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:42.554 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:42.700 W/CorpusConfigHelper( 1685): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 16:01:42.700 W/CorpusConfigHelper( 1685): 	at android.util.JsonReader.syntaxError(JsonReader.java:1162)
+10-22 16:01:43.152 I/WM-WorkerWrapper( 4361): Worker result SUCCESS for Work [ id=f2ef0d22-9594-40bb-a20b-1f0ecd92a4f2, tags={ com.google.android.apps.messaging.rcsprovisioning.RcsProvisioningListenableWorker, provisioning } ]
+10-22 16:01:47.607 E/MDD     ( 4361): FileGroupManager: An unknown error has occurred during download
+10-22 16:01:50.805 W/BatteryExternalStatsWorker(  522): error reading Bluetooth stats: 11
+10-22 16:01:53.993 E/ctbc    ( 4361): RuntimeException while executing runnable ctdz{cnpz@24b7629} with executor MoreExecutors.directExecutor()
+10-22 16:01:53.993 E/ctbc    ( 4361): java.lang.NullPointerException: Attempt to read from field 'java.lang.String cayk.b' on a null object reference in method 'void ccdw.b(java.lang.Object)'
+10-22 16:01:53.993 E/ctbc    ( 4361): RuntimeException while executing runnable ctdz{cnpz@1d6374f} with executor MoreExecutors.directExecutor()
+10-22 16:01:53.993 E/ctbc    ( 4361): java.lang.NullPointerException: Attempt to read from field 'java.lang.String cayk.b' on a null object reference in method 'void ccdw.b(java.lang.Object)'
+10-22 16:01:53.993 E/ctbc    ( 4361): RuntimeException while executing runnable ctdz{cnpz@ffc4be5} with executor MoreExecutors.directExecutor()
+10-22 16:01:53.993 E/ctbc    ( 4361): java.lang.NullPointerException: Attempt to read from field 'java.lang.String cayk.b' on a null object reference in method 'void ccdw.b(java.lang.Object)'
+10-22 16:01:53.993 E/ctbc    ( 4361): RuntimeException while executing runnable ctdz{cnpz@8e8f96b} with executor MoreExecutors.directExecutor()
+10-22 16:01:53.993 E/ctbc    ( 4361): java.lang.NullPointerException: Attempt to read from field 'java.lang.String cayk.b' on a null object reference in method 'void ccdw.b(java.lang.Object)'
+10-22 16:01:53.993 E/ctbc    ( 4361): RuntimeException while executing runnable ctdz{cnpz@d2ac161} with executor MoreExecutors.directExecutor()
+10-22 16:01:53.993 E/ctbc    ( 4361): java.lang.NullPointerException: Attempt to read from field 'java.lang.String cayk.b' on a null object reference in method 'void ccdw.b(java.lang.Object)'
+10-22 16:01:53.993 E/ctbc    ( 4361): RuntimeException while executing runnable ctdz{cnpz@41bc147} with executor MoreExecutors.directExecutor()
+10-22 16:01:53.993 E/ctbc    ( 4361): java.lang.NullPointerException: Attempt to read from field 'java.lang.String cayk.b' on a null object reference in method 'void ccdw.b(java.lang.Object)'
+10-22 16:01:53.993 E/ctbc    ( 4361): RuntimeException while executing runnable ctdz{cnpz@271129d} with executor MoreExecutors.directExecutor()
+10-22 16:01:53.993 E/ctbc    ( 4361): java.lang.NullPointerException: Attempt to read from field 'java.lang.String cayk.b' on a null object reference in method 'void ccdw.b(java.lang.Object)'
+10-22 16:01:54.365 I/WM-WorkerWrapper( 4361): Worker result SUCCESS for Work [ id=eef2c8a3-075e-4725-9445-029ffa13d25e, tags={ com.google.android.libraries.mdi.download.workmanager.workers.PeriodicWorker, MDD.WIFI.CHARGING.PERIODIC.TASK } ]
+10-22 16:02:01.510 E/A       ( 1685): onError
+10-22 16:02:01.510 E/A       ( 1685): com.google.android.apps.gsa.shared.speech.a.m: errorCode: 65561, engine: 2
+10-22 16:02:01.510 E/A       ( 1685): Caused by: com.google.android.apps.gsa.shared.speech.a.o: errorCode: 65586, engine: 2
+10-22 16:02:01.510 E/A       ( 1685): Caused by: com.google.android.apps.gsa.shared.speech.a.k: errorCode: 401, engine: 2
+10-22 16:02:01.510 E/cr_CronetUrlRequestContext( 1685): Exception in upload method
+10-22 16:02:01.510 E/cr_CronetUrlRequestContext( 1685): com.google.android.apps.gsa.shared.r.d: Error code: 262182
+10-22 16:02:07.244 E/d       ( 1685): RuntimeException while executing runnable cb{com.google.apps.tiktok.tracing.ej@b5bd33} with executor MoreExecutors.directExecutor()
+10-22 16:02:07.244 E/d       ( 1685): java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.google.android.libraries.mdi.download.ae.b' on a null object reference in method 'void com.google.android.libraries.mdi.download.h.bq.gH(java.lang.Object)'
+10-22 16:02:07.244 E/d       ( 1685): RuntimeException while executing runnable cb{com.google.apps.tiktok.tracing.ej@c8e76d8} with executor MoreExecutors.directExecutor()
+10-22 16:02:07.244 E/d       ( 1685): java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.google.android.libraries.mdi.download.ae.b' on a null object reference in method 'void com.google.android.libraries.mdi.download.h.bq.gH(java.lang.Object)'
+10-22 16:02:07.245 E/d       ( 1685): RuntimeException while executing runnable cb{com.google.apps.tiktok.tracing.ej@7047825} with executor MoreExecutors.directExecutor()
+10-22 16:02:07.245 E/d       ( 1685): java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.google.android.libraries.mdi.download.ae.b' on a null object reference in method 'void com.google.android.libraries.mdi.download.h.bq.gH(java.lang.Object)'
+10-22 16:02:07.462 V/WindowManagerShell(  833): Transition requested: android.os.BinderProxy@3b9e589 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=9 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.hatsfocus.app/.MainActivity } baseActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} topActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} origActivity=null realActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} numActivities=1 lastActiveTime=105531 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@b0ca98e} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{1e1a5af com.hatsfocus.app.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-22 16:02:07.462 I/ActivityTaskManager(  522): START u0 {flg=0x10000000 cmp=com.hatsfocus.app/.MainActivity} with LAUNCH_SINGLE_TASK from uid 2000 (BAL_ALLOW_PERMISSION) result code=0
+10-22 16:02:07.480 I/ActivityManager(  522): Start proc 5660:com.hatsfocus.app/u0a192 for next-top-activity {com.hatsfocus.app/com.hatsfocus.app.MainActivity}
+10-22 16:02:07.487 D/CoreBackPreview(  522): Window{e8a4b1d u0 Splash Screen com.hatsfocus.app}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@5fba4de, mPriority=0, mIsAnimationCallback=false}
+10-22 16:02:07.501 I/m.hatsfocus.app( 5660): Using CollectorTypeCC GC.
+10-22 16:02:07.502 W/m.hatsfocus.app( 5660): Unexpected CPU variant for x86: x86_64.
+10-22 16:02:07.502 W/m.hatsfocus.app( 5660): Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+10-22 16:02:07.504 E/m.hatsfocus.app( 5660): Not starting debugger since process cannot load the jdwp agent.
+10-22 16:02:07.543 V/WindowManager(  522): Sent Transition #6 createdAt=10-22 16:02:07.451 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=9 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.hatsfocus.app/.MainActivity } baseActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} topActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} origActivity=null realActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} numActivities=1 lastActiveTime=105531 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{f019551 Task{2c971e1 #9 type=standard A=10192:com.hatsfocus.app}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{cd171b6 com.hatsfocus.app.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-22 16:02:07.543 V/WindowManager(  522):     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+10-22 16:02:07.543 V/WindowManager(  522):     info={id=6 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{f019551 Task{2c971e1 #9 type=standard A=10192:com.hatsfocus.app}}} m=OPEN f=NONE leash=Surface(name=Task=9)/@0xa9d4fdb sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0},{WCT{RemoteToken{e970eb7 Task{297ca6 #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xd7375fe sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0}]}
+10-22 16:02:07.571 D/nativeloader( 5660): Configuring clns-6 for other apk /data/app/~~ChTF7Tdgf1FAx_OO8OrpCw==/com.hatsfocus.app-dmncFk4Lmx7wFm4DBOdG7w==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~ChTF7Tdgf1FAx_OO8OrpCw==/com.hatsfocus.app-dmncFk4Lmx7wFm4DBOdG7w==/lib/x86_64:/data/app/~~ChTF7Tdgf1FAx_OO8OrpCw==/com.hatsfocus.app-dmncFk4Lmx7wFm4DBOdG7w==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.hatsfocus.app
+10-22 16:02:07.591 V/GraphicsEnvironment( 5660): ANGLE GameManagerService for com.hatsfocus.app: false
+10-22 16:02:07.591 V/GraphicsEnvironment( 5660): com.hatsfocus.app is not listed in per-application setting
+10-22 16:02:07.598 D/WM-WrkMgrInitializer( 5660): Initializing WorkManager with default configuration.
+10-22 16:02:07.599 D/AndroidRuntime( 5660): Shutting down VM
+10-22 16:02:07.600 E/AndroidRuntime( 5660): FATAL EXCEPTION: main
+10-22 16:02:07.600 E/AndroidRuntime( 5660): Process: com.hatsfocus.app, PID: 5660
+10-22 16:02:07.600 E/AndroidRuntime( 5660): java.lang.RuntimeException: Unable to get provider androidx.startup.InitializationProvider: pi: java.lang.RuntimeException: Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.app.ActivityThread.installProvider(ActivityThread.java:7770)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.app.ActivityThread.installContentProviders(ActivityThread.java:7276)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.app.ActivityThread.handleBindApplication(ActivityThread.java:6983)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.app.ActivityThread.-$$Nest$mhandleBindApplication(Unknown Source:0)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.app.ActivityThread$H.handleMessage(ActivityThread.java:2236)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.os.Handler.dispatchMessage(Handler.java:106)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.os.Looper.loopOnce(Looper.java:205)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.os.Looper.loop(Looper.java:294)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.app.ActivityThread.main(ActivityThread.java:8177)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at java.lang.reflect.Method.invoke(Native Method)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at com.android.internal.os.RuntimeInit$MethodAndArgsCaller.run(RuntimeInit.java:552)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at com.android.internal.os.ZygoteInit.main(ZygoteInit.java:971)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): Caused by: pi: java.lang.RuntimeException: Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at c50.y(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:104)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at c50.x(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:86)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at androidx.startup.InitializationProvider.onCreate(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:57)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.content.ContentProvider.attachInfo(ContentProvider.java:2619)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.content.ContentProvider.attachInfo(ContentProvider.java:2589)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at android.app.ActivityThread.installProvider(ActivityThread.java:7765)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	... 11 more
+10-22 16:02:07.600 E/AndroidRuntime( 5660): Caused by: java.lang.RuntimeException: Failed to create an instance of class androidx.work.impl.WorkDatabase.canonicalName
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at ec4.<init>(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:1097)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at androidx.work.WorkManagerInitializer.b(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:67)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	at c50.y(r8-map-id-4daeb7f20570ce7f49c2aed87552b2abc203aa36b0a100f3ba14cd94b60a81bf:90)
+10-22 16:02:07.600 E/AndroidRuntime( 5660): 	... 16 more
+10-22 16:02:07.606 W/ActivityTaskManager(  522):   Force finishing activity com.hatsfocus.app/.MainActivity
+10-22 16:02:07.611 I/ActivityManager(  522): Showing crash dialog for package com.hatsfocus.app u0
+10-22 16:02:07.682 D/CoreBackPreview(  522): Window{e7b8333 u0 Application Error: com.hatsfocus.app}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.WindowOnBackInvokedDispatcher$OnBackInvokedCallbackWrapper@25a25ab, mPriority=0, mIsAnimationCallback=false}
+10-22 16:02:07.703 W/OpenGLRenderer(  522): Failed to initialize 101010-2 format, error = EGL_SUCCESS
+10-22 16:02:08.107 W/ActivityTaskManager(  522): Activity top resumed state loss timeout for ActivityRecord{b141f48 u0 com.hatsfocus.app/.MainActivity t9 f}}
+10-22 16:02:08.111 W/ActivityTaskManager(  522): Activity pause timeout for ActivityRecord{b141f48 u0 com.hatsfocus.app/.MainActivity t9 f}}
+10-22 16:02:08.137 W/AppSearchIcing(  522): icing-search-engine.cc:283: Error: 5, Message: Document (com.google.android.googlequicksearchbox$OneSearchZeroStateGoogleSuggestions/default, zp) not found.
+10-22 16:02:08.273 V/WindowManager(  522):     startWCT=WindowContainerTransaction { changes = {} hops = [] errorCallbackToken=null taskFragmentOrganizer=null }
+10-22 16:02:08.273 V/WindowManager(  522):     info={id=7 t=CLOSE f=0x10 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{e970eb7 Task{297ca6 #1 type=home}}} m=TO_FRONT f=SHOW_WALLPAPER|MOVE_TO_TOP leash=Surface(name=Task=1)/@0xd7375fe sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0},{WCT{RemoteToken{f019551 Task{2c971e1 #9 type=standard A=10192:com.hatsfocus.app}}} m=CLOSE f=NONE leash=Surface(name=Task=9)/@0xa9d4fdb sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{fd3bef7 token=android.os.Binder@dcdbaf6})/@0x69078af sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0}]}
+10-22 16:02:10.475 E/TaskPersister(  522): File error accessing recents directory (directory doesn't exist?).
+10-22 16:02:12.258 W/TapAndPay( 4940): java.lang.NullPointerException: NfcAdapter is null
+10-22 16:02:12.766 W/GLSUser ( 4940): [AppCertManager] Exception while requesting key: 
+10-22 16:02:12.766 W/GLSUser ( 4940): java.util.concurrent.ExecutionException: avvw: Parse Proto Exception.
+10-22 16:02:12.766 W/GLSUser ( 4940): Caused by: avvw: Parse Proto Exception.
+10-22 16:02:18.817 D/ActivityManager(  522): freezing 5660 com.hatsfocus.app
+10-22 16:02:18.817 W/ActivityTaskManager(  522): Activity destroy timeout for ActivityRecord{b141f48 u0 com.hatsfocus.app/.MainActivity t9 f}}
+10-22 16:02:18.819 W/InputManager-JNI(  522): Input channel object 'e8a4b1d Splash Screen com.hatsfocus.app (client)' was disposed without first being removed with the input manager!
+10-22 16:02:18.819 D/ActivityManager(  522): Reschedule freeze for process 5660 com.hatsfocus.app (outstanding txns), timeout=2655
+10-22 16:02:20.258 W/resolv  (  336): SSL_connect ssl error =5, mark 0xf0064: Connection refused
+10-22 16:02:21.477 D/ActivityManager(  522): freezing 5660 com.hatsfocus.app
+10-22 16:02:21.478 D/ActivityManager(  522): Reschedule freeze for process 5660 com.hatsfocus.app (outstanding txns), timeout=1000
+10-22 16:02:21.822 E/TaskPersister(  522): File error accessing recents directory (directory doesn't exist?).
+10-22 16:02:22.479 D/ActivityManager(  522): freezing 5660 com.hatsfocus.app
+10-22 16:02:22.480 D/ActivityManager(  522): Kill app due to repeated failure to freeze binder: 5660 com.hatsfocus.app
+10-22 16:02:22.480 I/ActivityManager(  522): Killing 5660:com.hatsfocus.app/u0a192 (adj 900): excessive binder traffic during cached
+10-22 16:02:22.487 D/CoreBackPreview(  522): Window{e7b8333 u0 Application Error: com.hatsfocus.app}: Setting back callback null
+10-22 16:02:22.488 W/ActivityManager(  522): Ignoring remove of inactive process: ProcessRecord{95f25c7 0:com.hatsfocus.app/u0a192}
+10-22 16:02:22.492 W/InputManager-JNI(  522): Input channel object 'e7b8333 Application Error: com.hatsfocus.app (client)' was disposed without first being removed with the input manager!
+10-22 16:02:30.933 W/Vision  ( 5044): Error loading optional module com.google.android.gms.vision.ocr: ahbb: No acceptable module com.google.android.gms.vision.ocr found. Local version is 0 and remote version is 0.
+10-22 16:02:30.934 W/Vision  ( 5044): Error loading optional module com.google.android.gms.vision.ocr: ahbb: No acceptable module com.google.android.gms.vision.ocr found. Local version is 0 and remote version is 0.
+10-22 16:02:30.984 W/PeoplePU( 5044): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ContactsSyncAdapterService}
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 16:02:30.984 W/PeoplePU( 5044): Caused by: android.os.RemoteException: Remote stack trace:
+10-22 16:02:30.984 W/PeoplePU( 5044): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ContactsSyncAdapterService}
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 16:02:30.984 W/PeoplePU( 5044): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ProxyGalProvider}
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 16:02:30.984 W/PeoplePU( 5044): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 16:02:31.233 I/SemanticLocation( 4940): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 16:02:31.233 I/SemanticLocation( 4940): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:02:31.271 I/SemanticLocation( 4940): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 16:02:31.271 I/SemanticLocation( 4940): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 16:02:31.333 W/NetworkScheduler( 4940): java.lang.IllegalArgumentException: Only the following extra parameter types are supported: Integer, Long, Double, String, Boolean, and nested Bundles with the same restrictions.
+10-22 16:02:32.617 I/WM-WorkerWrapper( 2788): Worker result RETRY for Work [ id=b9f07817-0ed8-4f2f-9a63-52906b456569, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.android.dialer.businessvoice.control.worker.ConstellationSyncWorker } ]
