@@ -32,7 +32,7 @@ function FloatingBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 16, alignItems: 'center', paddingHorizontal: 16 }}>
       {demo ? (
-        <Pressable accessibilityRole="button" onPress={() => { tap(); endDemo(); }} style={{ marginBottom: 10, paddingHorizontal: 14, height: 32, borderRadius: 16, backgroundColor: 'rgba(242,193,78,0.16)', justifyContent: 'center' }}>
+        <Pressable accessibilityRole="button" onPress={() => { tap(); endDemo(); }} style={[{ marginBottom: 10, paddingHorizontal: 14, height: 32, borderRadius: 16, backgroundColor: '#2A2614', justifyContent: 'center' }, shadow]}>
           <Text style={{ fontFamily: F.semi, fontSize: 12.5, color: C.gold }}>Sample data · tap to leave</Text>
         </Pressable>
       ) : null}
