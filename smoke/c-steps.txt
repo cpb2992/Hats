@@ -1,0 +1,5 @@
+tapped 'Wear these' at 160 490
+could not find 'Add the Now widget'
+tapped 'Add the Caseload \+1 widget' at 248 493
+Caseload \+1: confirm at '222 608'
+alive: RUNNING
