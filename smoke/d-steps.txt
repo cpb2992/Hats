@@ -1,0 +1,6 @@
+tapped 'TestCalendar' at 160 518
+tapped '^\|Type$' at 160 59
+tapped 'Type what you need' at 160 158
+tapped '^\|Go$|^Go\|' at 160 591
+could not find '^\|Done$'
+alive: RUNNING

@@ -1,0 +1,186 @@
+10-22 17:51:37.168 W/WindowManager(  526): Failed to deliver inset control state change to w=Window{ddb5846 u0 com.hatsfocus.app/com.hatsfocus.app.MainActivity EXITING}
+10-22 17:51:37.168 W/WindowManager(  526): android.os.DeadObjectException
+10-22 17:51:37.174 V/ActivityManager(  526): Got obituary of 3843:com.hatsfocus.app
+10-22 17:51:37.178 D/CarrierSvcBindHelper( 1056): onHandleForceStop: [com.hatsfocus.app]
+10-22 17:51:37.267 I/ActivityManager(  526): Broadcasting: Intent { act=android.appwidget.action.APPWIDGET_UPDATE flg=0x400000 cmp=com.hatsfocus.app/.widget.HatsNow (has extras) }
+10-22 17:51:37.277 I/ActivityManager(  526): Start proc 5361:com.hatsfocus.app/u0a192 for broadcast {com.hatsfocus.app/com.hatsfocus.app.widget.HatsNow}
+10-22 17:51:37.279 I/ActivityManager(  526): Enqueued broadcast Intent { act=android.appwidget.action.APPWIDGET_UPDATE flg=0x400000 cmp=com.hatsfocus.app/.widget.HatsNow (has extras) }: 0
+10-22 17:51:37.306 I/m.hatsfocus.app( 5361): Using CollectorTypeCC GC.
+10-22 17:51:37.307 W/m.hatsfocus.app( 5361): Unexpected CPU variant for x86: x86_64.
+10-22 17:51:37.307 W/m.hatsfocus.app( 5361): Known variants: atom, sandybridge, silvermont, goldmont, goldmont-plus, tremont, kabylake, default
+10-22 17:51:37.310 E/m.hatsfocus.app( 5361): Not starting debugger since process cannot load the jdwp agent.
+10-22 17:51:37.507 D/nativeloader( 5361): Configuring clns-6 for other apk /data/app/~~RFX0H8gtQXEb4rI8ssL8XQ==/com.hatsfocus.app-Atu5JJ61pG9fFWyGUJ4RMQ==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~RFX0H8gtQXEb4rI8ssL8XQ==/com.hatsfocus.app-Atu5JJ61pG9fFWyGUJ4RMQ==/lib/x86_64:/data/app/~~RFX0H8gtQXEb4rI8ssL8XQ==/com.hatsfocus.app-Atu5JJ61pG9fFWyGUJ4RMQ==/base.apk!/lib/x86_64, permitted_path=/data:/mnt/expand:/data/user/0/com.hatsfocus.app
+10-22 17:51:37.510 W/ConfigFileUtils( 5237): Failed to read asset ChimeraModuleSetList.pb: java.io.FileNotFoundException: ChimeraModuleSetList.pb
+10-22 17:51:37.543 V/GraphicsEnvironment( 5361): ANGLE GameManagerService for com.hatsfocus.app: false
+10-22 17:51:37.543 V/GraphicsEnvironment( 5361): com.hatsfocus.app is not listed in per-application setting
+10-22 17:51:37.546 D/WM-WrkMgrInitializer( 5361): Initializing WorkManager with default configuration.
+10-22 17:51:37.567 W/SoLoader( 5361): Recording new base apk path: /data/app/~~RFX0H8gtQXEb4rI8ssL8XQ==/com.hatsfocus.app-Atu5JJ61pG9fFWyGUJ4RMQ==/base.apk
+10-22 17:51:37.567 I/SoLoader( 5361): Preparing SO source: DirectApkSoSource[root = [/data/app/~~RFX0H8gtQXEb4rI8ssL8XQ==/com.hatsfocus.app-Atu5JJ61pG9fFWyGUJ4RMQ==/base.apk!/lib/x86_64]]
+10-22 17:51:37.574 I/SoLoader( 5361): Preparing SO source: ApplicationSoSource[DirectorySoSource[root = /data/app/~~RFX0H8gtQXEb4rI8ssL8XQ==/com.hatsfocus.app-Atu5JJ61pG9fFWyGUJ4RMQ==/lib/x86_64 flags = 0]]
+10-22 17:51:37.733 D/jni_lib_merge( 5361): Preparing to register libreactnativeblob_so.  onload_func: 0x783a1303ef90
+10-22 17:51:37.733 D/jni_lib_merge( 5361): Preparing to register libreactnativejni_so.  onload_func: 0x783a1304b510
+10-22 17:51:37.733 D/jni_lib_merge( 5361): Preparing to register libreactnativejni_common_so.  onload_func: 0x783a1304fc60
+10-22 17:51:37.745 W/WindowManager(  526): Exception thrown during dispatchAppVisibility Window{ddb5846 u0 com.hatsfocus.app/com.hatsfocus.app.MainActivity EXITING}
+10-22 17:51:37.745 W/WindowManager(  526): android.os.DeadObjectException
+10-22 17:51:37.768 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.trustlet_onbody(change count changed - expected 1  but was 0), resolution=null}]
+10-22 17:51:37.771 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.libraries.consentverifier#com.google.android.gms(change count changed - expected 5  but was 0), resolution=null}]
+10-22 17:51:37.777 D/jni_lib_merge( 5361): Preparing to register libreactnativeblob_so.  onload_func: 0x783a1303ef90
+10-22 17:51:37.777 D/jni_lib_merge( 5361): Preparing to register libreactnativejni_so.  onload_func: 0x783a1304b510
+10-22 17:51:37.777 D/jni_lib_merge( 5361): Preparing to register libreactnativejni_common_so.  onload_func: 0x783a1304fc60
+10-22 17:51:37.793 D/jni_lib_merge( 5361): Preparing to register libreactnativeblob_so.  onload_func: 0x783a1303ef90
+10-22 17:51:37.793 D/jni_lib_merge( 5361): Preparing to register libreactnativejni_so.  onload_func: 0x783a1304b510
+10-22 17:51:37.793 D/jni_lib_merge( 5361): Preparing to register libreactnativejni_common_so.  onload_func: 0x783a1304fc60
+10-22 17:51:37.807 V/WindowManager(  526): Sent Transition #7 createdAt=10-22 17:51:37.111 via request=TransitionRequestInfo { type = CLOSE, triggerTask = TaskInfo{userId=0 taskId=8 displayId=0 isRunning=false baseIntent=Intent { flg=0x10000000 cmp=com.hatsfocus.app/.MainActivity } baseActivity=null topActivity=null origActivity=null realActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} numActivities=0 lastActiveTime=59069 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{e394d46 Task{ec5f06d #8 type=standard A=10192:com.hatsfocus.app}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=null launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=true isVisible=true isVisibleRequested=true isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-22 17:51:37.807 V/WindowManager(  526):     info={id=7 t=CLOSE f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{e394d46 Task{ec5f06d #8 type=standard A=10192:com.hatsfocus.app}}} m=CLOSE f=NONE leash=Surface(name=Task=8)/@0x645d788 sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0},{WCT{RemoteToken{424e434 Task{9b5c9f1 #1 type=home}}} m=TO_FRONT f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xa64330a sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0},{null m=TO_FRONT f=IS_WALLPAPER leash=Surface(name=WallpaperWindowToken{4ce60d9 token=android.os.Binder@f9c0f20})/@0x174cdef sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0}]}
+10-22 17:51:37.972 W/unknown:BridgelessReact( 5361): ReactHost{0}.getOrCreateStartTask(): Schedule
+10-22 17:51:37.972 W/unknown:BridgelessReact( 5361): ReactHost{0}.getOrCreateReactInstanceTask()
+10-22 17:51:37.972 W/unknown:BridgelessReact( 5361): ReactHost{0}.getOrCreateReactInstanceTask(): Start
+10-22 17:51:37.972 W/unknown:BridgelessReact( 5361): ReactHost{0}.getJSBundleLoader()
+10-22 17:51:37.973 W/unknown:BridgelessReact( 5361): ReactHost{0}.getOrCreateReactInstanceTask(): Creating BridgelessReactContext
+10-22 17:51:37.973 W/unknown:BridgelessReact( 5361): ReactHost{0}.getOrCreateReactInstanceTask(): Creating ReactInstance
+10-22 17:51:38.062 W/unknown:BridgelessReact( 5361): ReactHost{0}.getOrCreateReactInstanceTask(): Loading JS Bundle
+10-22 17:51:38.094 W/unknown:BridgelessReact( 5361): ReactHost{0}.getOrCreateReactInstanceTask(): DevSupportManager.onNewReactContextCreated()
+10-22 17:51:38.116 W/unknown:BridgelessReact( 5361): ReactHost{0}.getOrCreateReactInstanceTask(): Executing ReactInstanceEventListeners
+10-22 17:51:38.144 W/A       ( 1728): DiscoverPrecheckException(precheckFailureReason=com.google.android.apps.search.googleapp.discover.w.a.c@d34d7e3)
+10-22 17:51:38.172 W/unknown:ViewManagerPropertyUpdater( 5361): Could not find generated setter for class org.reactnative.maskedview.RNCMaskedViewManager
+10-22 17:51:38.259 D/SettingsSliceProvider( 1057): java.lang.IllegalStateException: Invalid Slices key from path: wifi_calling
+10-22 17:51:38.268 W/A       ( 1728): DiscoverPrecheckException(precheckFailureReason=com.google.android.apps.search.googleapp.discover.w.a.c@d34d7e3)
+10-22 17:51:38.282 W/A       ( 1728): com.google.android.apps.search.googleapp.discover.v.i: DiscoverPrecheckException(precheckFailureReason=com.google.android.apps.search.googleapp.discover.w.a.c@d34d7e3)
+10-22 17:51:38.282 W/A       ( 1728): Caused by: DiscoverPrecheckException(precheckFailureReason=com.google.android.apps.search.googleapp.discover.w.a.c@d34d7e3)
+10-22 17:51:38.356 W/System.err( 5361): java.lang.IllegalArgumentException: width and height must be > 0
+10-22 17:51:38.356 W/System.err( 5361): 	at com.reactnativeandroidwidget.RNWidget.drawViewToBitmap(RNWidget.java:138)
+10-22 17:51:38.356 W/System.err( 5361): 	at com.reactnativeandroidwidget.RNWidget.drawWidget(RNWidget.java:76)
+10-22 17:51:38.356 W/System.err( 5361): 	at com.reactnativeandroidwidget.AndroidWidgetModule.drawWidgetById(AndroidWidgetModule.java:41)
+10-22 17:51:38.357 I/WM-WorkerWrapper( 5361): Worker result SUCCESS for Work [ id=6a5ba13e-1b4e-410c-903f-0133dab65974, tags={ com.reactnativeandroidwidget.RNWidgetBackgroundTaskWorker } ]
+10-22 17:51:38.420 W/GmsPipelineLogger( 5188): java.lang.NullPointerException
+10-22 17:51:39.216 I/SemanticLocation( 5188): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 17:51:39.216 I/SemanticLocation( 5188): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 17:51:39.269 E/ChimeraUPLUtils( 5237): Failed to invoke updateComplete: android.os.DeadObjectException
+10-22 17:51:39.317 I/SemanticLocation( 5188): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 17:51:39.317 I/SemanticLocation( 5188): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 17:51:39.465 E/ChimeraUPLUtils( 5237): Failed to invoke updateComplete: android.os.DeadObjectException
+10-22 17:51:39.534 E/ChimeraUPLUtils( 5237): Failed to invoke updateComplete: android.os.DeadObjectException
+10-22 17:51:40.188 W/GLSUser ( 5188): [AppCertManager] Exception while requesting key: 
+10-22 17:51:40.188 W/GLSUser ( 5188): java.util.concurrent.ExecutionException: avvw: Parse Proto Exception.
+10-22 17:51:40.188 W/GLSUser ( 5188): Caused by: avvw: Parse Proto Exception.
+10-22 17:51:40.206 W/Conscrypt( 5188): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 17:51:40.712 W/Conscrypt( 5188): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 17:51:42.344 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.tron.metrics(change count changed - expected 1  but was 0), resolution=null}]
+10-22 17:51:42.368 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.tron.metrics(change count changed - expected 1  but was 0), resolution=null}]
+10-22 17:51:42.520 E/dlpn    ( 5188): RuntimeException while executing runnable dlqc{qze@c117743} with executor MoreExecutors.directExecutor()
+10-22 17:51:42.520 E/dlpn    ( 5188): java.lang.NullPointerException: Attempt to get length of null array
+10-22 17:51:42.525 E/RecoverySnapshotStorage(  526): java.io.FileNotFoundException: /data/system/recoverablekeystore/snapshots/10128.xml: open failed: ENOENT (No such file or directory)
+10-22 17:51:42.525 E/RecoverySnapshotStorage(  526): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 17:51:42.527 W/RecoverableKeyStoreGms( 5237): [WrappingKeyManager] InternalRecoveryServiceException during wrapping key generation [CONTEXT service_id=172 ]
+10-22 17:51:42.527 W/RecoverableKeyStoreGms( 5237): android.security.keystore.recovery.InternalRecoveryServiceException: Failed to import secret key.
+10-22 17:51:42.527 W/RecoverableKeyStoreGms( 5237): 	at android.security.keystore.recovery.RecoveryController.wrapUnexpectedServiceSpecificException(RecoveryController.java:783)
+10-22 17:51:42.527 W/RecoverableKeyStoreGms( 5237): Caused by: android.os.ServiceSpecificException: Failed to import secret key. (code 22)
+10-22 17:51:42.527 W/RecoverableKeyStoreGms( 5237): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3071)
+10-22 17:51:42.527 W/RecoverableKeyStoreGms( 5237): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 17:51:42.527 W/RecoverableKeyStoreGms( 5237): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 17:51:42.527 W/RecoverableKeyStoreGms( 5237): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 17:51:43.121 D/ProfileInstaller( 5361): Skipping profile installation for com.hatsfocus.app
+10-22 17:51:43.269 W/PeoplePU( 5237): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ProxyGalProvider}
+10-22 17:51:43.269 W/PeoplePU( 5237): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 17:51:43.269 W/PeoplePU( 5237): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 17:51:43.269 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 17:51:43.269 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 17:51:43.445 I/SemanticLocation( 5188): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 17:51:43.445 I/SemanticLocation( 5188): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 17:51:43.496 I/SemanticLocation( 5188): java.io.FileNotFoundException: /data/user/0/com.google.android.gms/files/model_bundle_metadata.pb: open failed: ENOENT (No such file or directory)
+10-22 17:51:43.496 I/SemanticLocation( 5188): Caused by: android.system.ErrnoException: open failed: ENOENT (No such file or directory)
+10-22 17:51:43.588 E/cr_CronetUrlRequestContext( 1728): Exception in upload method
+10-22 17:51:43.806 W/Conscrypt( 5237): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 17:51:43.811 W/TapAndPay( 5188): java.lang.NullPointerException: NfcAdapter is null
+10-22 17:51:43.879 W/Conscrypt( 5237): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 17:51:44.547 W/Conscrypt( 5237): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 17:51:44.572 W/Conscrypt( 5237): Could not set socket write timeout: java.net.SocketException: Socket closed
+10-22 17:51:44.651 E/PhenotypeFlagCommitter( 5237): java.util.concurrent.TimeoutException: Timed out waiting for Task
+10-22 17:51:46.517 E/bwel    ( 5188): java.util.concurrent.TimeoutException: Timed out waiting for Task
+10-22 17:51:48.391 D/ActivityManager(  526): freezing 5361 com.hatsfocus.app
+10-22 17:51:50.423 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.auth.easyunlock(change count changed - expected 1  but was 0), resolution=null}]
+10-22 17:51:50.423 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.magictether(change count changed - expected 1  but was 0), resolution=null}]
+10-22 17:51:50.426 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.dtdi#com.google.android.gms(change count changed - expected 3  but was 1), resolution=null}]
+10-22 17:51:50.447 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.magictether(change count changed - expected 1  but was 0), resolution=null}]
+10-22 17:51:50.452 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.maps#com.google.android.gms(change count changed - expected 3  but was 1), resolution=null}]
+10-22 17:51:50.453 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.personalsafety(change count changed - expected 1  but was 0), resolution=null}]
+10-22 17:51:50.454 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.phonesky_recovery(change count changed - expected 1  but was 0), resolution=null}]
+10-22 17:51:50.455 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.vision(change count changed - expected 1  but was 0), resolution=null}]
+10-22 17:51:50.457 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.trustagent.activeunlock.primary#com.google.android.gms(change count changed - expected 3  but was 1), resolution=null}]
+10-22 17:51:50.943 E/d       ( 1728): RuntimeException while executing runnable cb{com.google.apps.tiktok.tracing.ej@3371011} with executor MoreExecutors.directExecutor()
+10-22 17:51:50.943 E/d       ( 1728): java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.google.android.libraries.mdi.download.ae.b' on a null object reference in method 'void com.google.android.libraries.mdi.download.h.bq.gH(java.lang.Object)'
+10-22 17:51:50.943 E/d       ( 1728): RuntimeException while executing runnable cb{com.google.apps.tiktok.tracing.ej@50bffe4} with executor MoreExecutors.directExecutor()
+10-22 17:51:50.943 E/d       ( 1728): java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.google.android.libraries.mdi.download.ae.b' on a null object reference in method 'void com.google.android.libraries.mdi.download.h.bq.gH(java.lang.Object)'
+10-22 17:51:50.969 E/d       ( 1728): RuntimeException while executing runnable cb{com.google.apps.tiktok.tracing.ej@a259298} with executor MoreExecutors.directExecutor()
+10-22 17:51:50.969 E/d       ( 1728): java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.google.android.libraries.mdi.download.ae.b' on a null object reference in method 'void com.google.android.libraries.mdi.download.h.bq.gH(java.lang.Object)'
+10-22 17:51:52.514 W/PhenotypeFlagCommitter( 5188): java.util.concurrent.TimeoutException: Timed out waiting for Task
+10-22 17:51:52.528 W/PhenotypeFlagCommitter( 5237): java.util.concurrent.TimeoutException: Timed out waiting for Task
+10-22 17:51:54.520 E/PhenotypeFlagCommitter( 5188): java.util.concurrent.TimeoutException: Timed out waiting for Task
+10-22 17:51:54.529 E/PhenotypeFlagCommitter( 5237): java.util.concurrent.TimeoutException: Timed out waiting for Task
+10-22 17:51:57.466 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.westworld(change count changed - expected 4  but was 3), resolution=null}]
+10-22 17:51:58.311 W/PeoplePU( 5237): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ContactsSyncAdapterService}
+10-22 17:51:58.311 W/PeoplePU( 5237): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 17:51:58.311 W/PeoplePU( 5237): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 17:51:58.311 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 17:51:58.311 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 17:51:58.311 W/PeoplePU( 5237): Caused by: android.os.RemoteException: Remote stack trace:
+10-22 17:51:58.319 W/PeoplePU( 5237): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ContactsSyncAdapterService}
+10-22 17:51:58.319 W/PeoplePU( 5237): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 17:51:58.319 W/PeoplePU( 5237): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 17:51:58.319 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 17:51:58.319 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 17:51:58.321 W/PeoplePU( 5237): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ProxyGalProvider}
+10-22 17:51:58.321 W/PeoplePU( 5237): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 17:51:58.321 W/PeoplePU( 5237): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 17:51:58.321 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 17:51:58.321 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 17:51:58.652 W/CorpusConfigHelper( 1728): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 17:51:58.944 W/CorpusConfigHelper( 1728): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 17:51:59.112 W/CorpusConfigHelper( 1728): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 17:51:59.316 W/NetworkScheduler( 5188): java.lang.IllegalArgumentException: Only the following extra parameter types are supported: Integer, Long, Double, String, Boolean, and nested Bundles with the same restrictions.
+10-22 17:52:01.182 W/AsyncOperation( 5188): OperationException[Status{statusCode=Stale snapshot for com.google.android.gms.settings.platform(change count changed - expected 6  but was 5), resolution=null}]
+10-22 17:52:01.182 W/bwir    ( 5188): java.util.concurrent.ExecutionException: aard: 29501: Stale snapshot for com.google.android.gms.settings.platform(change count changed - expected 6  but was 5)
+10-22 17:52:01.742 W/CorpusConfigHelper( 1728): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 17:52:01.801 W/PeoplePU( 5237): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ContactsSyncAdapterService}
+10-22 17:52:01.801 W/PeoplePU( 5237): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 17:52:01.801 W/PeoplePU( 5237): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 17:52:01.801 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 17:52:01.801 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 17:52:01.801 W/PeoplePU( 5237): Caused by: android.os.RemoteException: Remote stack trace:
+10-22 17:52:01.802 W/PeoplePU( 5237): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ContactsSyncAdapterService}
+10-22 17:52:01.802 W/PeoplePU( 5237): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 17:52:01.802 W/PeoplePU( 5237): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 17:52:01.802 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 17:52:01.802 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 17:52:01.805 W/PeoplePU( 5237): java.lang.IllegalArgumentException: Unknown component: ComponentInfo{com.google.android.syncadapters.contacts/com.google.android.syncadapters.contacts.ProxyGalProvider}
+10-22 17:52:01.805 W/PeoplePU( 5237): 	at android.os.Parcel.createExceptionOrNull(Parcel.java:3061)
+10-22 17:52:01.805 W/PeoplePU( 5237): 	at android.os.Parcel.createException(Parcel.java:3041)
+10-22 17:52:01.805 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:3024)
+10-22 17:52:01.805 W/PeoplePU( 5237): 	at android.os.Parcel.readException(Parcel.java:2966)
+10-22 17:52:01.984 W/CorpusConfigHelper( 1728): android.util.MalformedJsonException: Use JsonReader.setLenient(true) to accept malformed JSON at line 123 column 2
+10-22 17:52:02.990 V/WindowManagerShell(  840): Transition requested: android.os.BinderProxy@db79420 TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=9 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.hatsfocus.app/.MainActivity } baseActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} topActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} origActivity=null realActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} numActivities=1 lastActiveTime=133400 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{android.window.IWindowContainerToken$Stub$Proxy@70c01d9} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{f83179e com.hatsfocus.app.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-22 17:52:03.007 I/ActivityTaskManager(  526): START u0 {flg=0x10000000 cmp=com.hatsfocus.app/.MainActivity} with LAUNCH_SINGLE_TASK from uid 0 (BAL_ALLOW_ALLOWLISTED_UID) result code=0
+10-22 17:52:03.034 D/ActivityManager(  526): sync unfroze 5361 com.hatsfocus.app for 1
+10-22 17:52:03.036 D/CoreBackPreview(  526): Window{c4693f0 u0 Splash Screen com.hatsfocus.app}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@5bf008f, mPriority=0, mIsAnimationCallback=false}
+10-22 17:52:03.074 V/WindowManager(  526): Sent Transition #8 createdAt=10-22 17:52:02.977 via request=TransitionRequestInfo { type = OPEN, triggerTask = TaskInfo{userId=0 taskId=9 displayId=0 isRunning=true baseIntent=Intent { flg=0x10000000 cmp=com.hatsfocus.app/.MainActivity } baseActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} topActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} origActivity=null realActivity=ComponentInfo{com.hatsfocus.app/com.hatsfocus.app.MainActivity} numActivities=1 lastActiveTime=133400 supportsMultiWindow=true resizeMode=1 isResizeable=true minWidth=-1 minHeight=-1 defaultMinSize=220 token=WCT{RemoteToken{b31c2c6 Task{7dec384 #9 type=standard A=10192:com.hatsfocus.app}}} topActivityType=1 pictureInPictureParams=null shouldDockBigOverlays=false launchIntoPipHostTaskId=-1 lastParentTaskIdBeforePip=-1 displayCutoutSafeInsets=null topActivityInfo=ActivityInfo{8ac7287 com.hatsfocus.app.MainActivity} launchCookies=[] positionInParent=Point(0, 0) parentTaskId=-1 isFocused=false isVisible=false isVisibleRequested=false isSleeping=false topActivityInSizeCompat=false topActivityEligibleForLetterboxEducation= false topActivityLetterboxed= false isFromDoubleTap= false topActivityLetterboxVerticalPosition= -1 topActivityLetterboxHorizontalPosition= -1 topActivityLetterboxWidth=-1 topActivityLetterboxHeight=-1 locusId=null displayAreaFeatureId=1 cameraCompatControlState=hidden}, remoteTransition = null, displayChange = null }
+10-22 17:52:03.075 V/WindowManager(  526):     info={id=8 t=OPEN f=0x0 trk=0 r=[0@Point(0, 0)] c=[{WCT{RemoteToken{b31c2c6 Task{7dec384 #9 type=standard A=10192:com.hatsfocus.app}}} m=OPEN f=NONE leash=Surface(name=Task=9)/@0x344f108 sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0},{WCT{RemoteToken{424e434 Task{9b5c9f1 #1 type=home}}} m=TO_BACK f=SHOW_WALLPAPER leash=Surface(name=Task=1)/@0xa64330a sb=Rect(0, 0 - 320, 640) eb=Rect(0, 0 - 320, 640) d=0}]}
+10-22 17:52:03.160 W/unknown:BridgelessReact( 5361): ReactHost{0}.startSurface(surfaceId = 0): Schedule
+10-22 17:52:03.160 W/unknown:BridgelessReact( 5361): ReactHost{0}.attachSurface(surfaceId = 0)
+10-22 17:52:03.160 W/unknown:BridgelessReact( 5361): ReactHost{0}.getOrCreateReactInstanceTask()
+10-22 17:52:03.161 W/unknown:BridgelessReact( 5361): ReactHost{0}.startSurface(surfaceId = 0): Execute
+10-22 17:52:03.164 I/ReactNativeJS( 5361): Running "main"
+10-22 17:52:03.172 W/unknown:BridgelessReact( 5361): ReactHost{0}.onHostResume(activity)
+10-22 17:52:03.172 W/unknown:BridgelessReact( 5361): ReactHost{0}.ReactContext.onHostResume()
+10-22 17:52:03.189 D/CoreBackPreview(  526): Window{b9aac38 u0 com.hatsfocus.app/com.hatsfocus.app.MainActivity}: Setting back callback OnBackInvokedCallbackInfo{mCallback=android.window.IOnBackInvokedCallback$Stub$Proxy@d566976, mPriority=0, mIsAnimationCallback=false}
+10-22 17:52:03.598 I/ActivityTaskManager(  526): Displayed com.hatsfocus.app/.MainActivity for user 0: +611ms
+10-22 17:52:03.650 I/ReactNativeJNI( 5361): instanceHandle is null, event of type topAttached will be dropped
+10-22 17:52:03.681 I/ImeTracker(  526): com.hatsfocus.app:82e6213c: onRequestHide at ORIGIN_SERVER_HIDE_INPUT reason HIDE_UNSPECIFIED_WINDOW
+10-22 17:52:03.682 I/ImeTracker(  526): com.hatsfocus.app:82e6213c: onCancelled at PHASE_SERVER_SHOULD_HIDE
+10-22 17:52:03.688 I/GoogleInputMethodService( 1545): GoogleInputMethodService.onStartInput():1877 onStartInput(EditorInfo{inputType=0x0(NULL) imeOptions=0x0 privateImeOptions=null actionName=UNSPECIFIED actionLabel=null actionId=0 initialSelStart=-1 initialSelEnd=-1 initialCapsMode=0x0 hintText=null label=null packageName=com.hatsfocus.app fieldId=0 fieldName=null extras=null}, false)
+10-22 17:52:03.700 W/InputManager-JNI(  526): Input channel object 'c4693f0 Splash Screen com.hatsfocus.app (client)' was disposed without first being removed with the input manager!
+10-22 17:52:13.750 I/WM-WorkerWrapper( 3001): Worker result RETRY for Work [ id=18c7342e-6a66-4443-a6b1-dc90f734bb90, tags={ com.google.apps.tiktok.contrib.work.TikTokListenableWorker, TikTokWorker#com.android.dialer.businessvoice.control.worker.ConstellationSyncWorker } ]
+10-22 17:52:16.878 W/TapAndPay( 5188): java.lang.NullPointerException: NfcAdapter is null
+10-22 17:52:32.069 E/d       ( 1728): RuntimeException while executing runnable cb{com.google.apps.tiktok.tracing.ej@adf1cd4} with executor MoreExecutors.directExecutor()
+10-22 17:52:32.069 E/d       ( 1728): java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.google.android.libraries.mdi.download.ae.b' on a null object reference in method 'void com.google.android.libraries.mdi.download.h.bq.gH(java.lang.Object)'
+10-22 17:52:32.377 E/d       ( 1728): RuntimeException while executing runnable cb{com.google.apps.tiktok.tracing.ej@d1e56cc} with executor MoreExecutors.directExecutor()
+10-22 17:52:32.377 E/d       ( 1728): java.lang.NullPointerException: Attempt to read from field 'java.lang.String com.google.android.libraries.mdi.download.ae.b' on a null object reference in method 'void com.google.android.libraries.mdi.download.h.bq.gH(java.lang.Object)'

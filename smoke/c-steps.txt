@@ -1,0 +1,5 @@
+tapped 'Wear these' at 160 623
+tapped '^\|Allow$' at 160 360
+could not find 'Add the Now widget'
+could not find 'Add the Say anything widget'
+alive: RUNNING
