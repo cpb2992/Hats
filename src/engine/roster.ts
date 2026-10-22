@@ -85,7 +85,7 @@ function findDate(text: string, today: string): FoundDate | null {
     const iso = isoFrom(today, Number(m[2]) - 1, Number(m[3]), Number(m[1]));
     if (iso) return { iso, start: m.index, end: m.index + m[0].length, strong: true };
   }
-  m = /\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?\b/i.exec(text);
+  m = /\b(jan(?:uary)?|feb(?:ruary)?|mar(?:ch)?|apr(?:il)?|may|june?|july?|aug(?:ust)?|sept?(?:ember)?|oct(?:ober)?|nov(?:ember)?|dec(?:ember)?)\.?\s+(\d{1,2})(?:st|nd|rd|th)?(?:,?\s+(\d{4}))?\b(?![/.-]\d)/i.exec(text);
   if (m) {
     const iso = isoFrom(today, MONTHS[m[1].toLowerCase().replace('.', '')], Number(m[2]), fullYear(m[3]));
     if (iso) return { iso, start: m.index, end: m.index + m[0].length, strong: true };

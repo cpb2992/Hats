@@ -179,3 +179,8 @@ test('the caseload widget only offers students with a goal to log', async () => 
   assert.equal(logView(only504, TODAY, 8 * 60).students.length, 0);
   assert.match(logView(only504, TODAY, 8 * 60).empty ?? '', /IEP goal/);
 });
+
+test('a month word right before a numeric date reads the numeric date', () => {
+  const { students } = parseRoster('J.S. 7A IEP\nAnnual review in December 12/1/26\nRe-eval 1/4/27 in January', TODAY);
+  assert.deepEqual(students[0].dates.map(d => [d.label, d.date]), [['Annual review in December', '2026-12-01'], ['Re-eval in January', '2027-01-04']]);
+});
