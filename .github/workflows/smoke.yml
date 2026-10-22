@@ -7,6 +7,9 @@ on:
     branches: ['debug/**']
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   smoke:
     runs-on: ubuntu-latest
@@ -51,9 +54,22 @@ jobs:
           disable-animations: true
           script: bash .github/smoke.sh
 
-      - name: Save logs
+      - name: Summarize
         if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: smoke-logs
-          path: smoke/
+        run: |
+          for f in smoke/a-launch.txt smoke/a2-widget.txt smoke/b-widget.txt; do
+            [ -f "$f" ] && echo "::notice title=$(basename $f)::$(tr '\n' ' ' < $f)"
+          done
+          true
+
+      - name: Push logs to a branch
+        if: always()
+        run: |
+          git config user.name "hats-smoke"
+          git config user.email "hats-smoke@users.noreply.github.com"
+          B="logs/${GITHUB_REF_NAME//\//-}-${GITHUB_RUN_ID}"
+          git checkout --orphan "$B"
+          git rm -rq --cached . || true
+          git add -f smoke
+          git commit -qm "Smoke logs for $GITHUB_SHA"
+          git push -q origin "$B"
