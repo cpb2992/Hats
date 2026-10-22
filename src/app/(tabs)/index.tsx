@@ -31,6 +31,7 @@ export default function NowScreen() {
   const { data, today, nowMin, mutate, showToast } = useApp();
   const wide = useWide();
   const [showEarlier, setShowEarlier] = useState(false);
+  const [allAcc, setAllAcc] = useState(false);
   const s = data.settings;
   const q = queue(data, today, nowMin);
   const now = q[0] ?? null;
@@ -51,6 +52,9 @@ export default function NowScreen() {
   const freeLeft = free ? minutesLeft(free, nowMin) : null;
   const focusMin = now ? (freeLeft != null ? Math.max(5, Math.min(now.minutes, freeLeft)) : now.minutes) : 0;
   const roster: Student[] = block?.section ? data.students.filter(st => st.period.toUpperCase() === block.section!.toUpperCase()) : [];
+  const logRoster = roster.filter(st => st.goals.length);
+  const accRoster = roster.filter(st => st.accommodations.length).sort((a, b) => a.initials.localeCompare(b.initials));
+  const accShown = allAcc ? accRoster : accRoster.slice(0, 5);
 
   const done = (id: string) => {
     const nowIso = new Date().toISOString();
@@ -109,17 +113,36 @@ export default function NowScreen() {
       </View>
       <Txt v="title">{block.label}</Txt>
       <BlockBar block={block} nowMin={nowMin} />
-      {roster.length ? (
+      {logRoster.length ? (
         <View style={{ gap: 10 }}>
           <Txt v="fine">Saw a goal happen? Tap to log.</Txt>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-            {roster.slice(0, 8).map(st => (
+            {logRoster.map(st => (
               <Pressable key={st.id} accessibilityRole="button" accessibilityLabel={`Log for ${st.initials}`} onPress={() => quickLog(st)} style={({ pressed }) => [{ alignItems: 'center', gap: 4 }, pressed && { transform: [{ scale: 0.92 }] }]}>
                 <InitialsPatch initials={st.initials} size={52} />
                 <Text style={{ fontFamily: F.semi, fontSize: 11, color: C.ink2 }}>{st.goals[0]?.kind === 'trials' ? `/${st.goals[0].outOf}` : '+1'}</Text>
               </Pressable>
             ))}
           </View>
+        </View>
+      ) : null}
+      {accRoster.length ? (
+        <View style={{ gap: 4, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.line }}>
+          <Txt v="label">{`Accommodations · ${accRoster.length}`}</Txt>
+          {accShown.map(st => (
+            <Pressable key={st.id} accessibilityRole="button" accessibilityLabel={`${st.initials}, ${st.plan}: ${st.accommodations.join(', ')}`} onPress={() => { tap(); router.push(`/student/${st.id}`); }} style={{ flexDirection: 'row', gap: 12, paddingVertical: 8 }}>
+              <View style={{ width: 52, gap: 1 }}>
+                <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.ink }}>{st.initials}</Text>
+                <Text style={{ fontFamily: F.semi, fontSize: 11, color: C.ink3 }}>{st.plan}</Text>
+              </View>
+              <Text style={{ flex: 1, fontFamily: F.med, fontSize: 14, lineHeight: 20, color: C.ink2 }}>{st.accommodations.join(' · ')}</Text>
+            </Pressable>
+          ))}
+          {accRoster.length > accShown.length || allAcc ? (
+            <Pressable accessibilityRole="button" onPress={() => { tap(); setAllAcc(v => !v); }} hitSlop={8} style={{ alignSelf: 'flex-start', paddingVertical: 4 }}>
+              <Txt v="fine" color={C.gold}>{allAcc ? 'Show fewer' : `Show all ${accRoster.length}`}</Txt>
+            </Pressable>
+          ) : null}
         </View>
       ) : null}
       {now ? (

@@ -19,8 +19,10 @@ export default function Caseload() {
   const due = comingDue(data.students, today).slice(0, 4);
   const inClass = sectionNow(data.settings, today, nowMin);
   const isNow = (st: Student) => !!inClass && st.period.toUpperCase() === inClass.toUpperCase();
-  const students = [...data.students].sort((a, b) => Number(isNow(b)) - Number(isNow(a)) || a.period.localeCompare(b.period, undefined, { numeric: true }) || a.initials.localeCompare(b.initials));
+  const students = [...data.students].sort((a, b) => Number(isNow(b)) - Number(isNow(a)) || Number(!a.period) - Number(!b.period) || a.period.localeCompare(b.period, undefined, { numeric: true }) || a.initials.localeCompare(b.initials));
   const total = data.students.reduce((n, s) => n + todayCount(s, today), 0);
+  const ieps = data.students.filter(s => s.plan === 'IEP').length;
+  const groupOf = (s: Student) => (isNow(s) ? 'In class now' : s.period ? s.period : 'No class');
 
   const log = (s: Student, value: number, outOf?: number) => {
     const g = s.goals[0];
@@ -48,8 +50,9 @@ export default function Caseload() {
         <Card style={{ alignItems: 'center', paddingVertical: 28 }}>
           <EmptyPeopleSpot size={150} />
           <Txt v="title" center>Your caseload lives here.</Txt>
-          <Txt v="sub" center>Add each student by initials, with their goals, accommodations and review dates. Then one tap in class is a data point, and progress reports draft themselves.</Txt>
-          <Btn title="Add a student" icon="plus" onPress={() => router.push('/student-edit')} />
+          <Txt v="sub" center>Paste your whole IEP and 504 list at once, or add students one by one. Initials only. Then one tap in class is a data point, and progress reports draft themselves.</Txt>
+          <Btn title="Paste your caseload" icon="list" onPress={() => router.push('/student-import')} style={{ alignSelf: 'stretch' }} />
+          <Btn title="Add one student" icon="plus" kind="ghost" small onPress={() => router.push('/student-edit')} />
         </Card>
       </Screen>
     );
@@ -79,18 +82,24 @@ export default function Caseload() {
   const list = (
     <View style={{ gap: 6 }}>
       <Label right={`${total} today`}>Students</Label>
+      <Txt v="fine">{students.length} on your caseload · {ieps} IEP · {students.length - ieps} 504</Txt>
       <View>
         {students.map((s, i) => {
           const g = s.goals[0];
           const isOpen = open === s.id;
+          const group = groupOf(s);
+          const newGroup = i === 0 || groupOf(students[i - 1]) !== group;
+          const lastInGroup = i === students.length - 1 || groupOf(students[i + 1]) !== group;
           return (
-            <View key={s.id} style={{ borderBottomWidth: i === students.length - 1 ? 0 : 1, borderBottomColor: C.line, paddingVertical: 8, gap: 10 }}>
+            <View key={s.id}>
+            {newGroup ? <Txt v="label" color={group === 'In class now' ? C.gold : undefined} style={{ marginTop: i === 0 ? 10 : 22, marginBottom: 2 }}>{group}</Txt> : null}
+            <View style={{ borderBottomWidth: lastInGroup ? 0 : 1, borderBottomColor: C.line, paddingVertical: 8, gap: 10 }}>
               <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 58 }}>
                 <Pressable accessibilityRole="button" accessibilityLabel={`Open ${s.initials}`} onPress={() => { tap(); router.push(`/student/${s.id}`); }} style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 14 }}>
                   <InitialsPatch initials={s.initials} size={44} />
                   <View style={{ flex: 1, gap: 3 }}>
-                    <Txt v="semi" numberOfLines={2}>{g ? g.text : 'No goals yet'}</Txt>
-                    <Txt v="fine" color={isNow(s) ? C.gold : undefined}>{isNow(s) ? 'In class now' : s.period} · {s.plan} · {todayCount(s, today)} today</Txt>
+                    <Txt v="semi" numberOfLines={2}>{g ? g.text : s.accommodations.length ? s.accommodations.slice(0, 3).join(' · ') : 'Nothing added yet'}</Txt>
+                    <Txt v="fine" color={isNow(s) ? C.gold : undefined}>{s.plan}{g ? ` · ${todayCount(s, today)} today` : s.accommodations.length > 3 ? ` · ${s.accommodations.length} accommodations` : ''}</Txt>
                   </View>
                 </Pressable>
                 {g ? (
@@ -116,10 +125,14 @@ export default function Caseload() {
                 </View>
               ) : null}
             </View>
+            </View>
           );
         })}
       </View>
-      <Btn title="Add a student" icon="plus" kind="ghost" small onPress={() => router.push('/student-edit')} style={{ marginTop: 10 }} />
+      <View style={{ flexDirection: 'row', gap: 10, marginTop: 10 }}>
+        <Btn title="Paste a list" icon="list" kind="quiet" small onPress={() => router.push('/student-import')} style={{ flex: 1 }} />
+        <Btn title="Add one" icon="plus" kind="ghost" small onPress={() => router.push('/student-edit')} style={{ flex: 1 }} />
+      </View>
     </View>
   );
 

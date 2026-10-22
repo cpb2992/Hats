@@ -43,6 +43,14 @@ export default function StudentScreen() {
     );
   }
   const next = comingDue([s], today, 3650)[0];
+  const accommodations = s.accommodations.length ? (
+    <View style={{ gap: 10 }}>
+      <Label>Accommodations</Label>
+      <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
+        {s.accommodations.map(a => <Chip key={a} label={a} />)}
+      </View>
+    </View>
+  ) : null;
 
   const log = (g: Goal, value: number, outOf?: number) => {
     thud();
@@ -61,7 +69,7 @@ export default function StudentScreen() {
         <InitialsPatch initials={s.initials} size={64} />
         <View style={{ gap: 4 }}>
           <Txt v="display">{s.initials}</Txt>
-          <Txt v="sub">Period {s.period} · {s.plan}</Txt>
+          <Txt v="sub">{s.period || 'No class yet'} · {s.plan}</Txt>
         </View>
       </View>
 
@@ -77,6 +85,8 @@ export default function StudentScreen() {
           </View>
         </Card>
       ) : null}
+
+      {s.goals.length ? null : accommodations}
 
       {s.goals.map((g, gi) => {
         const sum = summarize(s, g);
@@ -125,14 +135,7 @@ export default function StudentScreen() {
 
       {!s.goals.length ? <Btn title="Add a goal" icon="plus" kind="ghost" onPress={() => router.push(`/student-edit?id=${s.id}`)} /> : null}
 
-      {s.accommodations.length ? (
-        <View style={{ gap: 10 }}>
-          <Label>Accommodations</Label>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {s.accommodations.map(a => <Chip key={a} label={a} />)}
-          </View>
-        </View>
-      ) : null}
+      {s.goals.length ? accommodations : null}
     </Screen>
   );
 }

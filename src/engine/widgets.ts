@@ -65,15 +65,20 @@ export interface LogView {
   header: string;
   sub: string;
   students: LogStudent[];
+  /** What the widget says when there's nobody to show. */
+  empty?: string;
 }
 
 /** The class in front of you first; otherwise your whole caseload. */
 export function logView(data: AppData, today: string, nowMin: number, max = 6): LogView {
   const section = sectionNow(data.settings, today, nowMin);
-  const inClass = section ? data.students.filter(st => st.period.toUpperCase() === section.toUpperCase()) : [];
-  const list = (inClass.length ? inClass : [...data.students].sort((a, b) => a.period.localeCompare(b.period, undefined, { numeric: true }) || a.initials.localeCompare(b.initials))).slice(0, max);
+  // Only students with a goal to log; 504s with accommodations only have nothing to tap.
+  const loggable = data.students.filter(st => st.goals.length);
+  const inClass = section ? loggable.filter(st => st.period.toUpperCase() === section.toUpperCase()) : [];
+  const list = (inClass.length ? inClass : [...loggable].sort((a, b) => a.period.localeCompare(b.period, undefined, { numeric: true }) || a.initials.localeCompare(b.initials))).slice(0, max);
   const total = data.students.reduce((n, st) => n + st.points.filter(p => p.date === today).length, 0);
-  if (!data.students.length) return { header: 'Caseload', sub: 'Add students in Hats', students: [] };
+  if (!data.students.length) return { header: 'Caseload', sub: 'Add students in Hats', students: [], empty: 'Add students by initials in Hats → Caseload.' };
+  if (!loggable.length) return { header: 'Caseload', sub: `${data.students.length} students`, students: [], empty: 'Add an IEP goal in Hats to log data from here.' };
   return {
     header: inClass.length ? `${section} · in class` : 'Caseload',
     sub: `${total} logged today`,

@@ -115,7 +115,7 @@ export function LogWidget({ view, width, flash }: { view: LogView; width: number
           ))}
         </FlexWidget>
       ) : (
-        <TextWidget text="Add students by initials in Hats → Caseload." maxLines={2} style={{ fontSize: 14, fontFamily: MED, color: INK2 }} />
+        <TextWidget text={view.empty ?? 'Add students by initials in Hats → Caseload.'} maxLines={2} style={{ fontSize: 14, fontFamily: MED, color: INK2 }} />
       )}
     </FlexWidget>
   );
