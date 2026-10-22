@@ -1,0 +1,3 @@
+alive after widget: RUNNING
+alive after open: RUNNING
+  mCurrentFocus=Window{ae3b64d u0 com.hatsfocus.app/com.hatsfocus.app.MainActivity}
