@@ -70,8 +70,9 @@ tap_label() {
 adb shell am start -W -n $PKG/.MainActivity
 sleep 6
 tap_label "Wear these" && sleep 5
+tap_label "^\|Allow$" 3 && sleep 2
 adb exec-out screencap -p > smoke/c-now.png
-for title in "Now" "Caseload \+1"; do
+for title in "Now" "Say anything"; do
   adb shell am start -W -a android.intent.action.VIEW -d "hats://settings" $PKG
   sleep 6
   tap_label "Add the $title widget" || continue
