@@ -28,7 +28,7 @@ function BlockBar({ block, nowMin }: { block: Block; nowMin: number }) {
 }
 
 export default function NowScreen() {
-  const { data, today, nowMin, mutate, showToast } = useApp();
+  const { data, today, nowMin, mutate, showToast, events } = useApp();
   const wide = useWide();
   const [showEarlier, setShowEarlier] = useState(false);
   const [allAcc, setAllAcc] = useState(false);
@@ -43,7 +43,7 @@ export default function NowScreen() {
   const teaching = isTeaching(block);
   const free = block?.kind === 'free' ? block : null;
   const upcomingFree = nextFree(s, today, nowMin);
-  const timeline = dayTimeline(data, today, nowMin, now?.id);
+  const timeline = dayTimeline(data, today, nowMin, now?.id, events);
   const earlier = timeline.filter(i => i.past && !(i.kind === 'block' && i.current));
   const visible = showEarlier ? timeline : timeline.filter(i => !i.past || (i.kind === 'block' && i.current));
   const work = s.workdays.includes(weekday(today));
@@ -255,6 +255,20 @@ export default function NowScreen() {
               <Pressable key={`a-${item.anchor.kind}`} accessibilityRole="button" onPress={() => { tap(); router.push(target); }} style={rowStyle(last)}>{body}</Pressable>
             ) : (
               <View key={`a-${item.anchor.kind}`} style={rowStyle(last)}>{body}</View>
+            );
+          }
+          if (item.kind === 'event') {
+            const e = item.event;
+            return (
+              <View key={`e-${e.id}-${e.date}`} accessibilityLabel={`${e.allDay ? 'All day' : fmtTime(item.time)}: ${e.title}`} style={[rowStyle(last), { minHeight: 52 }]}>
+                <Text style={{ width: 46, fontFamily: F.semi, fontSize: e.allDay ? 11 : 13, color: item.past ? C.ink3 : C.ink2, fontVariant: ['tabular-nums'] }}>{e.allDay ? 'ALL DAY' : fmtTime(item.time)}</Text>
+                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: e.color || C.ink3 }} />
+                <View style={{ flex: 1, gap: 1 }}>
+                  <Text style={{ fontFamily: F.semi, fontSize: 15, color: item.past ? C.ink3 : C.ink }} numberOfLines={2}>{e.title}</Text>
+                  {e.location ? <Text style={{ fontFamily: F.med, fontSize: 12, color: C.ink3 }} numberOfLines={1}>{e.location}</Text> : null}
+                </View>
+                <Icon name="calendar" size={16} color={C.ink3} width={2} />
+              </View>
             );
           }
           const t = item.task;

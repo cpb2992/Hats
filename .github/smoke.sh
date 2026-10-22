@@ -59,13 +59,13 @@ tap_label() {
     dump
     if xy=$($FIND smoke/ui.xml "$1"); then
       y=${xy#* }
-      if [ "$y" -gt 60 ] && [ "$y" -lt $((H - 60)) ]; then adb shell input tap $xy; echo "tapped '$1' at $xy" >> smoke/c-steps.txt; return 0; fi
+      if [ "$y" -gt 60 ] && [ "$y" -lt $((H - 60)) ]; then adb shell input tap $xy; echo "tapped '$1' at $xy" >> ${TAP_LOG:-smoke/c-steps.txt}; return 0; fi
       if [ "$y" -le 60 ]; then adb shell input swipe $((W / 2)) $((H * 2 / 5)) $((W / 2)) $((H * 3 / 5)) 500; sleep 1; continue; fi
     fi
     adb shell input swipe $((W / 2)) $((H * 3 / 5)) $((W / 2)) $((H * 2 / 5)) 500
     sleep 1
   done
-  echo "could not find '$1'" >> smoke/c-steps.txt; return 1
+  echo "could not find '$1'" >> ${TAP_LOG:-smoke/c-steps.txt}; return 1
 }
 adb shell am start -W -n $PKG/.MainActivity
 sleep 6
@@ -92,7 +92,39 @@ echo "alive: $(alive)" >> smoke/c-steps.txt
 adb logcat -d -v time > smoke/c-logcat.txt
 adb logcat -d -b crash > smoke/c-crash.txt
 
-for f in a-logcat b-logcat c-logcat; do
+# --- D: Say anything puts a meeting on the phone calendar
+adb logcat -c
+: > smoke/d-steps.txt
+# A local calendar (the emulator has no Google account), and calendar permission as if Chris allowed it.
+adb shell "content insert --uri 'content://com.android.calendar/calendars?caller_is_syncadapter=true&account_name=hats&account_type=LOCAL' --bind account_name:s:hats --bind account_type:s:LOCAL --bind name:s:TestCalendar --bind calendar_displayName:s:TestCalendar --bind calendar_access_level:i:700 --bind ownerAccount:s:hats --bind visible:i:1 --bind sync_events:i:1 --bind calendar_color:i:-14575885"
+adb shell pm grant $PKG android.permission.READ_CALENDAR
+adb shell pm grant $PKG android.permission.WRITE_CALENDAR
+adb shell pm grant $PKG android.permission.RECORD_AUDIO
+adb shell am start -W -a android.intent.action.VIEW -d "hats://settings" $PKG
+sleep 8
+TAP_LOG=smoke/d-steps.txt
+tap_label "TestCalendar" 16 && sleep 2
+dump; cp smoke/ui.xml smoke/d-settings.xml
+adb exec-out screencap -p > smoke/d-settings.png
+adb shell am start -W -a android.intent.action.VIEW -d "hats://capture" $PKG
+sleep 6
+tap_label "^\|Type$" 2 && sleep 1
+tap_label "Type what you need" 2 && sleep 1
+adb shell input text "Team%smeeting%stoday%sat%s11:30pm"
+sleep 2
+dump; cp smoke/ui.xml smoke/d-capture.xml
+adb exec-out screencap -p > smoke/d-capture.png
+tap_label "^\|Go$|^Go\|" 3 && sleep 8
+dump; cp smoke/ui.xml smoke/d-results.xml
+adb exec-out screencap -p > smoke/d-results.png
+adb shell "content query --uri content://com.android.calendar/events --projection title:dtstart:dtend:calendar_id:description" > smoke/d-events.txt 2>&1
+tap_label "^\|Done$" 2 && sleep 4
+adb exec-out screencap -p > smoke/d-now.png
+echo "alive: $(alive)" >> smoke/d-steps.txt
+adb logcat -d -v time > smoke/d-logcat.txt
+adb logcat -d -b crash > smoke/d-crash.txt
+
+for f in a-logcat b-logcat c-logcat d-logcat; do
   grep -iE "AndroidRuntime|ReactNativeJS|ReactNative|ReactHost|FATAL|Exception|hatsfocus|AndroidWidget|RNWidget|Headless|WM-" smoke/$f.txt > smoke/$f-filtered.txt || true
 done
 exit 0

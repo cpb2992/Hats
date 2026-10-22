@@ -2,7 +2,7 @@
 import { addDays, minutesOf, nextMonday, nextWorkday, weekday, weekStart } from './dates';
 import { ALL_HATS } from './hats';
 import { blocksFor } from './schedule';
-import type { AppData, Block, DayLog, HatId, Settings, Task } from './types';
+import type { AppData, Block, CalEvent, DayLog, HatId, Settings, Task } from './types';
 
 export const SCHOOL_HATS: HatId[] = ['teacher', 'sped', 'dept', 'btu', 'mentor'];
 
@@ -20,6 +20,13 @@ export function openToday(data: AppData, today: string): Task[] {
 
 const deferredToday = (t: Task, today: string) => !!t.deferredAt && t.deferredAt.slice(0, 10) === today;
 
+/** School hats during the school day; home and personal hats before and after it. Days off: everything fits. */
+export function fitsNow(t: Task, s: Settings, today: string, nowMin: number): boolean {
+  if (!s.workdays.includes(weekday(today))) return true;
+  const atSchool = nowMin >= minutesOf(s.schoolStart) && nowMin < minutesOf(s.shutdown);
+  return SCHOOL_HATS.includes(t.hat) === atSchool;
+}
+
 /**
  * Today's open tasks in the order Hats will hand them to you. The first one is Now.
  * 1. timed tasks whose time has come, 2. today's three, 3. everything else in your order,
@@ -27,7 +34,7 @@ const deferredToday = (t: Task, today: string) => !!t.deferredAt && t.deferredAt
  */
 export function queue(data: AppData, today: string, nowMin: number): Task[] {
   const three = dayLog(data, today).three;
-  const rank = (t: Task): [number, number, number, number] => {
+  const rank = (t: Task): [number, number, number, number, number] => {
     const deferred = deferredToday(t, today) ? 1 : 0;
     const timeMin = t.time && (t.date === today || t.date == null) ? minutesOf(t.time) : null;
     const pick = three.indexOf(t.id);
@@ -38,11 +45,13 @@ export function queue(data: AppData, today: string, nowMin: number): Task[] {
     else if (timeMin == null) { group = 2; sub = t.order; }
     else { group = 3; sub = timeMin; }
     const defOrder = deferred && t.deferredAt ? Date.parse(t.deferredAt) : 0;
-    return [deferred, group, sub, defOrder];
+    // A timed task whose time has come always surfaces; otherwise work that fits this part of the day comes first.
+    const fit = group === 0 || fitsNow(t, data.settings, today, nowMin) ? 0 : 1;
+    return [deferred, group, sub, defOrder, fit];
   };
   return openToday(data, today)
     .map(t => ({ t, r: rank(t) }))
-    .sort((a, b) => a.r[0] - b.r[0] || a.r[3] - b.r[3] || a.r[1] - b.r[1] || a.r[2] - b.r[2] || a.t.created.localeCompare(b.t.created))
+    .sort((a, b) => a.r[0] - b.r[0] || a.r[3] - b.r[3] || a.r[4] - b.r[4] || a.r[1] - b.r[1] || a.r[2] - b.r[2] || a.t.created.localeCompare(b.t.created))
     .map(x => x.t);
 }
 
@@ -72,10 +81,11 @@ export function anchors(s: Settings, date: string): Anchor[] {
 export type DayItem =
   | { kind: 'anchor'; time: string; anchor: Anchor; past: boolean }
   | { kind: 'block'; time: string; block: Block; past: boolean; current: boolean }
-  | { kind: 'task'; time: string; task: Task; past: boolean };
+  | { kind: 'task'; time: string; task: Task; past: boolean }
+  | { kind: 'event'; time: string; event: CalEvent; past: boolean };
 
 /** Bell-schedule blocks, anchors and timed tasks for the day, in clock order. */
-export function dayTimeline(data: AppData, today: string, nowMin: number, excludeId?: string | null): DayItem[] {
+export function dayTimeline(data: AppData, today: string, nowMin: number, excludeId?: string | null, events: CalEvent[] = []): DayItem[] {
   const items: DayItem[] = anchors(data.settings, today).map(a => ({ kind: 'anchor', time: a.time, anchor: a, past: minutesOf(a.time) < nowMin }));
   for (const blk of blocksFor(data.settings, today)) {
     const start = minutesOf(blk.start);
@@ -88,6 +98,13 @@ export function dayTimeline(data: AppData, today: string, nowMin: number, exclud
     if (!isToday) continue;
     if (t.done && !doneOn(t, today)) continue;
     items.push({ kind: 'task', time: t.time, task: t, past: minutesOf(t.time) < nowMin });
+  }
+  // Calendar events for today; all-day ones sit at the top.
+  for (const e of events) {
+    if (e.date !== today) continue;
+    const time = e.allDay || !e.start ? '00:00' : e.start;
+    const past = e.allDay ? false : minutesOf(e.end ?? e.start ?? '00:00') <= nowMin;
+    items.push({ kind: 'event', time, event: e, past });
   }
   return items.sort((a, b) => minutesOf(a.time) - minutesOf(b.time));
 }

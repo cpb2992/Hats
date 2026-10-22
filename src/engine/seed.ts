@@ -41,6 +41,7 @@ export function freshData(): AppData {
       gym: '20:30',
       workdays: [1, 2, 3, 4, 5],
       notify: { morning: true, shutdown: true, tasks: true, blocks: true },
+      calendar: { id: null, name: '', show: true },
       schedule: defaultSchedule(),
     },
     hats: ALL_HATS.map(id => ({ id, name: HATS[id].name, on: true })),

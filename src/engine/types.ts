@@ -89,6 +89,8 @@ export interface Chore {
   /** 0 = Sunday ... 6 = Saturday */
   days: number[];
   kind: 'laundry' | 'bath' | 'other';
+  /** HH:MM it lands in the day; empty means Hats picks from your schedule. */
+  time?: string;
 }
 
 export type KidColor = 'rose' | 'teal' | 'plum' | 'ochre';
@@ -124,6 +126,8 @@ export interface DayLog {
   shutdown: boolean;
   /** Tonight's dinner has been moved to the fridge. */
   thawed?: boolean;
+  /** Weekly-rhythm items already turned into today's tasks (so a deleted one doesn't come back). */
+  chores?: string[];
 }
 
 export interface FocusSession {
@@ -161,6 +165,8 @@ export interface Settings {
   notify: { morning: boolean; shutdown: boolean; tasks: boolean; blocks: boolean };
   /** Bell schedule by weekday: '1' = Monday ... '5' = Friday. */
   schedule: Record<string, Block[]>;
+  /** The phone calendar new events go to, and whether calendar events show in Hats. */
+  calendar: { id: string | null; name: string; show: boolean };
 }
 
 export interface AppData {
@@ -180,4 +186,22 @@ export interface AppData {
   board: KidsBoard;
   days: Record<string, DayLog>;
   focus: FocusSession[];
+}
+
+/** An event read from the phone's calendar (local times). */
+export interface CalEvent {
+  id: string;
+  calendarId: string;
+  calendar: string;
+  color: string;
+  title: string;
+  /** YYYY-MM-DD */
+  date: string;
+  /** HH:MM, null for all-day */
+  start: string | null;
+  end: string | null;
+  allDay: boolean;
+  location: string;
+  /** Hats can move or delete it (the calendar allows changes). */
+  canEdit: boolean;
 }

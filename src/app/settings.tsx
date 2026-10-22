@@ -1,15 +1,17 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Alert, Pressable, Switch, Text, View } from 'react-native';
+import { Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
 import { fmtTime, minutesOf, timeOf } from '../engine/dates';
 import { HATS } from '../engine/hats';
+import { choreTime } from '../engine/rhythm';
 import type { Chore, KidColor, Settings } from '../engine/types';
 import { uid } from '../engine/util';
 import { sendTestReminder } from '../services/notifications';
 import { WIDGETS } from '../widgets/render';
 import { pinWidget, widgetsSupported } from '../widgets/update';
 import { useApp } from '../store/AppStore';
+import { CalendarSection, ClaudeSection } from '../ui/AssistantSettings';
 import { Icon } from '../ui/icons';
 import { BackLink, Btn, Card, Chip, Field, Label, Patch, Screen, Segmented, Stepper, tap, Txt } from '../ui/kit';
 import { C, F, KID_COLORS } from '../ui/theme';
@@ -25,6 +27,16 @@ const TIMES: { key: keyof Pick<Settings, 'morning' | 'schoolStart' | 'shutdown' 
   { key: 'gym', label: 'Gym window' },
 ];
 const COLORS: KidColor[] = ['rose', 'teal', 'plum', 'ochre'];
+
+/** When a rhythm item lands on a school day (or its first day). */
+function choreWhen(c: Chore, s: Settings): string {
+  const probe = c.days.find(d => s.workdays.includes(d)) ?? c.days[0];
+  if (probe == null) return 'No days';
+  const date = new Date(2026, 0, 4 + probe); // Jan 4, 2026 is a Sunday
+  const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+  const t = choreTime(c, s, iso);
+  return t ? fmtTime(t, true) : 'Anytime';
+}
 
 function Section({ title, children }: { title: string; children: ReactNode }) {
   return (
@@ -113,6 +125,9 @@ export default function SettingsScreen() {
       <Btn title="Send a test reminder" kind="quiet" small icon="clock" onPress={async () => { const ok = await sendTestReminder(); setTestNote(ok ? 'Sent. It should arrive in a couple of seconds.' : 'Reminders are off for Hats. Turn on notifications for Hats in your phone’s settings.'); }} />
       {testNote ? <Txt v="fine">{testNote}</Txt> : null}
 
+      <CalendarSection />
+      <ClaudeSection />
+
       {widgetsSupported ? (
         <Section title="Home-screen widgets">
           {([[WIDGETS.now, 'Now', 'Your one thing, with Focus and Done'], [WIDGETS.log, 'Caseload +1', 'Log a data point without opening Hats'], [WIDGETS.say, 'Say anything', 'One tap to capture out loud']] as const).map(([name, title, sub], i) => (
@@ -161,10 +176,12 @@ export default function SettingsScreen() {
 
       <View style={{ gap: 12 }}>
         <Label>Weekly rhythm</Label>
+        <Txt v="fine">Each one becomes a Home task on its day: laundry after pickups, baths an hour before bedtime. Tap a name to change it, like turning “kid 1” into a name.</Txt>
         {data.chores.map(c => (
           <View key={c.id} style={{ gap: 8, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: C.line }}>
             <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <Txt v="semi" style={{ flex: 1 }}>{c.label}</Txt>
+              <TextInput value={c.label} onChangeText={label => mutate(d => { d.chores = d.chores.map(x => (x.id === c.id ? { ...x, label } : x)); })} accessibilityLabel={`Rename ${c.label}`} selectionColor={C.gold} style={{ flex: 1, fontFamily: F.semi, fontSize: 15, color: C.ink, paddingVertical: 6 }} />
+              <Text style={{ fontFamily: F.med, fontSize: 12, color: C.ink3 }}>{choreWhen(c, s)}</Text>
               <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${c.label}`} hitSlop={8} onPress={() => mutate(d => { d.chores = d.chores.filter(x => x.id !== c.id); })}><Icon name="close" size={18} color={C.ink3} /></Pressable>
             </View>
             <View style={{ flexDirection: 'row', gap: 6 }}>

@@ -14,6 +14,7 @@ export function normalizeData(raw: unknown): AppData {
   settings.notify = { ...base.settings.notify, ...(isObj(r.settings?.notify) ? r.settings!.notify : {}) };
   if (!Array.isArray(settings.workdays)) settings.workdays = base.settings.workdays;
   if (!isObj(settings.schedule)) settings.schedule = base.settings.schedule;
+  settings.calendar = { ...base.settings.calendar, ...(isObj(r.settings?.calendar) ? r.settings!.calendar : {}) };
 
   const savedHats = arr(r.hats, base.hats);
   const hats = ALL_HATS.map(id => {
