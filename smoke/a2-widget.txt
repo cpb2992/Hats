@@ -1,0 +1,2 @@
+alive: RUNNING
+  mCurrentFocus=Window{5ad0995 u0 com.hatsfocus.app/com.hatsfocus.app.MainActivity}
