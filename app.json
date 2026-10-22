@@ -118,12 +118,6 @@
           }
         }
       ],
-      [
-        "expo-calendar",
-        {
-          "calendarPermission": "Hats adds meetings you tell it about to your calendar and shows your events in your day."
-        }
-      ],
       "expo-secure-store"
     ],
     "experiments": {

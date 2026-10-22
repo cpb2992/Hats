@@ -11,6 +11,7 @@ import { useApp } from '../../store/AppStore';
 import { Icon } from '../../ui/icons';
 import { Btn, Cap, Card, CircleBtn, InitialsPatch, Label, Patch, Ring, Screen, success, tap, thud, Txt, useWide } from '../../ui/kit';
 import { AllClearSpot } from '../../ui/spots';
+import { DayRow } from '../../ui/DayRow';
 import { TaskRow } from '../../ui/TaskRow';
 import { C, F, recoveryColor } from '../../ui/theme';
 
@@ -28,7 +29,7 @@ function BlockBar({ block, nowMin }: { block: Block; nowMin: number }) {
 }
 
 export default function NowScreen() {
-  const { data, today, nowMin, mutate, showToast, events } = useApp();
+  const { data, today, nowMin, mutate, showToast } = useApp();
   const wide = useWide();
   const [showEarlier, setShowEarlier] = useState(false);
   const [allAcc, setAllAcc] = useState(false);
@@ -43,7 +44,7 @@ export default function NowScreen() {
   const teaching = isTeaching(block);
   const free = block?.kind === 'free' ? block : null;
   const upcomingFree = nextFree(s, today, nowMin);
-  const timeline = dayTimeline(data, today, nowMin, now?.id, events);
+  const timeline = dayTimeline(data, today, nowMin, now?.id);
   const earlier = timeline.filter(i => i.past && !(i.kind === 'block' && i.current));
   const visible = showEarlier ? timeline : timeline.filter(i => !i.past || (i.kind === 'block' && i.current));
   const work = s.workdays.includes(weekday(today));
@@ -86,6 +87,7 @@ export default function NowScreen() {
               {log.recovery != null ? <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.ink, fontVariant: ['tabular-nums'] }}>{log.recovery}</Text> : <Icon name="plus" size={14} color={C.ink2} width={2} />}
             </Ring>
           </Pressable>
+          <CircleBtn icon="calendar" size={40} kind="quiet" label="Calendar" onPress={() => router.push('/calendar')} />
           <CircleBtn icon="settings" size={40} kind="quiet" label="Settings" onPress={() => router.push('/settings')} />
         </View>
       </View>
@@ -217,70 +219,16 @@ export default function NowScreen() {
     </View>
   ) : null;
 
-  const rowStyle = (last: boolean) => ({ flexDirection: 'row' as const, alignItems: 'center' as const, gap: 14, minHeight: 52, borderBottomWidth: last ? 0 : 1, borderBottomColor: C.line });
   const day = (
     <View style={{ gap: 6 }}>
-      <Label right={wins.length ? `${wins.length} done` : undefined}>Today</Label>
+      <Label right={<Pressable accessibilityRole="button" onPress={() => { tap(); router.push('/calendar'); }} hitSlop={8}><Txt v="fine" color={C.gold}>{wins.length ? `${wins.length} done · ` : ''}Calendar</Txt></Pressable>}>Today</Label>
       {earlier.length ? (
         <Pressable accessibilityRole="button" onPress={() => { tap(); setShowEarlier(v => !v); }} style={{ minHeight: 40, justifyContent: 'center' }}>
           <Txt v="fine" color={C.ink3}>{showEarlier ? 'Hide earlier' : `${earlier.length} earlier · show`}</Txt>
         </Pressable>
       ) : null}
       <View>
-        {visible.map((item, i) => {
-          const last = i === visible.length - 1;
-          if (item.kind === 'block') {
-            const blk = item.block;
-            const tint = item.current ? C.ink : item.past ? C.ink3 : blk.kind === 'free' ? C.gold : C.ink2;
-            return (
-              <View key={`b-${blk.id}`} style={rowStyle(last)}>
-                <Text style={{ width: 46, fontFamily: F.semi, fontSize: 13, color: item.current ? C.gold : C.ink3, fontVariant: ['tabular-nums'] }}>{fmtTime(blk.start)}</Text>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: item.current ? C.gold : blk.kind === 'free' ? C.goldLine : 'transparent' }} />
-                <Text style={{ flex: 1, fontFamily: item.current || blk.kind === 'free' ? F.semi : F.med, fontSize: 15, color: tint }}>{blk.label}</Text>
-                <Text style={{ fontFamily: F.med, fontSize: 12, color: C.ink3, fontVariant: ['tabular-nums'] }}>{fmtTime(blk.end)}</Text>
-              </View>
-            );
-          }
-          if (item.kind === 'anchor') {
-            const target = item.anchor.kind === 'shutdown' ? '/shutdown' : item.anchor.kind === 'bedtime' ? '/kids' : null;
-            const body = (
-              <>
-                <Text style={{ width: 46, fontFamily: F.semi, fontSize: 13, color: C.ink3, fontVariant: ['tabular-nums'] }}>{fmtTime(item.time)}</Text>
-                <View style={{ width: 6 }} />
-                <Text style={{ flex: 1, fontFamily: F.med, fontSize: 15, color: item.past ? C.ink3 : C.ink2 }}>{item.anchor.title}</Text>
-                {target ? <Icon name="chevron" size={18} color={C.ink3} /> : null}
-              </>
-            );
-            return target ? (
-              <Pressable key={`a-${item.anchor.kind}`} accessibilityRole="button" onPress={() => { tap(); router.push(target); }} style={rowStyle(last)}>{body}</Pressable>
-            ) : (
-              <View key={`a-${item.anchor.kind}`} style={rowStyle(last)}>{body}</View>
-            );
-          }
-          if (item.kind === 'event') {
-            const e = item.event;
-            return (
-              <View key={`e-${e.id}-${e.date}`} accessibilityLabel={`${e.allDay ? 'All day' : fmtTime(item.time)}: ${e.title}`} style={[rowStyle(last), { minHeight: 52 }]}>
-                <Text style={{ width: 46, fontFamily: F.semi, fontSize: e.allDay ? 11 : 13, color: item.past ? C.ink3 : C.ink2, fontVariant: ['tabular-nums'] }}>{e.allDay ? 'ALL DAY' : fmtTime(item.time)}</Text>
-                <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: e.color || C.ink3 }} />
-                <View style={{ flex: 1, gap: 1 }}>
-                  <Text style={{ fontFamily: F.semi, fontSize: 15, color: item.past ? C.ink3 : C.ink }} numberOfLines={2}>{e.title}</Text>
-                  {e.location ? <Text style={{ fontFamily: F.med, fontSize: 12, color: C.ink3 }} numberOfLines={1}>{e.location}</Text> : null}
-                </View>
-                <Icon name="calendar" size={16} color={C.ink3} width={2} />
-              </View>
-            );
-          }
-          const t = item.task;
-          return (
-            <Pressable key={t.id} accessibilityRole="button" accessibilityLabel={`Edit ${t.title}`} onPress={() => { tap(); router.push(`/task/${t.id}`); }} style={[rowStyle(last), { minHeight: 56 }]}>
-              <Text style={{ width: 46, fontFamily: F.semi, fontSize: 13, color: C.ink3, fontVariant: ['tabular-nums'] }}>{fmtTime(item.time)}</Text>
-              <View style={{ width: 6 }} />
-              <Text style={{ flex: 1, fontFamily: t.done ? F.med : F.semi, fontSize: 15, color: t.done ? C.ink3 : C.ink, textDecorationLine: t.done ? 'line-through' : 'none' }}>{t.title}</Text>
-              {t.done ? <Icon name="check" size={18} color={C.gold} width={2.4} /> : <Patch hat={t.hat} size={20} stitch={false} />}
-            </Pressable>
-          );
-        })}
+        {visible.map((item, i) => <DayRow key={`${item.kind}-${item.time}-${i}`} item={item} last={i === visible.length - 1} />)}
       </View>
     </View>
   );

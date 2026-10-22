@@ -162,11 +162,9 @@ export interface Settings {
   gym: string;
   /** 0 = Sunday ... 6 = Saturday */
   workdays: number[];
-  notify: { morning: boolean; shutdown: boolean; tasks: boolean; blocks: boolean };
+  notify: { morning: boolean; shutdown: boolean; tasks: boolean; blocks: boolean; events: boolean };
   /** Bell schedule by weekday: '1' = Monday ... '5' = Friday. */
   schedule: Record<string, Block[]>;
-  /** The phone calendar new events go to, and whether calendar events show in Hats. */
-  calendar: { id: string | null; name: string; show: boolean };
 }
 
 export interface AppData {
@@ -181,6 +179,8 @@ export interface AppData {
   /** date -> meal planned for that night */
   dinners: Record<string, string>;
   chores: Chore[];
+  /** Hats' own calendar. */
+  events: HatsEvent[];
   kids: Kid[];
   routine: KidStep[];
   board: KidsBoard;
@@ -188,12 +188,9 @@ export interface AppData {
   focus: FocusSession[];
 }
 
-/** An event read from the phone's calendar (local times). */
-export interface CalEvent {
+/** An event on Hats' own calendar. */
+export interface HatsEvent {
   id: string;
-  calendarId: string;
-  calendar: string;
-  color: string;
   title: string;
   /** YYYY-MM-DD */
   date: string;
@@ -202,6 +199,7 @@ export interface CalEvent {
   end: string | null;
   allDay: boolean;
   location: string;
-  /** Hats can move or delete it (the calendar allows changes). */
-  canEdit: boolean;
+  note: string;
+  hat: HatId;
+  created: string;
 }

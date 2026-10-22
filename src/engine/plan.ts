@@ -2,7 +2,7 @@
 import { addDays, minutesOf, nextMonday, nextWorkday, weekday, weekStart } from './dates';
 import { ALL_HATS } from './hats';
 import { blocksFor } from './schedule';
-import type { AppData, Block, CalEvent, DayLog, HatId, Settings, Task } from './types';
+import type { AppData, Block, DayLog, HatId, HatsEvent, KeyDate, Settings, Student, Task } from './types';
 
 export const SCHOOL_HATS: HatId[] = ['teacher', 'sped', 'dept', 'btu', 'mentor'];
 
@@ -82,10 +82,11 @@ export type DayItem =
   | { kind: 'anchor'; time: string; anchor: Anchor; past: boolean }
   | { kind: 'block'; time: string; block: Block; past: boolean; current: boolean }
   | { kind: 'task'; time: string; task: Task; past: boolean }
-  | { kind: 'event'; time: string; event: CalEvent; past: boolean };
+  | { kind: 'event'; time: string; event: HatsEvent; past: boolean }
+  | { kind: 'keydate'; time: string; student: Student; keyDate: KeyDate; past: boolean };
 
 /** Bell-schedule blocks, anchors and timed tasks for the day, in clock order. */
-export function dayTimeline(data: AppData, today: string, nowMin: number, excludeId?: string | null, events: CalEvent[] = []): DayItem[] {
+export function dayTimeline(data: AppData, today: string, nowMin: number, excludeId?: string | null): DayItem[] {
   const items: DayItem[] = anchors(data.settings, today).map(a => ({ kind: 'anchor', time: a.time, anchor: a, past: minutesOf(a.time) < nowMin }));
   for (const blk of blocksFor(data.settings, today)) {
     const start = minutesOf(blk.start);
@@ -99,14 +100,46 @@ export function dayTimeline(data: AppData, today: string, nowMin: number, exclud
     if (t.done && !doneOn(t, today)) continue;
     items.push({ kind: 'task', time: t.time, task: t, past: minutesOf(t.time) < nowMin });
   }
-  // Calendar events for today; all-day ones sit at the top.
-  for (const e of events) {
-    if (e.date !== today) continue;
-    const time = e.allDay || !e.start ? '00:00' : e.start;
-    const past = e.allDay ? false : minutesOf(e.end ?? e.start ?? '00:00') <= nowMin;
-    items.push({ kind: 'event', time, event: e, past });
-  }
+  items.push(...calendarItems(data, today, nowMin));
   return items.sort((a, b) => minutesOf(a.time) - minutesOf(b.time));
+}
+
+/** Hats calendar events and caseload dates (reviews, re-evals) on a day. All-day ones sit at the top. */
+export function calendarItems(data: AppData, date: string, nowMin: number): DayItem[] {
+  const out: DayItem[] = [];
+  for (const e of data.events) {
+    if (e.date !== date) continue;
+    const time = e.allDay || !e.start ? '00:00' : e.start;
+    const past = !e.allDay && minutesOf(e.end ?? e.start ?? '00:00') <= nowMin;
+    out.push({ kind: 'event', time, event: e, past });
+  }
+  for (const st of data.students) for (const k of st.dates) if (k.date === date) out.push({ kind: 'keydate', time: '00:00', student: st, keyDate: k, past: false });
+  return out;
+}
+
+/**
+ * Any day on the calendar: bell blocks, the day's anchors, events, caseload dates and timed tasks dated that day.
+ * `nowMin` only matters for today; earlier days are all past and later days none.
+ */
+export function agenda(data: AppData, date: string, today: string, nowMin: number): DayItem[] {
+  const now = date === today ? nowMin : date < today ? 24 * 60 : -1;
+  const items: DayItem[] = anchors(data.settings, date).map(a => ({ kind: 'anchor', time: a.time, anchor: a, past: minutesOf(a.time) < now }));
+  for (const blk of blocksFor(data.settings, date)) {
+    items.push({ kind: 'block', time: blk.start, block: blk, past: minutesOf(blk.end) <= now, current: minutesOf(blk.start) <= now && now < minutesOf(blk.end) });
+  }
+  for (const t of data.tasks) {
+    if (!t.time) continue;
+    const on = t.date ?? (date === today && !t.done ? today : null);
+    if (on !== date || (t.done && !doneOn(t, date))) continue;
+    items.push({ kind: 'task', time: t.time, task: t, past: minutesOf(t.time) < now });
+  }
+  items.push(...calendarItems(data, date, now));
+  return items.sort((a, b) => minutesOf(a.time) - minutesOf(b.time));
+}
+
+/** How many calendar things (events, caseload dates, timed tasks) a day holds, for the week strip. */
+export function dayLoad(data: AppData, date: string, today: string): number {
+  return agenda(data, date, today, 0).filter(i => i.kind === 'event' || i.kind === 'keydate' || (i.kind === 'task' && i.task.date === date)).length;
 }
 
 export function winsOn(data: AppData, date: string): Task[] {

@@ -5,7 +5,6 @@ import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { checkActions, describeWhen, readWithoutClaude, type Action, type Situation } from '../engine/assistant';
 import { HATS } from '../engine/hats';
 import { understand } from '../services/assistant';
-import { hasCalendarAccess } from '../services/calendar';
 import { runActions, type Outcome } from '../services/runner';
 import { getClaudeKey } from '../services/secrets';
 import { abortListening, speechAvailable, startListening, stopListening, useSpeechRecognitionEvent } from '../services/speech';
@@ -45,24 +44,24 @@ function previewLine(a: Action, today: string): { icon: IconName; title: string;
   }
 }
 
-function Row({ icon, title, detail, state, action }: { icon: IconName; title: string; detail: string; state?: Outcome['state']; action?: React.ReactNode }) {
+function Row({ icon, title, detail, state, action, onPress }: { icon: IconName; title: string; detail: string; state?: Outcome['state']; action?: React.ReactNode; onPress?: () => void }) {
   const dim = state === 'undone' || state === 'failed';
   return (
     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 14, minHeight: 66, paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: C.line }}>
-      <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: state === 'ask' ? 'rgba(193,95,60,0.18)' : state === 'failed' ? 'rgba(255,255,255,0.04)' : C.goldSoft }}>
-        <Icon name={icon} size={19} color={state === 'ask' ? C.rust : dim ? C.ink3 : C.gold} width={2} />
+      <View style={{ width: 40, height: 40, borderRadius: 20, alignItems: 'center', justifyContent: 'center', backgroundColor: state === 'failed' ? 'rgba(255,255,255,0.04)' : C.goldSoft }}>
+        <Icon name={icon} size={19} color={dim ? C.ink3 : C.gold} width={2} />
       </View>
-      <View style={{ flex: 1, gap: 3 }}>
+      <Pressable disabled={!onPress} onPress={onPress} accessibilityRole={onPress ? 'button' : undefined} style={{ flex: 1, gap: 3 }}>
         <Text style={{ fontFamily: F.semi, fontSize: 15, lineHeight: 20, color: dim ? C.ink3 : C.ink, textDecorationLine: state === 'undone' ? 'line-through' : 'none' }}>{title}</Text>
         <Text style={{ fontFamily: F.body, fontSize: 13, lineHeight: 18, color: C.ink2 }}>{state === 'undone' ? 'Undone' : detail}</Text>
-      </View>
+      </Pressable>
       {action}
     </View>
   );
 }
 
 export default function CaptureScreen() {
-  const { data, today, nowMin, mutate, events, recent, setRecent, refreshEvents } = useApp();
+  const { data, today, nowMin, mutate, recent, setRecent } = useApp();
   const insets = useSafeAreaInsets();
   const canSpeak = useMemo(() => Platform.OS !== 'web' && speechAvailable(), []);
   const [mode, setMode] = useState<'say' | 'type'>(canSpeak ? 'say' : 'type');
@@ -73,23 +72,19 @@ export default function CaptureScreen() {
   const [voiceError, setVoiceError] = useState<string | null>(null);
   const [phase, setPhase] = useState<'input' | 'working' | 'results'>('input');
   const [key, setKey] = useState<string | null>(null);
-  const [calReady, setCalReady] = useState(false);
   const [reply, setReply] = useState('');
   const [notes, setNotes] = useState<string[]>([]);
   const [fallback, setFallback] = useState<string | null>(null);
   const [outcomes, setOutcomes] = useState<Outcome[]>([]);
 
-  useEffect(() => {
-    getClaudeKey().then(setKey).catch(() => {});
-    hasCalendarAccess().then(ok => setCalReady(ok && !!data.settings.calendar.id)).catch(() => {});
-  }, [data.settings.calendar.id]);
+  useEffect(() => { getClaudeKey().then(setKey).catch(() => {}); }, []);
 
   const source = mode === 'say' ? `${said}${interim ? ` ${interim}` : ''}`.trim() : typed.trim();
-  const situation: Situation = { data, today, nowMin, events, recent, calendarReady: calReady };
+  const situation: Situation = { data, today, nowMin, recent };
   // Without Claude, show how the rule-based reader will handle it before anything happens.
   const preview = useMemo(() => (key || !source ? [] : checkActions(readWithoutClaude(source, situation).actions, situation).actions),
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [key, source, data, today, events]);
+    [key, source, data, today]);
 
   useSpeechRecognitionEvent('start', () => { setListening(true); setVoiceError(null); });
   useSpeechRecognitionEvent('end', () => { setListening(false); setInterim(''); });
@@ -123,25 +118,20 @@ export default function CaptureScreen() {
     setListening(false);
     setPhase('working');
     const result = await understand(source, situation, key);
-    const cal = calReady && data.settings.calendar.id ? { id: data.settings.calendar.id, name: data.settings.calendar.name || 'your calendar' } : null;
-    const done = await runActions(result.actions, { mutate, today, calendar: cal });
+    const done = runActions(result.actions, { mutate, today });
     setReply(result.reply);
     setNotes(result.notes);
     setFallback(result.fallbackReason ?? null);
     setOutcomes(done);
     setRecent(done.flatMap(o => (o.recent && o.state === 'done' ? [o.recent] : [])));
-    if (done.some(o => o.icon === 'calendar')) refreshEvents();
     if (done.length) success();
     setPhase('results');
   };
 
-  const undo = async (o: Outcome) => {
+  const undo = (o: Outcome) => {
     tap();
-    try { await o.undo?.(); setOutcomes(list => list.map(x => (x.key === o.key ? { ...x, state: 'undone' } : x))); refreshEvents(); } catch { /* leave it */ }
-  };
-  const confirm = async (o: Outcome) => {
-    tap();
-    try { const next = await o.confirm!(); setOutcomes(list => list.map(x => (x.key === o.key ? next : x))); refreshEvents(); } catch { setOutcomes(list => list.map(x => (x.key === o.key ? { ...x, state: 'failed', detail: 'Your calendar didn’t accept that change.' } : x))); }
+    o.undo?.();
+    setOutcomes(list => list.map(x => (x.key === o.key ? { ...x, state: 'undone' } : x)));
   };
 
   const again = () => {
@@ -179,9 +169,8 @@ export default function CaptureScreen() {
                     title={o.title}
                     detail={o.detail}
                     state={o.state}
-                    action={o.state === 'ask' ? (
-                      <Btn title="Delete" small kind="quiet" onPress={() => confirm(o)} accessibilityLabel={`Delete ${o.title} from your calendar`} />
-                    ) : o.state === 'done' && o.undo ? (
+                    onPress={o.state === 'done' && o.href ? () => { tap(); router.push(o.href as never); } : undefined}
+                    action={o.state === 'done' && o.undo ? (
                       <Pressable accessibilityRole="button" accessibilityLabel={`Undo ${o.title}`} onPress={() => undo(o)} hitSlop={8} style={{ paddingHorizontal: 12, height: 36, borderRadius: 18, justifyContent: 'center', backgroundColor: 'rgba(255,255,255,0.06)' }}>
                         <Text style={{ fontFamily: F.semi, fontSize: 13, color: C.ink2 }}>Undo</Text>
                       </Pressable>
@@ -203,7 +192,7 @@ export default function CaptureScreen() {
   }
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.deep }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.deep }}>
       <View style={{ flex: 1, paddingTop: insets.top + 12 }}>
         <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between', paddingHorizontal: 20, gap: 12 }}>
           <View style={{ width: 190 }}>
@@ -228,18 +217,18 @@ export default function CaptureScreen() {
               </Text>
             </View>
           ) : (
-            <Field big autoFocus multiline value={typed} onChangeText={setTyped} placeholder="IEP meeting for J.M. Thursday at 9:30, and print the agenda" accessibilityLabel="Type what you need" />
+            <Field big autoFocus multiline value={typed} onChangeText={setTyped} placeholder="IEP meeting for J.M. Thursday at 9:30, and print the agenda" accessibilityLabel="Type what you need" returnKeyType="go" submitBehavior="blurAndSubmit" onSubmitEditing={go} />
           )}
 
           {key ? (
-            <Txt v="fine">Meetings and appointments go on your calendar, to-dos go in Hats, and “4 of 5 for J.S.” logs data. Claude reads it against your schedule when you tap Go.</Txt>
+            <Txt v="fine">Meetings and appointments go on your Hats calendar, to-dos go on your list, and “4 of 5 for J.S.” logs data. Claude reads it against your schedule when you tap Go.</Txt>
           ) : preview.length ? (
             <View style={{ gap: 4 }}>
               <Txt v="label">Hats will</Txt>
               {preview.map((a, i) => { const p = previewLine(a, today); return <Row key={i} icon={p.icon} title={p.title} detail={p.detail} />; })}
             </View>
           ) : (
-            <Txt v="fine">Meetings and appointments go on your calendar, to-dos go in Hats, and “4 of 5 for J.S.” logs data. Add a Claude key in Settings and Hats understands much more.</Txt>
+            <Txt v="fine">Meetings and appointments go on your Hats calendar, to-dos go on your list, and “4 of 5 for J.S.” logs data. Add a Claude key in Settings and Hats understands much more.</Txt>
           )}
         </ScrollView>
 

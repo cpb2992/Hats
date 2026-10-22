@@ -10,20 +10,20 @@ import { addDays, dayShort, fmtTime, minutesOf, timeOf, weekday } from './dates'
 import { ALL_HATS, HATS } from './hats';
 import { guessHat, parseMany, type Parsed } from './parse';
 import { blocksFor, currentBlock, freeBlocks, nextFree, sectionNow } from './schedule';
-import type { AppData, CalEvent, HatId, Student } from './types';
+import type { AppData, HatId, HatsEvent, Student } from './types';
 import { normalizeInitials } from './util';
 
 /* --------------------------------------------------------------- types */
 
-export type { CalEvent } from './types';
+export type { HatsEvent } from './types';
 
 export type Action =
   | { kind: 'event'; title: string; date: string; start: string | null; end: string | null; allDay: boolean; location: string; note: string; hat: HatId }
   | { kind: 'task'; title: string; hat: HatId; date: string | null; time: string | null; minutes: number; student: string | null }
   | { kind: 'log'; studentId: string; initials: string; goalId: string; goalKind: 'tally' | 'trials'; value: number; outOf: number }
   | { kind: 'done'; taskId: string; title: string }
-  | { kind: 'move'; eventId: string; title: string; date: string; start: string | null; end: string | null; allDay: boolean; from: CalEvent }
-  | { kind: 'cancel'; eventId: string; title: string; from: CalEvent };
+  | { kind: 'move'; eventId: string; title: string; date: string; start: string | null; end: string | null; allDay: boolean; from: HatsEvent }
+  | { kind: 'cancel'; eventId: string; title: string; from: HatsEvent };
 
 /** What the model returns for each action. Every field is present; "" or 0 means "not given". */
 export interface RawAction {
@@ -60,10 +60,7 @@ export interface Situation {
   data: AppData;
   today: string;
   nowMin: number;
-  events: CalEvent[];
   recent: Recent[];
-  /** Whether a calendar is connected for new events. */
-  calendarReady: boolean;
 }
 
 /* ------------------------------------------------------------ helpers */
@@ -155,7 +152,6 @@ export function buildContext(s: Situation): string {
   const free = nextFree(data.settings, today, nowMin);
   if (free) lines.push(`NEXT FREE BLOCK TODAY: ${free.label} ${free.start}-${free.end}.`);
   lines.push(`DAY SHAPE: morning ${data.settings.morning}, school ${data.settings.schoolStart}, shutdown ${data.settings.shutdown}, pickups ${data.settings.pickups}, kids' bedtime ${data.settings.bedtime}.`);
-  lines.push(`CALENDAR FOR NEW EVENTS: ${s.calendarReady ? 'connected' : 'not connected (events become timed tasks)'}.`);
 
   lines.push('', 'BELL SCHEDULE (school days, next 8 days):');
   for (let i = 0; i < 8; i++) {
@@ -165,10 +161,13 @@ export function buildContext(s: Situation): string {
     if (line) lines.push(`- ${dayShort(d)} ${d}: ${line}`);
   }
 
-  lines.push('', 'CALENDAR EVENTS (next 14 days):');
-  const evs = [...s.events].sort((a, b) => (a.date + (a.start ?? '')).localeCompare(b.date + (b.start ?? ''))).slice(0, 60);
+  lines.push('', 'HATS CALENDAR (today through the next 14 days):');
+  const until = addDays(today, 14);
+  const evs = data.events.filter(e => e.date >= today && e.date <= until).sort((a, b) => (a.date + (a.start ?? '')).localeCompare(b.date + (b.start ?? ''))).slice(0, 60);
   if (!evs.length) lines.push('- none');
-  for (const e of evs) lines.push(`- ref=${e.id} | ${dayShort(e.date)} ${e.date} ${e.allDay ? 'all day' : `${e.start}-${e.end}`} | ${e.title}${e.location ? ` @ ${e.location}` : ''}${e.canEdit ? '' : ' | read-only'}`);
+  for (const e of evs) lines.push(`- ref=${e.id} | ${dayShort(e.date)} ${e.date} ${e.allDay ? 'all day' : `${e.start}-${e.end}`} | ${e.title}${e.location ? ` @ ${e.location}` : ''}`);
+  const keyDates = data.students.flatMap(st => st.dates.filter(k => k.date >= today && k.date <= until).map(k => `- ${dayShort(k.date)} ${k.date} | ${k.label} · ${st.initials}`));
+  if (keyDates.length) lines.push('', 'CASELOAD DATES (already on the calendar):', ...keyDates);
 
   lines.push('', 'OPEN TASKS:');
   const open = data.tasks.filter(t => !t.done).slice(0, 40);
@@ -194,12 +193,12 @@ export function buildContext(s: Situation): string {
 export const SYSTEM_PROMPT = `You are the assistant inside Hats, the personal app of Chris, a 7th grade science and special education teacher in Boston who is also science department head, union building rep, mentor, children's book author and a dad of three. He has ADHD and talks to Hats in quick, messy bursts. Turn what he says into actions, using the context about his day.
 
 Actions:
-- event: something he attends at a time (meetings, IEP/504 meetings, appointments, calls with people, PD, field trips, kids' games, dinners). Goes on his phone calendar. Give date, start and end (HH:MM, 24h). Without a stated length: 30 min for calls and quick meetings, 60 min for IEP/504 meetings, conferences, appointments and PD. With no time at all and a whole-day thing (field trip, day off), set allDay true.
+- event: something he attends at a time (meetings, IEP/504 meetings, appointments, calls with people, PD, field trips, kids' games, dinners). Goes on the Hats calendar. Give date, start and end (HH:MM, 24h). Without a stated length: 30 min for calls and quick meetings, 60 min for IEP/504 meetings, conferences, appointments and PD. With no time at all and a whole-day thing (field trip, day off), set allDay true.
 - task: a to-do (send, email, print, grade, sign, buy, write, ask, remind me to). Give a time only when he says one or says "remind me at"; then it becomes a reminder.
 - log: a data point for a student's IEP goal ("J.S. got 4 out of 5", "plus one for A.R.", "log one for D.W."). student = initials exactly as listed. value = successes for "x of n" goals, or the number of +1s for tally goals (usually 1). If two students share initials, set studentClass, preferring the class he is teaching right now.
 - done: he finished an open task ("I sent the lab list"). ref = that task's ref.
-- move: change the date or time of a calendar event. ref = the event's ref. Keep its length unless he gives a new one.
-- cancel: remove a calendar event he says is cancelled or off. ref = the event's ref. Only for events listed as editable.
+- move: change the date or time of a Hats calendar event. ref = the event's ref. Keep its length unless he gives a new one.
+- cancel: remove a Hats calendar event he says is cancelled or off. ref = the event's ref.
 
 Use the situation:
 - "after school" = when dismissal ends. "before school" = before the first bell. "during my prep" / "free period" / "RBR" = his next free block on that day. "after this class" / "after class" = the end of the current block. "at lunch" = the lunch block. "tomorrow morning" = before school tomorrow on a school day.
@@ -281,9 +280,8 @@ export function checkActions(raw: RawAction[], s: Situation): { actions: Action[
       if (!t) { if (title) notes.push(`Couldn't find an open task for "${title}".`); continue; }
       actions.push({ kind: 'done', taskId: t.id, title: t.title });
     } else if (kind === 'move' || kind === 'cancel') {
-      const ev = s.events.find(e => e.id === r.ref) ?? matchEvent(s, title);
+      const ev = s.data.events.find(e => e.id === r.ref) ?? matchEvent(s, title);
       if (!ev) { notes.push(`Couldn't find "${title || 'that event'}" on your calendar.`); continue; }
-      if (!ev.canEdit) { notes.push(`"${ev.title}" is on a calendar Hats can't change.`); continue; }
       if (kind === 'cancel') { actions.push({ kind: 'cancel', eventId: ev.id, title: ev.title, from: ev }); continue; }
       const date = cleanDate(r.date) ?? ev.date;
       let start = cleanTime(r.start) ?? ev.start;
@@ -314,7 +312,7 @@ function matchTask(s: Situation, title: string) {
 }
 function matchEvent(s: Situation, title: string) {
   if (!title) return undefined;
-  const best = s.events.map(e => ({ e, score: overlap(e.title, title) })).sort((a, b) => b.score - a.score)[0];
+  const best = s.data.events.filter(e => e.date >= s.today).map(e => ({ e, score: overlap(e.title, title) })).sort((a, b) => b.score - a.score)[0];
   return best && best.score >= 0.5 ? best.e : undefined;
 }
 
@@ -368,16 +366,16 @@ export function readWithoutClaude(text: string, s: Situation): RawReply {
 }
 
 /** A plain summary when the rule-based reader did the work. */
-export function summarize(actions: Action[], today: string, calendarReady = true): string {
+export function summarize(actions: Action[], today: string): string {
   if (!actions.length) return 'Nothing to add from that.';
   const bits = actions.map(a => {
     switch (a.kind) {
-      case 'event': return calendarReady ? `added "${a.title}" to your calendar ${describeWhen(a.date, a.start, today)}` : `added a reminder for "${a.title}" ${describeWhen(a.date, a.start, today)}`;
+      case 'event': return `added "${a.title}" to your calendar ${a.allDay ? describeWhen(a.date, null, today) : describeWhen(a.date, a.start, today)}`;
       case 'task': return `added "${a.title}"${a.time ? ` with a reminder ${describeWhen(a.date, a.time, today)}` : ''}`;
       case 'log': return `logged ${a.goalKind === 'trials' ? `${a.value} of ${a.outOf}` : `+${a.value}`} for ${a.initials}`;
       case 'done': return `checked off "${a.title}"`;
       case 'move': return `moved "${a.title}" to ${describeWhen(a.date, a.start, today)}`;
-      case 'cancel': return `found "${a.title}" to cancel`;
+      case 'cancel': return `took "${a.title}" off your calendar`;
     }
   });
   const text = bits.length > 1 ? `${bits.slice(0, -1).join(', ')} and ${bits[bits.length - 1]}` : bits[0];

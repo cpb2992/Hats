@@ -74,19 +74,19 @@ export async function understand(utterance: string, s: Situation, key: string | 
     try {
       const raw = await callClaude(key, text, s, ctl.signal);
       const { actions, notes } = checkActions(raw.actions, s);
-      return { reply: raw.reply?.trim() || summarize(actions, s.today, s.calendarReady), actions, notes, by: 'claude' };
+      return { reply: raw.reply?.trim() || summarize(actions, s.today), actions, notes, by: 'claude' };
     } catch (e) {
       const fallbackReason = reasonFor(e);
       const raw = readWithoutClaude(text, s);
       const { actions, notes } = checkActions(raw.actions, s);
-      return { reply: summarize(actions, s.today, s.calendarReady), actions, notes, by: 'rules', fallbackReason };
+      return { reply: summarize(actions, s.today), actions, notes, by: 'rules', fallbackReason };
     } finally {
       clearTimeout(timer);
     }
   }
   const raw = readWithoutClaude(text, s);
   const { actions, notes } = checkActions(raw.actions, s);
-  return { reply: raw.reply || summarize(actions, s.today, s.calendarReady), actions, notes, by: 'rules' };
+  return { reply: raw.reply || summarize(actions, s.today), actions, notes, by: 'rules' };
 }
 
 /** A tiny round trip to check a key works. */

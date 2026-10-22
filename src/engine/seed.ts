@@ -40,8 +40,7 @@ export function freshData(): AppData {
       bedtime: '20:00',
       gym: '20:30',
       workdays: [1, 2, 3, 4, 5],
-      notify: { morning: true, shutdown: true, tasks: true, blocks: true },
-      calendar: { id: null, name: '', show: true },
+      notify: { morning: true, shutdown: true, tasks: true, blocks: true, events: true },
       schedule: defaultSchedule(),
     },
     hats: ALL_HATS.map(id => ({ id, name: HATS[id].name, on: true })),
@@ -52,6 +51,7 @@ export function freshData(): AppData {
     meals: [...DEFAULT_MEALS],
     dinners: {},
     chores: DEFAULT_CHORES.map(c => ({ ...c, days: [...c.days] })),
+    events: [],
     kids: [],
     routine: DEFAULT_ROUTINE.map(r => ({ ...r })),
     board: { date: '', done: {}, stars: 0, goal: 20, reward: 'Friday movie night. You pick the movie.' },
@@ -63,7 +63,7 @@ export function freshData(): AppData {
 /** A believable week for exploring the app. Initials and names are made up. */
 export function makeDemo(today: string, settings?: AppData['settings']): AppData {
   const d = freshData();
-  if (settings) d.settings = { ...settings, onboarded: true, notify: { morning: false, shutdown: false, tasks: false, blocks: false } };
+  if (settings) d.settings = { ...settings, onboarded: true, notify: { morning: false, shutdown: false, tasks: false, blocks: false, events: false } };
   d.settings.name = d.settings.name || 'Chris';
   d.settings.onboarded = true;
   const created = `${today}T06:00:00.000Z`;

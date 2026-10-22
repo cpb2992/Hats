@@ -1,5 +1,5 @@
 /** Works out which reminders to schedule for the coming week. Scheduling itself lives in services/notifications. */
-import { addDays, fromISO, minutesOf, todayISO, weekday } from './dates';
+import { addDays, fmtTime, fromISO, minutesOf, todayISO, weekday } from './dates';
 import { HATS } from './hats';
 import { blockMinutes, freeBlocks } from './schedule';
 import type { AppData } from './types';
@@ -45,6 +45,15 @@ export function planNotifications(data: AppData, now: Date, days = 7): Planned[]
       for (const blk of freeBlocks(s, date)) {
         const at = atTime(date, blk.start);
         if (at > now) out.push({ id: `sync-free-${date}-${blk.start}`, title: `${blk.label.split(' · ')[0]} · ${blockMinutes(blk)} free minutes`, body: 'Your Now is ready. One thing at a time.', at, url: '/' });
+      }
+    }
+    if (s.notify.events) {
+      for (const e of data.events) {
+        if (e.date !== date) continue;
+        // Timed events: 15 minutes before. All-day events: a heads-up with the morning plan time.
+        const at = e.allDay || !e.start ? atTime(date, s.morning) : new Date(atTime(date, e.start).getTime() - 15 * 60000);
+        const body = e.allDay || !e.start ? 'Today, all day' : `${fmtTime(e.start, true)}${e.location ? ` · ${e.location}` : ''}`;
+        if (at > now) out.push({ id: `sync-event-${e.id}`, title: e.title, body, at, url: '/calendar' });
       }
     }
     if (s.notify.tasks) {

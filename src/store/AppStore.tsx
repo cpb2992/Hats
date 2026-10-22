@@ -6,9 +6,8 @@ import type { Recent } from '../engine/assistant';
 import { normalizeData } from '../engine/normalize';
 import { materializeChores } from '../engine/rhythm';
 import { freshData, makeDemo } from '../engine/seed';
-import type { AppData, CalEvent } from '../engine/types';
+import type { AppData } from '../engine/types';
 import { clone } from '../engine/util';
-import { loadEvents } from '../services/calendar';
 import { syncReminders } from '../services/notifications';
 import { updateWidgets } from '../widgets/update';
 import { DATA_KEY, loadData, onExternalChange } from './storage';
@@ -32,9 +31,6 @@ interface Store {
   endDemo: () => void;
   eraseAll: () => void;
   toast: ToastMsg | null;
-  /** Today through two weeks out, from every visible phone calendar. */
-  events: CalEvent[];
-  refreshEvents: () => Promise<void>;
   /** What the last Say anything did, so "move that" knows what "that" is. */
   recent: Recent[];
   setRecent: (r: Recent[]) => void;
@@ -51,7 +47,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const [today, setToday] = useState(todayISO());
   const [nowMin, setNowMin] = useState(nowMinutes());
   const [toast, setToast] = useState<ToastMsg | null>(null);
-  const [events, setEvents] = useState<CalEvent[]>([]);
   const [recent, setRecent] = useState<Recent[]>([]);
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const syncTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -77,12 +72,11 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   }, []);
   useEffect(() => onExternalChange(() => { reload(); }), [reload]);
 
-  const refreshEventsRef = useRef<() => Promise<void>>(async () => {});
   // Keep "today" and the clock current, including after the phone wakes up.
   useEffect(() => {
     const tick = () => { setToday(todayISO()); setNowMin(nowMinutes()); };
     const iv = setInterval(tick, 30000);
-    const sub = AppState.addEventListener('change', s => { if (s === 'active') { tick(); reload(); refreshEventsRef.current(); } });
+    const sub = AppState.addEventListener('change', s => { if (s === 'active') { tick(); reload(); } });
     return () => { clearInterval(iv); sub.remove(); };
   }, [reload]);
 
@@ -96,21 +90,6 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
       return next;
     }));
   }, [ready, today, real.chores]);
-
-  // Phone calendar events show in the day view; refreshed on open, on wake, and every ten minutes.
-  const showCal = real.settings.calendar.show;
-  const refreshEvents = useCallback(async () => {
-    try {
-      const list = showCal ? await loadEvents(todayISO(), 14) : await Promise.resolve([] as CalEvent[]);
-      setEvents(list);
-    } catch { /* keep what we have */ }
-  }, [showCal]);
-  const tenMinTick = Math.floor(nowMin / 10);
-  useEffect(() => {
-    if (!ready) return;
-    const t = setTimeout(() => { refreshEvents(); }, 0);
-    return () => clearTimeout(t);
-  }, [ready, today, tenMinTick, refreshEvents]);
 
   // Home-screen widgets follow your real data, and refresh as the school day moves between blocks.
   const tenMin = Math.floor(nowMin / 10);
@@ -157,11 +136,9 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const hideToast = useCallback(() => setToast(null), []);
 
   const data = demoData ?? real;
-  useEffect(() => { refreshEventsRef.current = refreshEvents; }, [refreshEvents]);
-
   const value = useMemo<Store>(() => ({
-    ready, today, nowMin, demo: !!demoData, data, mutate, startDemo, endDemo, eraseAll, toast, showToast, hideToast, events, refreshEvents, recent, setRecent,
-  }), [ready, today, nowMin, demoData, data, mutate, startDemo, endDemo, eraseAll, toast, showToast, hideToast, events, refreshEvents, recent]);
+    ready, today, nowMin, demo: !!demoData, data, mutate, startDemo, endDemo, eraseAll, toast, showToast, hideToast, recent, setRecent,
+  }), [ready, today, nowMin, demoData, data, mutate, startDemo, endDemo, eraseAll, toast, showToast, hideToast, recent]);
 
   return <StoreContext.Provider value={value}>{children}</StoreContext.Provider>;
 }

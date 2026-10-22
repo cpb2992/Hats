@@ -1,6 +1,6 @@
 import { router } from 'expo-router';
 import { useMemo, useState } from 'react';
-import { KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
+import { KeyboardAvoidingView, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { fmtShort } from '../engine/dates';
 import { goalLabel } from '../engine/progress';
@@ -96,7 +96,7 @@ export default function StudentImport() {
   const cta = !rows.length ? 'Add students' : !updating ? `Add ${plural(adding, 'student')}` : !adding ? `Update ${plural(updating, 'student')}` : `Add ${adding}, update ${updating}`;
 
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.deep }}>
+    <KeyboardAvoidingView behavior="padding" style={{ flex: 1, backgroundColor: C.deep }}>
       <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
         <Txt v="fine">Paste your caseload</Txt>
         <CircleBtn icon="close" size={44} kind="quiet" label="Close without adding" onPress={() => router.back()} />

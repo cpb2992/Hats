@@ -62,7 +62,7 @@ jobs:
       - name: Summarize
         if: always()
         run: |
-          for f in smoke/a-launch.txt smoke/a2-widget.txt smoke/b-widget.txt smoke/d-steps.txt smoke/d-events.txt; do
+          for f in smoke/a-launch.txt smoke/a2-widget.txt smoke/b-widget.txt smoke/d-steps.txt; do
             [ -f "$f" ] && echo "::notice title=$(basename $f)::$(tr '\n' ' ' < $f)"
           done
           true

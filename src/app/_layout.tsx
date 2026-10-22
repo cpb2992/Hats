@@ -43,6 +43,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
           <Stack.Screen name="focus" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
           <Stack.Screen name="capture" options={modal} />
           <Stack.Screen name="task/[id]" options={modal} />
+          <Stack.Screen name="event/[id]" options={modal} />
           <Stack.Screen name="student-edit" options={modal} />
           <Stack.Screen name="student-import" options={modal} />
           <Stack.Screen name="pulse-sort" options={modal} />

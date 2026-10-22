@@ -11,7 +11,7 @@ import { sendTestReminder } from '../services/notifications';
 import { WIDGETS } from '../widgets/render';
 import { pinWidget, widgetsSupported } from '../widgets/update';
 import { useApp } from '../store/AppStore';
-import { CalendarSection, ClaudeSection } from '../ui/AssistantSettings';
+import { ClaudeSection } from '../ui/AssistantSettings';
 import { Icon } from '../ui/icons';
 import { BackLink, Btn, Card, Chip, Field, Label, Patch, Screen, Segmented, Stepper, tap, Txt } from '../ui/kit';
 import { C, F, KID_COLORS } from '../ui/theme';
@@ -115,8 +115,8 @@ export default function SettingsScreen() {
       </View>
 
       <Section title="Reminders">
-        {([['morning', 'Morning plan, with the defrost reminder'], ['blocks', 'When a free block starts'], ['shutdown', 'Shutdown on school days'], ['tasks', 'Tasks with a time']] as const).map(([k, label], i) => (
-          <Line key={k} last={i === 3}>
+        {([['morning', 'Morning plan, with the defrost reminder'], ['blocks', 'When a free block starts'], ['shutdown', 'Shutdown on school days'], ['tasks', 'Tasks with a time'], ['events', 'Calendar events, 15 minutes before']] as const).map(([k, label], i) => (
+          <Line key={k} last={i === 4}>
             <Txt v="semi" style={{ flex: 1 }}>{label}</Txt>
             <Switch value={s.notify[k]} onValueChange={v => setS({ notify: { ...s.notify, [k]: v } })} trackColor={{ true: C.gold, false: C.raised2 }} thumbColor={C.ink} accessibilityLabel={label} />
           </Line>
@@ -125,7 +125,6 @@ export default function SettingsScreen() {
       <Btn title="Send a test reminder" kind="quiet" small icon="clock" onPress={async () => { const ok = await sendTestReminder(); setTestNote(ok ? 'Sent. It should arrive in a couple of seconds.' : 'Reminders are off for Hats. Turn on notifications for Hats in your phone’s settings.'); }} />
       {testNote ? <Txt v="fine">{testNote}</Txt> : null}
 
-      <CalendarSection />
       <ClaudeSection />
 
       {widgetsSupported ? (

@@ -77,7 +77,7 @@ adb exec-out screencap -p > smoke/c-now.png
 for title in "Now" "Say anything"; do
   adb shell am start -W -a android.intent.action.VIEW -d "hats://settings" $PKG
   sleep 6
-  tap_label "Add the $title widget" || continue
+  tap_label "Add the $title widget" 30 || continue
   sleep 4
   dump
   cp smoke/ui.xml "smoke/c-dialog-${title//[^A-Za-z]/}.xml"
@@ -94,35 +94,39 @@ echo "alive: $(alive)" >> smoke/c-steps.txt
 adb logcat -d -v time > smoke/c-logcat.txt
 adb logcat -d -b crash > smoke/c-crash.txt
 
-# --- D: Say anything puts a meeting on the phone calendar
+# --- D: Say anything puts a meeting on Hats' calendar, and it shows in the day
 adb logcat -c
 : > smoke/d-steps.txt
-# A local calendar (the emulator has no Google account), and calendar permission as if Chris allowed it.
-adb shell "content insert --uri 'content://com.android.calendar/calendars?caller_is_syncadapter=true&account_name=hats&account_type=LOCAL' --bind account_name:s:hats --bind account_type:s:LOCAL --bind name:s:TestCalendar --bind calendar_displayName:s:TestCalendar --bind calendar_access_level:i:700 --bind ownerAccount:s:hats --bind visible:i:1 --bind sync_events:i:1 --bind calendar_color:i:-14575885"
-adb shell pm grant $PKG android.permission.READ_CALENDAR
-adb shell pm grant $PKG android.permission.WRITE_CALENDAR
+TAP_LOG=smoke/d-steps.txt
 adb shell pm grant $PKG android.permission.RECORD_AUDIO
 adb shell am force-stop $PKG
-adb shell am start -W -a android.intent.action.VIEW -d "hats://settings" $PKG
-sleep 8
-TAP_LOG=smoke/d-steps.txt
-tap_label "TestCalendar" 16 && sleep 2
-dump; cp smoke/ui.xml smoke/d-settings.xml
-adb exec-out screencap -p > smoke/d-settings.png
 adb shell am start -W -a android.intent.action.VIEW -d "hats://capture" $PKG
-sleep 6
+sleep 8
 tap_label "^\|Type$" 2 && sleep 1
 tap_label "Type what you need" 2 && sleep 1
 adb shell input text "Team%smeeting%stoday%sat%s11:30pm"
 sleep 2
 dump; cp smoke/ui.xml smoke/d-capture.xml
 adb exec-out screencap -p > smoke/d-capture.png
-tap_label "^\|Go$|^Go\|" 3 && sleep 8
+# The keyboard's Go key submits, the way Chris would.
+adb shell input keyevent KEYCODE_ENTER
+echo "pressed enter" >> smoke/d-steps.txt
+sleep 6
 dump; cp smoke/ui.xml smoke/d-results.xml
 adb exec-out screencap -p > smoke/d-results.png
-adb shell "content query --uri content://com.android.calendar/events --projection title:dtstart:dtend:calendar_id:description" > smoke/d-events.txt 2>&1
+grep -q "Team meeting" smoke/d-results.xml && echo "results show the meeting" >> smoke/d-steps.txt
 tap_label "^\|Done$" 2 && sleep 4
-adb exec-out screencap -p > smoke/d-now.png
+adb shell am force-stop $PKG
+adb shell am start -W -n $PKG/.MainActivity
+sleep 8
+tap_label "Team meeting" 20 >/dev/null; sleep 3
+dump; cp smoke/ui.xml smoke/d-event.xml
+adb exec-out screencap -p > smoke/d-event.png
+grep -q "Calendar event" smoke/d-event.xml && echo "event opens from the Hats page after a restart" >> smoke/d-steps.txt
+adb shell am start -W -a android.intent.action.VIEW -d "hats://calendar" $PKG
+sleep 6
+adb exec-out screencap -p > smoke/d-calendar.png
+dump; grep -q "Team meeting" smoke/ui.xml && echo "calendar screen shows the meeting" >> smoke/d-steps.txt
 echo "alive: $(alive)" >> smoke/d-steps.txt
 adb logcat -d -v time > smoke/d-logcat.txt
 adb logcat -d -b crash > smoke/d-crash.txt

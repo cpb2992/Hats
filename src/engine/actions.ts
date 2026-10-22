@@ -1,7 +1,7 @@
 /** Changes to AppData. Each takes the draft to change in place (the store hands over a copy). */
 import { dayLog } from './plan';
 import type { Parsed } from './parse';
-import type { AppData, HatId, Task } from './types';
+import type { AppData, HatId, HatsEvent, Task } from './types';
 import { uid } from './util';
 
 const ensureDay = (d: AppData, date: string) => (d.days[date] = { ...dayLog(d, date) });
@@ -138,3 +138,25 @@ export function recordFocus(d: AppData, taskId: string | null, startIso: string,
   d.focus.push({ taskId, start: startIso, minutes: Math.round(minutes) });
   if (d.focus.length > 500) d.focus = d.focus.slice(-500);
 }
+
+/* Hats' calendar */
+
+export function addEvent(d: AppData, e: Omit<HatsEvent, 'id' | 'created'> & { id?: string }, nowIso: string): HatsEvent {
+  const ev: HatsEvent = { ...e, id: e.id ?? uid('e'), created: nowIso };
+  d.events.push(ev);
+  return ev;
+}
+
+export function updateEvent(d: AppData, id: string, patch: Partial<Omit<HatsEvent, 'id' | 'created'>>) {
+  d.events = d.events.map(e => (e.id === id ? { ...e, ...patch } : e));
+}
+
+export function deleteEvent(d: AppData, id: string) {
+  d.events = d.events.filter(e => e.id !== id);
+}
+
+/** Puts a deleted event back exactly as it was (Undo). */
+export function restoreEvent(d: AppData, ev: HatsEvent) {
+  if (!d.events.some(e => e.id === ev.id)) d.events.push({ ...ev });
+}
+
