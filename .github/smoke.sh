@@ -55,14 +55,16 @@ adb logcat -c
 : > smoke/c-steps.txt
 # Scrolls until a node whose text/description matches $1 is comfortably on screen, then taps it.
 tap_label() {
-  for i in $(seq 1 ${2:-14}); do
+  local n=${2:-14}
+  for i in $(seq 1 $((n * 2))); do
     dump
     if xy=$($FIND smoke/ui.xml "$1"); then
       y=${xy#* }
-      if [ "$y" -gt 60 ] && [ "$y" -lt $((H - 60)) ]; then adb shell input tap $xy; echo "tapped '$1' at $xy" >> ${TAP_LOG:-smoke/c-steps.txt}; return 0; fi
-      if [ "$y" -le 60 ]; then adb shell input swipe $((W / 2)) $((H * 2 / 5)) $((W / 2)) $((H * 3 / 5)) 500; sleep 1; continue; fi
+      if [ "$y" -gt 20 ] && [ "$y" -lt $((H - 12)) ]; then adb shell input tap $xy; echo "tapped '$1' at $xy" >> ${TAP_LOG:-smoke/c-steps.txt}; return 0; fi
     fi
-    adb shell input swipe $((W / 2)) $((H * 3 / 5)) $((W / 2)) $((H * 2 / 5)) 500
+    # Down first; if it never shows up, come back up the screen.
+    if [ "$i" -le "$n" ]; then adb shell input swipe $((W / 2)) $((H * 3 / 5)) $((W / 2)) $((H * 2 / 5)) 600
+    else adb shell input swipe $((W / 2)) $((H * 2 / 5)) $((W / 2)) $((H * 3 / 5)) 600; fi
     sleep 1
   done
   echo "could not find '$1'" >> ${TAP_LOG:-smoke/c-steps.txt}; return 1
@@ -100,6 +102,7 @@ adb shell "content insert --uri 'content://com.android.calendar/calendars?caller
 adb shell pm grant $PKG android.permission.READ_CALENDAR
 adb shell pm grant $PKG android.permission.WRITE_CALENDAR
 adb shell pm grant $PKG android.permission.RECORD_AUDIO
+adb shell am force-stop $PKG
 adb shell am start -W -a android.intent.action.VIEW -d "hats://settings" $PKG
 sleep 8
 TAP_LOG=smoke/d-steps.txt
