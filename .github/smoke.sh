@@ -50,25 +50,31 @@ adb exec-out screencap -p > smoke/b-open.png
 adb logcat -d -v time > smoke/b-logcat.txt
 adb logcat -d -b crash > smoke/b-crash.txt
 
-# --- C: add widgets the way Chris would, from Settings
+# --- C: finish setup, then add widgets the way Chris would, from Settings
 adb logcat -c
 : > smoke/c-steps.txt
-for title in "Now" "Caseload \+1"; do
-  adb shell am start -W -a android.intent.action.VIEW -d "hats://settings" $PKG
-  sleep 8
-  hit=""
-  for i in 1 2 3 4 5 6 7 8 9 10; do
+# Scrolls until a node whose text/description matches $1 is comfortably on screen, then taps it.
+tap_label() {
+  for i in $(seq 1 ${2:-14}); do
     dump
-    xy=$($FIND smoke/ui.xml "^Add the $title widget\|") && {
+    if xy=$($FIND smoke/ui.xml "$1"); then
       y=${xy#* }
-      if [ "$y" -gt 200 ] && [ "$y" -lt $((H - 200)) ]; then hit=$xy; break; fi
-    }
-    adb shell input swipe $((W / 2)) $((H * 3 / 4)) $((W / 2)) $((H / 4)) 400
+      if [ "$y" -gt 60 ] && [ "$y" -lt $((H - 60)) ]; then adb shell input tap $xy; echo "tapped '$1' at $xy" >> smoke/c-steps.txt; return 0; fi
+      if [ "$y" -le 60 ]; then adb shell input swipe $((W / 2)) $((H * 2 / 5)) $((W / 2)) $((H * 3 / 5)) 500; sleep 1; continue; fi
+    fi
+    adb shell input swipe $((W / 2)) $((H * 3 / 5)) $((W / 2)) $((H * 2 / 5)) 500
     sleep 1
   done
-  echo "$title: add button at '$hit'" >> smoke/c-steps.txt
-  [ -n "$hit" ] || continue
-  adb shell input tap $hit
+  echo "could not find '$1'" >> smoke/c-steps.txt; return 1
+}
+adb shell am start -W -n $PKG/.MainActivity
+sleep 6
+tap_label "Wear these" && sleep 5
+adb exec-out screencap -p > smoke/c-now.png
+for title in "Now" "Caseload \+1"; do
+  adb shell am start -W -a android.intent.action.VIEW -d "hats://settings" $PKG
+  sleep 6
+  tap_label "Add the $title widget" || continue
   sleep 4
   dump
   cp smoke/ui.xml "smoke/c-dialog-${title//[^A-Za-z]/}.xml"
