@@ -135,7 +135,11 @@ export default function NowScreen() {
                 <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.ink }}>{st.initials}</Text>
                 <Text style={{ fontFamily: F.semi, fontSize: 11, color: C.ink3 }}>{st.plan}</Text>
               </View>
-              <Text style={{ flex: 1, fontFamily: F.med, fontSize: 14, lineHeight: 20, color: C.ink2 }}>{st.accommodations.join(' · ')}</Text>
+              {/* Real plans run 10 to 20 items: the first three, then the student page has the rest. */}
+              <Text style={{ flex: 1, fontFamily: F.med, fontSize: 14, lineHeight: 20, color: C.ink2 }}>
+                {st.accommodations.slice(0, 3).join(' · ')}
+                {st.accommodations.length > 3 ? <Text style={{ color: C.gold }}>{`  +${st.accommodations.length - 3} more`}</Text> : null}
+              </Text>
             </Pressable>
           ))}
           {accRoster.length > accShown.length || allAcc ? (
