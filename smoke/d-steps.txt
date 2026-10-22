@@ -1,0 +1,6 @@
+could not find 'TestCalendar'
+could not find '^\|Type$'
+could not find 'Type what you need'
+could not find '^\|Go$|^Go\|'
+could not find '^\|Done$'
+alive: RUNNING
