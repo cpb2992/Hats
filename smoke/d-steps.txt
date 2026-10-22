@@ -1,0 +1,7 @@
+tapped '^\|Type$' at 160 59
+tapped 'Type what you need' at 160 158
+pressed enter
+results show the meeting
+tapped '^\|Done$' at 35 57
+tapped 'Team meeting' at 160 593
+alive: RUNNING
