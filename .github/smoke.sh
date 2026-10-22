@@ -60,7 +60,7 @@ tap_label() {
     dump
     if xy=$($FIND smoke/ui.xml "$1"); then
       y=${xy#* }
-      if [ "$y" -gt 20 ] && [ "$y" -lt $((H - 12)) ]; then adb shell input tap $xy; echo "tapped '$1' at $xy" >> ${TAP_LOG:-smoke/c-steps.txt}; return 0; fi
+      if [ "$y" -gt 20 ] && [ "$y" -lt "${TAP_MAXY:-$((H - 12))}" ]; then adb shell input tap $xy; echo "tapped '$1' at $xy" >> ${TAP_LOG:-smoke/c-steps.txt}; return 0; fi
     fi
     # Down first; if it never shows up, come back up the screen.
     if [ "$i" -le "$n" ]; then adb shell input swipe $((W / 2)) $((H * 3 / 5)) $((W / 2)) $((H * 2 / 5)) 600
@@ -119,14 +119,19 @@ tap_label "^\|Done$" 2 && sleep 4
 adb shell am force-stop $PKG
 adb shell am start -W -n $PKG/.MainActivity
 sleep 8
-tap_label "Team meeting" 20 >/dev/null; sleep 3
+# Keep taps clear of the bottom tab bar, so a row hiding under it is scrolled up first.
+TAP_MAXY=$((H * 4 / 5)) tap_label "Team meeting" 20; sleep 3
 dump; cp smoke/ui.xml smoke/d-event.xml
 adb exec-out screencap -p > smoke/d-event.png
 grep -q "Calendar event" smoke/d-event.xml && echo "event opens from the Hats page after a restart" >> smoke/d-steps.txt
+adb shell am force-stop $PKG
 adb shell am start -W -a android.intent.action.VIEW -d "hats://calendar" $PKG
 sleep 6
 adb exec-out screencap -p > smoke/d-calendar.png
-dump; grep -q "Team meeting" smoke/ui.xml && echo "calendar screen shows the meeting" >> smoke/d-steps.txt
+TAP_MAXY=$((H * 4 / 5)) tap_label "Team meeting" 8; sleep 3
+dump; cp smoke/ui.xml smoke/d-calendar-event.xml
+adb exec-out screencap -p > smoke/d-calendar-event.png
+grep -q "Calendar event" smoke/ui.xml && echo "calendar screen shows the meeting and opens it" >> smoke/d-steps.txt
 echo "alive: $(alive)" >> smoke/d-steps.txt
 adb logcat -d -v time > smoke/d-logcat.txt
 adb logcat -d -b crash > smoke/d-crash.txt
