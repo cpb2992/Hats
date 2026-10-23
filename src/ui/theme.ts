@@ -1,6 +1,6 @@
 import { Platform } from 'react-native';
 
-/** Hats Premium: deep ink, warm white, one gold. Gold always means "the one thing that needs you". */
+/** Hats Premium: deep ink, warm white, one gold. Gold always means "the one thing that needs you". The cap is navy. */
 export const C = {
   bg: '#0D110F',
   deep: '#070908',
@@ -18,7 +18,8 @@ export const C = {
   goldTab: 'rgba(242,193,78,0.14)',
   goldLine: 'rgba(242,193,78,0.38)',
   onGold: '#0D110F',
-  seam: '#8A6A1E',
+  navy: '#243C70',
+  stitch: '#F3F1EA',
   green: '#7FB069',
   rust: '#C7714F',
   night: '#0F1530',

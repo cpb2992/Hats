@@ -18,7 +18,7 @@
     "android": {
       "package": "com.hatsfocus.app",
       "adaptiveIcon": {
-        "backgroundColor": "#161C19",
+        "backgroundColor": "#F3F1EA",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"

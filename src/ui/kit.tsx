@@ -14,6 +14,9 @@ export const success = () => { if (Platform.OS !== 'web') Haptics.notificationAs
 
 export const CAP_PATH = 'M4 15a7 7 0 0 1 14 0c2.5 0 4 .6 4.5 1.6-2 .7-5.5.8-8.5.4H9c-3 0-5-.8-5-2z';
 export const CAP_SEAMS = 'M11 8c-1.5 2-2 4.5-2 7M11 8c1.5 2 2.2 4.5 2.2 7';
+const CAP_ARC = 'M5.6 14.8a5.4 5.4 0 0 1 10.8 0';
+const CAP_BAND = 'M4.4 15.5c3 .5 9.6.5 13.6-.5';
+const CAP_BRIM = 'M14.6 16.4c2.6.2 5-.1 6.6-.6';
 
 /** True on wide screens: an unfolded Fold, a tablet, or a phone turned sideways. */
 export function useWide() {
@@ -147,11 +150,26 @@ export function InitialsPatch({ initials, size = 44, color = '#3E5C9A' }: { init
   );
 }
 
-export function Cap({ width = 26, color = C.gold, seams = false }: { width?: number; color?: string; seams?: boolean }) {
+/** The cap's shapes in its own 24-unit space, for drawing inside another Svg. Small sizes drop the fine seams. */
+export function CapArt({ full = true }: { full?: boolean }) {
+  const dash = full ? '0.55 0.4' : '0.8 0.55';
+  return (
+    <>
+      <Path d={CAP_PATH} fill={C.navy} />
+      {full ? <Path d={CAP_ARC} fill="none" stroke={C.stitch} strokeWidth={0.32} strokeDasharray={dash} strokeLinecap="round" /> : null}
+      {full ? <Path d={CAP_BRIM} fill="none" stroke={C.stitch} strokeOpacity={0.8} strokeWidth={0.32} strokeDasharray={dash} strokeLinecap="round" /> : null}
+      <Path d={CAP_SEAMS} fill="none" stroke={C.stitch} strokeWidth={full ? 0.36 : 0.7} strokeDasharray={dash} strokeLinecap="round" />
+      <Path d={CAP_BAND} fill="none" stroke={C.stitch} strokeWidth={full ? 0.45 : 0.6} strokeLinecap="round" />
+      <Circle cx={11} cy={7.75} r={full ? 0.75 : 0.95} fill={C.gold} />
+    </>
+  );
+}
+
+/** The Hats mark: a navy ball cap with cream stitching and a gold button. */
+export function Cap({ width = 26 }: { width?: number }) {
   return (
     <Svg width={width} height={width * 0.6} viewBox="3 6.5 20 12">
-      <Path d={CAP_PATH} fill={color} />
-      {seams ? <Path d={CAP_SEAMS} fill="none" stroke={C.seam} strokeWidth={0.55} strokeDasharray="0.7 0.5" strokeLinecap="round" /> : null}
+      <CapArt full={width >= 40} />
     </Svg>
   );
 }

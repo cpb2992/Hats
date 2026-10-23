@@ -3,7 +3,7 @@ import { Animated, Easing, Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
 import { useApp } from '../store/AppStore';
-import { CAP_PATH, tap } from './kit';
+import { Cap, tap } from './kit';
 import { C, F, shadow } from './theme';
 
 /** One floating message at a time. Wins tip the cap; info shows a check and an optional action like Undo. */
@@ -44,7 +44,7 @@ export function Toast() {
       <View accessibilityLiveRegion="polite" style={[{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 52, paddingLeft: 16, paddingRight: toast.action ? 6 : 20, borderRadius: 26, backgroundColor: toast.kind === 'win' ? '#2A2614' : C.raised2 }, shadow]}>
         {toast.kind === 'win' ? (
           <Animated.View style={{ transform: [{ rotate }] }}>
-            <Svg width={28} height={17} viewBox="3 6.5 20 12"><Path d={CAP_PATH} fill={C.gold} /></Svg>
+            <Cap width={28} />
           </Animated.View>
         ) : (
           <Svg width={18} height={18} viewBox="0 0 24 24"><Path d="M20 6 9 17l-5-5" fill="none" stroke={C.gold} strokeWidth={2.6} strokeLinecap="round" strokeLinejoin="round" /></Svg>

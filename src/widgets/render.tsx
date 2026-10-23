@@ -21,7 +21,9 @@ const BOLD = 'InterTight-Bold';
 const MED = 'InterTight-Medium';
 
 const CAP = 'M4 15a7 7 0 0 1 14 0c2.5 0 4 .6 4.5 1.6-2 .7-5.5.8-8.5.4H9c-3 0-5-.8-5-2z';
-const capSvg = (color = GOLD) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="3 6.5 20 12"><path d="${CAP}" fill="${color}"/></svg>`;
+const NAVY = '#243C70';
+// The navy cap mark at widget size: cream center seams and band, gold button.
+const capSvg = () => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="3 6.5 20 12"><path d="${CAP}" fill="${NAVY}"/><path d="M11 8c-1.5 2-2 4.5-2 7M11 8c1.5 2 2.2 4.5 2.2 7" fill="none" stroke="${INK}" stroke-width="0.7" stroke-dasharray="0.8 0.55" stroke-linecap="round"/><path d="M4.4 15.5c3 .5 9.6.5 13.6-.5" fill="none" stroke="${INK}" stroke-width="0.6" stroke-linecap="round"/><circle cx="11" cy="7.75" r="0.95" fill="${GOLD}"/></svg>`;
 const lineSvg = (d: string, color: string, w = 2) => `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"><path d="${d}" fill="none" stroke="${color}" stroke-width="${w}" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 const MIC = 'M9 5a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0zM19 10v1a7 7 0 0 1-14 0v-1M12 18v4';
 const CHECK = 'M20 6 9 17l-5-5';

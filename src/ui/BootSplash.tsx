@@ -1,13 +1,12 @@
 import { useEffect, useState } from 'react';
 import { Animated, Easing, StyleSheet, Text, View } from 'react-native';
-import Svg, { Path } from 'react-native-svg';
-import { CAP_PATH, CAP_SEAMS } from './kit';
+import { Cap } from './kit';
 import { C, F } from './theme';
 
 const MIN_SHOW_MS = 800;
 
 /**
- * Sits on top of the app right after the native splash (same ink background, same gold cap),
+ * Sits on top of the app right after the native splash (same ink background, same navy cap),
  * tips the cap once, then fades into the app when data and fonts are ready.
  */
 export function BootSplash({ ready, fontsReady }: { ready: boolean; fontsReady: boolean }) {
@@ -37,10 +36,7 @@ export function BootSplash({ ready, fontsReady }: { ready: boolean; fontsReady: 
     <Animated.View pointerEvents="none" style={[StyleSheet.absoluteFill, styles.wrap, { opacity: fade }]} accessibilityLabel="Hats is loading">
       <View style={styles.center}>
         <Animated.View style={{ transform: [{ rotate }] }}>
-          <Svg width={120} height={72} viewBox="3 6.5 20 12">
-            <Path d={CAP_PATH} fill={C.gold} />
-            <Path d={CAP_SEAMS} fill="none" stroke={C.seam} strokeWidth={0.4} strokeDasharray="0.6 0.45" strokeLinecap="round" />
-          </Svg>
+          <Cap width={120} />
         </Animated.View>
         <Text style={[styles.word, fontsReady ? { fontFamily: F.display } : { fontWeight: '600' }]}>Hats</Text>
       </View>

@@ -30,7 +30,7 @@ export default function Welcome() {
   return (
     <Screen tabBar={false} gap={26}>
       <View style={{ gap: 18, paddingTop: 12 }}>
-        <Cap width={56} seams />
+        <Cap width={56} />
         <Txt v="display">Which hats do you wear?</Txt>
         <Txt v="sub">Each hat gets its own color and symbol. Hats sorts everything you capture into one of them.</Txt>
       </View>

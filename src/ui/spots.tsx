@@ -1,5 +1,5 @@
 import Svg, { Circle, G, Path, Rect } from 'react-native-svg';
-import { CAP_PATH, CAP_SEAMS } from './kit';
+import { CapArt } from './kit';
 import { C } from './theme';
 
 /** Quiet spot illustrations for empty and celebration moments, drawn in the same line style as the icons. */
@@ -10,8 +10,7 @@ export function AllClearSpot({ size = 150 }: { size?: number }) {
       <Circle cx={89} cy={26} r={3.5} fill="none" stroke={C.ink2} strokeWidth={1.75} />
       <Path d="M89 30v22" stroke={C.ink2} strokeWidth={1.75} strokeLinecap="round" />
       <G transform="translate(34 16.5) scale(5)">
-        <Path d={CAP_PATH} fill="none" stroke={C.gold} strokeWidth={0.35} strokeLinejoin="round" />
-        <Path d={CAP_SEAMS} fill="none" stroke={C.gold} strokeWidth={0.25} strokeDasharray="0.5 0.4" strokeLinecap="round" />
+        <CapArt />
       </G>
     </Svg>
   );
@@ -25,7 +24,7 @@ export function WeekDoneSpot({ size = 150 }: { size?: number }) {
       <Rect x={89} y={70} width={22} height={56} rx={5} fill="none" stroke={C.ink2} strokeWidth={1.75} />
       <Rect x={126} y={46} width={22} height={80} rx={5} fill={C.goldSoft} stroke={C.gold} strokeWidth={1.75} />
       <G transform="translate(118 16) rotate(-12 18 20) scale(1.7)">
-        <Path d={CAP_PATH} fill={C.gold} />
+        <CapArt full={false} />
       </G>
     </Svg>
   );
