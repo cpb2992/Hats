@@ -1,0 +1,10 @@
+tapped '^\|Type$' at 160 59
+tapped 'Type what you need' at 160 158
+pressed enter
+results show the meeting
+tapped '^\|Done$' at 35 57
+tapped 'Team meeting' at 160 489
+event opens from the Hats page after a restart
+tapped 'Team meeting' at 160 499
+calendar screen shows the meeting and opens it
+alive: RUNNING
