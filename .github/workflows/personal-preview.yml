@@ -39,8 +39,9 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: personal-preview-${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
           name: Hats Personal Preview ${{ github.run_number }}
           prerelease: true
           make_latest: false
-          body: Personal-life rebuild. Download Hats-Personal.apk. Provider connections require private setup; no personal profile is embedded in this public build. Preview is signed with the standard development key.
+          body: Personal-life rebuild with hats. Download Hats-Personal.apk (not the older Hats.apk builds). Provider connections require private setup; no personal profile is embedded in this public build. Preview is signed with the standard development key.
           files: Hats-Personal.apk
