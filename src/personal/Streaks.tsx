@@ -20,7 +20,12 @@ export function Streaks({ hat }: { hat?: PersonalHat }) {
           label: "What do you want to keep doing?",
           placeholder: "Phone-free family time",
         },
-        { key: "frequency", label: "daily or weekly", value: "daily" },
+        {
+          key: "frequency",
+          label: "Your rhythm",
+          value: "daily",
+          options: ["daily", "weekly"],
+        },
         {
           key: "target",
           label: "For weekly habits: days per week",

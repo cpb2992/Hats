@@ -6,7 +6,7 @@ import {
   ScrollView,
   View,
 } from "react-native";
-import { Button, Field, P, Row, T } from "./ui";
+import { Button, Chip, Field, P, Row, T } from "./ui";
 
 interface Input {
   key: string;
@@ -15,6 +15,7 @@ interface Input {
   placeholder?: string;
   multiline?: boolean;
   numeric?: boolean;
+  options?: string[];
 }
 interface Form {
   title: string;
@@ -72,20 +73,40 @@ export function useEditor(): { open: (form: Form) => void; node: ReactNode } {
               {form?.title}
             </T>
             {form?.detail ? <T muted>{form.detail}</T> : null}
-            {form?.fields.map((field) => (
-              <Field
-                key={field.key}
-                label={field.label}
-                placeholder={field.placeholder}
-                value={values[field.key] ?? ""}
-                onChangeText={(value) =>
-                  setValues((v) => ({ ...v, [field.key]: value }))
-                }
-                multiline={field.multiline}
-                keyboardType={field.numeric ? "decimal-pad" : "default"}
-                style={field.multiline ? { minHeight: 110 } : undefined}
-              />
-            ))}
+            {form?.fields.map((field) =>
+              field.options ? (
+                <View key={field.key} style={{ gap: 8 }}>
+                  <T size={13} bold>
+                    {field.label}
+                  </T>
+                  <Row>
+                    {field.options.map((option) => (
+                      <Chip
+                        key={option}
+                        title={option}
+                        selected={values[field.key] === option}
+                        onPress={() =>
+                          setValues((v) => ({ ...v, [field.key]: option }))
+                        }
+                      />
+                    ))}
+                  </Row>
+                </View>
+              ) : (
+                <Field
+                  key={field.key}
+                  label={field.label}
+                  placeholder={field.placeholder}
+                  value={values[field.key] ?? ""}
+                  onChangeText={(value) =>
+                    setValues((v) => ({ ...v, [field.key]: value }))
+                  }
+                  multiline={field.multiline}
+                  keyboardType={field.numeric ? "decimal-pad" : "default"}
+                  style={field.multiline ? { minHeight: 110 } : undefined}
+                />
+              ),
+            )}
             {error ? <T color={P.orange}>{error}</T> : null}
             <Row>
               <Button

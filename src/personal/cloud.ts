@@ -23,7 +23,10 @@ export interface Remote {
 }
 export async function getConfig(): Promise<CloudConfig | null> {
   const raw = await secretGet("hats.cloud.config");
-  return raw ? JSON.parse(raw) : null;
+  if (raw) return JSON.parse(raw);
+  const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
+  const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
+  return url && key ? { url, key } : null;
 }
 export async function setConfig(config: CloudConfig) {
   const url = new URL(config.url);

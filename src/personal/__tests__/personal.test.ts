@@ -16,10 +16,21 @@ import {
   rotateActivity,
   shoppingFor,
 } from "../engine";
-import { freshPersonal, type Habit } from "../model";
+import { freshPersonal, validData, validDate, type Habit } from "../model";
 import { streakFor } from "../streaks";
 
 const today = "2026-10-28";
+test("import validation rejects malformed data instead of crashing the next launch", () => {
+  const d = freshPersonal();
+  assert.equal(validData(d), true);
+  assert.equal(validData({ ...d, notes: [null] }), false);
+  assert.equal(
+    validData({ ...d, preferences: { ...d.preferences, homeTime: "99:99" } }),
+    false,
+  );
+  assert.equal(validDate("2026-02-30"), false);
+  assert.equal(validDate("2026-02-28"), true);
+});
 test("laundry remains open until every last step is completed", () => {
   const t = makeTask("Laundry", "home", today, {
     steps: ["Wash", "Dry", "Fold", "Put away"].map((title) => ({

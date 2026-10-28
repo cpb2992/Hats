@@ -196,8 +196,9 @@ export default function Hat() {
           ? [
               {
                 key: "category",
-                label: "Category: takeout, dates, gifts, family, or other",
+                label: "Category",
                 value: "takeout",
+                options: ["takeout", "dates", "gifts", "family", "other"],
               },
             ]
           : []),

@@ -54,7 +54,7 @@ export interface PersonalTask {
   fixed: boolean;
   doneAt: string | null;
   steps: Step[];
-  repeat: "none" | "daily" | "weekly";
+  repeat: "none" | "daily" | "weekly" | "fortnightly";
   createdAt: string;
   deferred: number;
   reason?: string;
@@ -125,6 +125,7 @@ export interface Habit {
   id: string;
   title: string;
   hat: PersonalHat;
+  taskSource?: string;
   frequency: "daily" | "weekly";
   target: number;
   checkins: string[];
@@ -234,46 +235,241 @@ export function freshPersonal(): PersonalData {
     updatedAt: new Date().toISOString(),
   };
 }
+export function validDate(value: unknown): value is string {
+  if (typeof value !== "string" || !/^\d{4}-\d{2}-\d{2}$/.test(value))
+    return false;
+  const parsed = new Date(value + "T12:00:00Z");
+  return (
+    Number.isFinite(parsed.getTime()) &&
+    parsed.toISOString().slice(0, 10) === value
+  );
+}
 export function validData(value: unknown): value is PersonalData {
   if (!value || typeof value !== "object") return false;
-  const v = value as PersonalData;
-  return (
-    v.version === 2 &&
-    !!v.preferences &&
-    typeof v.preferences.name === "string" &&
-    typeof v.preferences.partner === "string" &&
-    typeof v.preferences.homeTime === "string" &&
-    /^\d{2}:\d{2}$/.test(v.preferences.homeTime) &&
-    Array.isArray(v.preferences.unavailableDays) &&
-    Array.isArray(v.preferences.gymDays) &&
-    !!v.preferences.budgets &&
-    [
-      "tasks",
-      "people",
-      "notes",
-      "meals",
-      "pantry",
-      "groceries",
-      "events",
-      "dates",
-      "spending",
-      "wishes",
-      "lowEnergyDays",
-      "finishedActivities",
-    ].every((k) =>
-      Array.isArray((v as unknown as Record<string, unknown>)[k]),
-    ) &&
-    !!v.dinners &&
-    !!v.activities &&
-    v.tasks.every(
-      (t) =>
-        typeof t.id === "string" &&
-        HAT_IDS.includes(t.hat) &&
-        Array.isArray(t.steps) &&
-        typeof t.title === "string" &&
-        /^\d{4}-\d{2}-\d{2}$/.test(t.date) &&
-        Number.isFinite(t.minutes) &&
-        t.minutes > 0,
+  try {
+    const v = value as PersonalData,
+      p = v.preferences;
+    const text = (x: unknown) => typeof x === "string";
+    const time = (x: unknown) =>
+      typeof x === "string" && /^([01]\d|2[0-3]):[0-5]\d$/.test(x);
+    const money = (x: unknown) =>
+      typeof x === "number" && Number.isFinite(x) && x >= 0;
+    const steps = (x: unknown) =>
+      Array.isArray(x) &&
+      x.every((s) => s && text(s.title) && typeof s.done === "boolean");
+    const strings = (x: unknown) => Array.isArray(x) && x.every(text);
+    if (
+      v.version !== 2 ||
+      !p ||
+      !text(p.name) ||
+      !text(p.partner) ||
+      !text(p.city) ||
+      !money(p.dateBudget) ||
+      !money(p.travelMinutes)
     )
-  );
+      return false;
+    if (
+      ![
+        p.homeTime,
+        p.endTime,
+        p.weekendStart,
+        p.weekendEnd,
+        p.gymStart,
+        p.morningReminder,
+        p.eveningReminder,
+      ].every(time) ||
+      p.homeTime >= p.endTime ||
+      p.weekendStart >= p.weekendEnd
+    )
+      return false;
+    if (
+      ![p.unavailableDays, p.gymDays].every(
+        (a) =>
+          Array.isArray(a) &&
+          a.every((n) => Number.isInteger(n) && n >= 0 && n <= 6),
+      ) ||
+      !p.budgets ||
+      !Object.values(p.budgets).every(money)
+    )
+      return false;
+    if (
+      !["takeout", "dates", "gifts", "family", "savings"].every((k) =>
+        money(p.budgets[k as keyof typeof p.budgets]),
+      )
+    )
+      return false;
+    if (
+      ![
+        "tasks",
+        "people",
+        "notes",
+        "meals",
+        "events",
+        "dates",
+        "spending",
+        "wishes",
+      ].every((k) =>
+        Array.isArray((v as unknown as Record<string, unknown>)[k]),
+      )
+    )
+      return false;
+    if (
+      ![v.pantry, v.groceries, v.finishedActivities].every(strings) ||
+      !Array.isArray(v.lowEnergyDays) ||
+      !v.lowEnergyDays.every(validDate)
+    )
+      return false;
+    if (
+      !v.dinners ||
+      !v.activities ||
+      !Object.values(v.dinners).every(text) ||
+      !Object.values(v.activities).every(text)
+    )
+      return false;
+    if (
+      !v.tasks.every(
+        (t) =>
+          t &&
+          text(t.id) &&
+          text(t.title) &&
+          HAT_IDS.includes(t.hat) &&
+          validDate(t.date) &&
+          (t.time === null || time(t.time)) &&
+          Number.isFinite(t.minutes) &&
+          t.minutes >= 1 &&
+          t.minutes <= 240 &&
+          steps(t.steps) &&
+          ["none", "daily", "weekly", "fortnightly"].includes(t.repeat) &&
+          typeof t.fixed === "boolean" &&
+          typeof t.essential === "boolean",
+      )
+    )
+      return false;
+    if (
+      !v.people.every(
+        (p) =>
+          p &&
+          text(p.id) &&
+          text(p.name) &&
+          text(p.interests) &&
+          text(p.detail) &&
+          ["child", "friend", "pet"].includes(p.role),
+      )
+    )
+      return false;
+    if (
+      !v.notes.every(
+        (n) =>
+          n &&
+          text(n.id) &&
+          text(n.text) &&
+          text(n.createdAt) &&
+          HAT_IDS.includes(n.hat) &&
+          ["reflection", "idea", "gift", "memory"].includes(n.kind),
+      )
+    )
+      return false;
+    if (
+      !v.meals.every(
+        (m) =>
+          m &&
+          text(m.id) &&
+          text(m.name) &&
+          strings(m.ingredients) &&
+          text(m.prep) &&
+          Number.isFinite(m.minutes) &&
+          m.minutes > 0,
+      )
+    )
+      return false;
+    if (
+      !v.events.every(
+        (e) =>
+          e &&
+          text(e.id) &&
+          text(e.title) &&
+          validDate(e.date) &&
+          time(e.start) &&
+          time(e.end) &&
+          typeof e.allDay === "boolean" &&
+          ["hats", "google"].includes(e.source),
+      )
+    )
+      return false;
+    if (
+      !v.dates.every(
+        (d) =>
+          d &&
+          text(d.id) &&
+          text(d.title) &&
+          text(d.note) &&
+          validDate(d.date) &&
+          money(d.budget) &&
+          money(d.childcare) &&
+          money(d.transport) &&
+          steps(d.steps),
+      )
+    )
+      return false;
+    if (
+      !v.spending.every(
+        (s) =>
+          s &&
+          text(s.id) &&
+          text(s.title) &&
+          money(s.amount) &&
+          validDate(s.date) &&
+          ["takeout", "dates", "gifts", "family", "other"].includes(s.category),
+      )
+    )
+      return false;
+    if (
+      !v.wishes.every(
+        (w) =>
+          w &&
+          text(w.id) &&
+          text(w.title) &&
+          money(w.amount) &&
+          text(w.createdAt),
+      )
+    )
+      return false;
+    if (
+      v.habits &&
+      !v.habits.every(
+        (h) =>
+          h &&
+          text(h.id) &&
+          text(h.title) &&
+          HAT_IDS.includes(h.hat) &&
+          ["daily", "weekly"].includes(h.frequency) &&
+          Number.isInteger(h.target) &&
+          h.target >= 1 &&
+          h.target <= 7 &&
+          Array.isArray(h.checkins) &&
+          h.checkins.every(validDate),
+      )
+    )
+      return false;
+    if (
+      v.moments &&
+      !v.moments.every(
+        (m) =>
+          m &&
+          text(m.id) &&
+          text(m.title) &&
+          HAT_IDS.includes(m.hat) &&
+          validDate(m.date) &&
+          text(m.source),
+      )
+    )
+      return false;
+    return (
+      typeof v.protectedLabel === "string" &&
+      (v.protectedUntil === null || typeof v.protectedUntil === "string") &&
+      typeof p.onboarded === "boolean"
+    );
+  } catch {
+    return false;
+  }
 }

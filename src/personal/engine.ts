@@ -51,8 +51,9 @@ export function materialize(data: PersonalData, today: string): boolean {
   const originals = [...data.tasks];
   for (const task of originals) {
     if (task.repeat === "none" || task.date >= today) continue;
-    const period = task.repeat === "daily" ? 1 : 7;
-    if (task.repeat === "weekly" && daysBetween(task.date, today) % 7 !== 0)
+    const period =
+      task.repeat === "daily" ? 1 : task.repeat === "fortnightly" ? 14 : 7;
+    if (task.repeat !== "daily" && daysBetween(task.date, today) % period !== 0)
       continue;
     // One current instance per series; unfinished steps stay visible instead of creating a backlog.
     const source = task.source ?? task.id;
@@ -288,7 +289,7 @@ export function installRoutines(data: PersonalData, today: string) {
         source,
         repeat:
           source === "starter-date"
-            ? "none"
+            ? "fortnightly"
             : source === "starter-laundry"
               ? "weekly"
               : "daily",

@@ -106,7 +106,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
           task.doneAt &&
           !ref.current.tasks.find((t) => t.id === task.id)?.doneAt &&
           !next.moments.some((m) => m.source === task.id)
-        )
+        ) {
           next.moments.push({
             id: `moment:${task.id}`,
             hat: task.hat,
@@ -114,6 +114,15 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
             date: todayISO(),
             source: task.id,
           });
+          for (const habit of next.habits ?? [])
+            if (
+              habit.taskSource &&
+              (habit.taskSource === task.source ||
+                habit.taskSource === task.id) &&
+              !habit.checkins.includes(todayISO())
+            )
+              habit.checkins.push(todayISO());
+        }
       }
       next.updatedAt = new Date().toISOString();
       meta.current.dirty = true;

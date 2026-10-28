@@ -82,6 +82,29 @@ export function parseBackup(text: string): PersonalData {
         kind: "idea",
       })) as PersonalData["notes"];
   data.preferences.onboarded = true;
+  if (Array.isArray(parsed.habits))
+    data.habits = parsed.habits
+      .filter(
+        (h: {
+          title?: unknown;
+          hat?: unknown;
+          frequency?: unknown;
+          target?: number;
+        }) =>
+          typeof h.title === "string" &&
+          ["husband", "dad", "pets", "home", "friends", "myself"].includes(
+            String(h.hat),
+          ) &&
+          ["daily", "weekly"].includes(String(h.frequency)) &&
+          Number.isInteger(h.target) &&
+          Number(h.target) > 0 &&
+          Number(h.target) <= 7,
+      )
+      .map((h: object, index: number) => ({
+        ...h,
+        id: `profile-habit-${index}`,
+        checkins: [],
+      }));
   installRoutines(data, todayISO());
   return data;
 }

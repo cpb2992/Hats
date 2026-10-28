@@ -27,7 +27,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
   const { ready, message } = usePersonal();
   useEffect(() => {
     if (!ready || !fontsReady || !Focus) return;
-    const focus=Focus;
+    const focus = Focus;
     const consume = async () => {
       const text = await focus.consumeSharedText();
       if (text)

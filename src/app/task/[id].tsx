@@ -117,7 +117,7 @@ export default function Task() {
       />
       <T bold>Repeat after completion</T>
       <Row>
-        {(["none", "daily", "weekly"] as const).map((r) => (
+        {(["none", "daily", "weekly", "fortnightly"] as const).map((r) => (
           <Chip
             key={r}
             title={r}
