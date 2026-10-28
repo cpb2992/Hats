@@ -466,20 +466,26 @@ export default function Settings() {
               keyboardType="email-address"
             />
             <Button
-              title={sent ? "Send a new code" : "Email me a sign-in code"}
+              title={sent ? "Send a new link" : "Email me a sign-in link"}
               disabled={busy}
               onPress={() =>
                 run(async () => {
                   await sendCode(email.trim());
                   setSent(true);
-                  say("Check your email for the sign-in code.");
+                  say(
+                    "Check your email on this phone and tap the sign-in link.",
+                  );
                 })
               }
             />
             {sent ? (
               <>
+                <T muted size={13}>
+                  Open the email on this phone and tap the link to finish. If
+                  the email shows a 6-digit code instead, type it here.
+                </T>
                 <Field
-                  label="Email verification code"
+                  label="Code from the email · only if there is one"
                   value={code}
                   onChangeText={setCode}
                 />

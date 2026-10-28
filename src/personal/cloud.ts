@@ -109,13 +109,67 @@ export async function currentSession(): Promise<Session | null> {
   }
   return session;
 }
+async function pkcePair() {
+  const verifier = Array.from(Crypto.getRandomBytes(32))
+    .map((n) => n.toString(16).padStart(2, "0"))
+    .join("");
+  const challenge = (
+    await Crypto.digestStringAsync(
+      Crypto.CryptoDigestAlgorithm.SHA256,
+      verifier,
+      { encoding: Crypto.CryptoEncoding.BASE64 },
+    )
+  )
+    .replace(/\+/g, "-")
+    .replace(/\//g, "_")
+    .replace(/=+$/, "");
+  return { verifier, challenge };
+}
+const EMAIL_PKCE = "hats.cloud.email-pkce";
+/**
+ * Emails a one-tap sign-in link (and a code, if the project's template includes one).
+ * The link returns to hats://auth-callback with a one-time code that only this phone can
+ * redeem, because the matching PKCE verifier never leaves the device.
+ */
 export async function sendCode(email: string) {
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email))
     throw new Error("Enter a valid email address.");
-  await request("/auth/v1/otp", {
+  const { verifier, challenge } = await pkcePair();
+  await secretSet(EMAIL_PKCE, verifier);
+  const redirect = Linking.createURL("auth-callback");
+  await request(`/auth/v1/otp?redirect_to=${encodeURIComponent(redirect)}`, {
     method: "POST",
-    body: JSON.stringify({ email, create_user: true }),
+    body: JSON.stringify({
+      email,
+      create_user: true,
+      code_challenge: challenge,
+      code_challenge_method: "s256",
+    }),
   });
+}
+/** True while an emailed sign-in link from this phone is waiting to be tapped. */
+export async function emailLinkPending() {
+  return Boolean(await secretGet(EMAIL_PKCE));
+}
+/** Finishes sign-in from the emailed link. Returns the signed-in email address. */
+export async function finishEmailLink(code: string) {
+  const verifier = await secretGet(EMAIL_PKCE);
+  if (!verifier)
+    throw new Error(
+      "This sign-in link was requested on another device or already used. Send a new one from Settings.",
+    );
+  const existing = await currentSession().catch(() => null);
+  const next = (await request("/auth/v1/token?grant_type=pkce", {
+    method: "POST",
+    body: JSON.stringify({ auth_code: code, code_verifier: verifier }),
+  })) as Session;
+  await secretSet(EMAIL_PKCE, null);
+  if (existing && existing.user.id !== next.user.id)
+    throw new Error(
+      "That link belongs to a different account. Sign out before switching accounts. Your local data is unchanged.",
+    );
+  await storeSession(next);
+  return next.user.email as string;
 }
 export async function verifyCode(email: string, token: string) {
   const session = await request("/auth/v1/verify", {
@@ -123,6 +177,7 @@ export async function verifyCode(email: string, token: string) {
     body: JSON.stringify({ email, token, type: "email" }),
   });
   await storeSession(session);
+  await secretSet(EMAIL_PKCE, null);
   return session.user.email as string;
 }
 export async function signOut() {
@@ -173,19 +228,9 @@ export async function googleSignIn() {
   const config = await getConfig();
   if (!config)
     throw new Error("Configure your private cloud connection first.");
-  const verifier = Array.from(Crypto.getRandomBytes(32))
-    .map((n) => n.toString(16).padStart(2, "0"))
-    .join("");
-  const challenge = (
-    await Crypto.digestStringAsync(
-      Crypto.CryptoDigestAlgorithm.SHA256,
-      verifier,
-      { encoding: Crypto.CryptoEncoding.BASE64 },
-    )
-  )
-    .replace(/\+/g, "-")
-    .replace(/\//g, "_")
-    .replace(/=+$/, "");
+  // A Google return must never be redeemed against a pending email link.
+  await secretSet(EMAIL_PKCE, null);
+  const { verifier, challenge } = await pkcePair();
   const redirect = Linking.createURL("auth-callback");
   const url = `${config.url}/auth/v1/authorize?provider=google&redirect_to=${encodeURIComponent(redirect)}&scopes=${encodeURIComponent("https://www.googleapis.com/auth/calendar.events.readonly https://www.googleapis.com/auth/calendar.calendarlist.readonly")}&code_challenge=${challenge}&code_challenge_method=s256`;
   const response = await WebBrowser.openAuthSessionAsync(url, redirect);
