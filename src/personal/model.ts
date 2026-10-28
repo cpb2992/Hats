@@ -1,37 +1,50 @@
+import type { HatArtId } from "./hatArt";
 export type PersonalHat =
   "husband" | "dad" | "pets" | "home" | "friends" | "myself";
 export const HATS = {
   husband: {
+    art: "fedora" as HatArtId,
+    tint: "#FCE1D8",
     name: "Husband",
     icon: "heart",
     color: "#B45C43",
     subtitle: "Notice. Connect. Follow through.",
   },
   dad: {
+    art: "propeller" as HatArtId,
+    tint: "#FFF0C2",
     name: "Dad",
     icon: "people",
     color: "#3D65A2",
     subtitle: "More little moments together.",
   },
   pets: {
+    art: "catbeanie" as HatArtId,
+    tint: "#FFE3CC",
     name: "Pets",
     icon: "star",
     color: "#95713C",
     subtitle: "Care that stays on your radar.",
   },
   home: {
+    art: "cap" as HatArtId,
+    tint: "#DCE9FA",
     name: "Home",
     icon: "home",
     color: "#56739B",
     subtitle: "From noticing to putting away.",
   },
   friends: {
+    art: "party" as HatArtId,
+    tint: "#EEE1FA",
     name: "Friends & family",
     icon: "groups",
     color: "#8C668C",
     subtitle: "Keep your people close.",
   },
   myself: {
+    art: "pompom" as HatArtId,
+    tint: "#D3F0E8",
     name: "Myself",
     icon: "gym",
     color: "#496A8B",

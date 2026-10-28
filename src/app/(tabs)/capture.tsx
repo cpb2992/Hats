@@ -144,6 +144,7 @@ function CaptureForm({
       <Header
         title="A thought worth keeping."
         subtitle="Talk, type, or keep a useful idea. Then get back to life."
+        hat="wizard"
       />
       <Row>
         {(
@@ -233,7 +234,7 @@ function CaptureForm({
         {!["task", "pantry", "groceries"].includes(kind) ? (
           <Button
             title="Keep a photo"
-            icon="camera"
+            hat="chef"
             quiet
             onPress={choosePhoto}
           />

@@ -3,6 +3,9 @@ import { router } from "expo-router";
 import { installRoutines } from "../personal/engine";
 import { pickBackup } from "../personal/backup";
 import { usePersonal } from "../personal/Store";
+import { View } from "react-native";
+import { Hat } from "../personal/Hat";
+import { HATS, HAT_IDS } from "../personal/model";
 import { Button, Field, Page, Panel, Row, T } from "../personal/ui";
 export default function Welcome() {
   const { data, mutate, today, replace, say } = usePersonal();
@@ -10,6 +13,24 @@ export default function Welcome() {
   const [partner, setPartner] = useState(data.preferences.partner);
   return (
     <Page tabs={false}>
+      <View
+        style={{
+          flexDirection: "row",
+          flexWrap: "wrap",
+          gap: 4,
+          justifyContent: "space-between",
+        }}
+      >
+        {HAT_IDS.map((h, i) => (
+          <Hat
+            key={h}
+            id={HATS[h].art}
+            size={52}
+            tilt={i % 2 ? 9 : -9}
+            wobble
+          />
+        ))}
+      </View>
       <T display size={32}>
         hats.
       </T>
@@ -29,7 +50,7 @@ export default function Welcome() {
         </T>
         <Button
           title="Import my setup or backup"
-          icon="doc"
+          hat="stack"
           onPress={async () => {
             try {
               const next = await pickBackup();
@@ -55,6 +76,7 @@ export default function Welcome() {
       />
       <Button
         title="Make room for what matters"
+        hat="cap"
         onPress={() => {
           mutate((d) => {
             d.preferences.name = name.trim();

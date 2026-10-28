@@ -21,6 +21,7 @@ import {
 } from "react-native-safe-area-context";
 import { PersonalProvider, usePersonal } from "../personal/Store";
 import { Loading, P, T } from "../personal/ui";
+import { Hat } from "../personal/Hat";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 function Shell({ fontsReady }: { fontsReady: boolean }) {
@@ -70,12 +71,16 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
             bottom: insets.bottom + 102,
             left: 20,
             right: 20,
-            padding: 16,
-            borderRadius: 18,
+            padding: 12,
+            borderRadius: 22,
             backgroundColor: P.ink,
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 10,
           }}
         >
-          <T color={P.paper} size={14}>
+          <Hat id="cap" size={36} tilt={-12} />
+          <T color={P.paper} size={14} style={{ flex: 1 }}>
             {message}
           </T>
         </View>

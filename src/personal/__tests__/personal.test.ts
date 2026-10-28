@@ -318,3 +318,16 @@ test("native screens use no HTML elements (they crash React Native on launch)", 
   );
   assert.deepEqual(offenders, []);
 });
+
+test("every space and screen hat has sticker art that renders to valid SVG", async () => {
+  const { HAT_ART_IDS, hatSvg, hatShapes } = await import("../hatArt");
+  const { HATS: spaces } = await import("../model");
+  for (const space of Object.values(spaces)) assert.ok(HAT_ART_IDS.includes(space.art));
+  assert.equal(new Set(Object.values(spaces).map((s) => s.art)).size, 6, "each space wears a different hat");
+  for (const id of HAT_ART_IDS) {
+    assert.ok(hatShapes(id).length > 2);
+    const svg = hatSvg(id);
+    assert.match(svg, /^<svg [^>]*viewBox="0 0 64 64">.*<\/svg>$/);
+    assert.doesNotMatch(svg, /NaN|undefined/);
+  }
+});

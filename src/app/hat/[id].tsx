@@ -255,7 +255,7 @@ export default function Hat() {
     });
   return (
     <Page tabs={false}>
-      <Header title={def.name} subtitle={def.subtitle} back />
+      <Header title={def.name} subtitle={def.subtitle} back hat={def.art} />
       <Row>
         <Button title="Add a commitment" small onPress={() => capture()} />
         <Button
@@ -277,10 +277,16 @@ export default function Hat() {
               remember what matters to them, and take care of the details.
             </T>
             <Row>
-              <Button title="Plan a date" quiet onPress={newDate} />
+              <Button
+                title="Plan a date"
+                quiet
+                hat="fedora"
+                onPress={newDate}
+              />
               <Button
                 title="Save a gift idea"
                 quiet
+                hat="party"
                 onPress={() => capture("gift")}
               />
             </Row>
@@ -310,6 +316,7 @@ export default function Hat() {
                 {date.note ? <T muted>{date.note}</T> : null}
                 {date.steps.map((step, index) => (
                   <Check
+                    strike
                     key={index}
                     title={step.title}
                     done={step.done}
@@ -354,6 +361,7 @@ export default function Hat() {
       {hat === "dad" ? (
         <>
           <Section
+            hat="party"
             title="Your crew"
             action="Add child"
             onPress={() => person("child")}
@@ -467,6 +475,7 @@ export default function Hat() {
       {hat === "pets" ? (
         <>
           <Section
+            hat="catbeanie"
             title="The paws in your life"
             action="Add pet"
             onPress={() => person("pet")}
@@ -519,6 +528,7 @@ export default function Hat() {
       {hat === "home" ? (
         <>
           <Section
+            hat="chef"
             title="Reliable dinners"
             action="Add meal"
             onPress={addMeal}
@@ -583,6 +593,7 @@ export default function Hat() {
             </Panel>
           ))}
           <Section
+            hat="chef"
             title="Usually in the kitchen"
             action="Add staples"
             onPress={() => capture("pantry")}
@@ -601,6 +612,7 @@ export default function Hat() {
             ))}
           </Row>
           <Section
+            hat="chef"
             title="Grocery list"
             action="Add items"
             onPress={() => capture("groceries")}
@@ -609,6 +621,7 @@ export default function Hat() {
             <Panel>
               {data.groceries.map((item) => (
                 <Check
+                  strike
                   key={item}
                   title={item}
                   done={false}
@@ -628,7 +641,7 @@ export default function Hat() {
             <Button
               title="Add a laundry cycle"
               quiet
-              icon="laundry"
+              hat="cap"
               onPress={() =>
                 mutate((d) => {
                   d.tasks.push(
@@ -644,7 +657,7 @@ export default function Hat() {
             <Button
               title="Save an ingredient photo"
               quiet
-              icon="camera"
+              hat="chef"
               onPress={() => capture("idea")}
             />
           </Row>
@@ -653,6 +666,7 @@ export default function Hat() {
       {hat === "friends" ? (
         <>
           <Section
+            hat="party"
             title="Your people"
             action="Add someone"
             onPress={() => person("friend")}
@@ -719,7 +733,7 @@ export default function Hat() {
             <Button
               title="Make room for 10 minutes of guitar"
               quiet
-              icon="play"
+              hat="pompom"
               onPress={() => {
                 mutate((d) => {
                   d.tasks.push(
@@ -739,6 +753,7 @@ export default function Hat() {
             />
           </Panel>
           <Section
+            hat="tophat"
             title="Money with a purpose"
             action="Monthly targets"
             onPress={budgets}
@@ -817,6 +832,7 @@ export default function Hat() {
       ) : null}
       <Streaks hat={hat} />
       <Section
+        hat={def.art}
         title={showDone ? "Finished commitments" : "Commitments"}
         action={showDone ? "Show open" : "Show finished"}
         onPress={() => setShowDone(!showDone)}
@@ -850,6 +866,7 @@ export default function Hat() {
         </T>
       )}
       <Section
+        hat="wizard"
         title="Things worth remembering"
         action="Add"
         onPress={() => capture("idea")}

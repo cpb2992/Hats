@@ -40,6 +40,7 @@ export default function Plan() {
       <Header
         title="Make room for life."
         subtitle="Google events stay read-only. Your flexible plans live here."
+        hat="safari"
       />
       <Row>
         {Array.from({ length: 7 }, (_, i) => addDays(today, i)).map((d) => (

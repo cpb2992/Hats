@@ -12,6 +12,7 @@ import {
 import { HATS, type PersonalHat } from "../../personal/model";
 import { useFocusEnabled } from "../../personal/focus";
 import { Streaks } from "../../personal/Streaks";
+import { Hat } from "../../personal/Hat";
 import { usePersonal } from "../../personal/Store";
 import {
   Button,
@@ -68,6 +69,7 @@ export default function Today() {
       <Header
         title={`${nowMin < 720 ? "Good morning" : nowMin < 1020 ? "A little room for life" : "Home. Be here"}${data.preferences.name ? `, ${data.preferences.name}.` : "."}`}
         subtitle={fmtLong(today)}
+        hat={nowMin < 1020 ? "sunhat" : "nightcap"}
       />
       <Row>
         <Chip
@@ -85,6 +87,7 @@ export default function Today() {
       </Row>
       {protectedNow ? (
         <Panel dark>
+          <Hat id="nightcap" size={56} wobble />
           <T size={12} bold color="#C8D7EA">
             TIME SET ASIDE
           </T>
@@ -118,6 +121,11 @@ export default function Today() {
       <Columns>
         <View style={{ flex: 1, gap: 16 }}>
           <Panel dark>
+            <Hat
+              id={[0, 6].includes(weekday(today)) ? "sunhat" : "nightcap"}
+              size={64}
+              wobble
+            />
             <T size={12} bold color="#C8D7EA">
               {[0, 6].includes(weekday(today))
                 ? "YOUR WEEKEND"
@@ -133,17 +141,18 @@ export default function Today() {
             <Button
               title="Time with the kids"
               quiet
-              icon="people"
+              hat="propeller"
               onPress={() => startSession("Time with the kids")}
             />
             <Button
               title={`Time with ${data.preferences.partner || "your partner"}`}
               quiet
-              icon="heart"
+              hat="fedora"
               onPress={() => startSession("Time together")}
             />
           </Panel>
           <Section
+            hat="safari"
             title="Your next steps"
             action="Add"
             onPress={() => router.push("/capture")}
@@ -259,7 +268,7 @@ export default function Today() {
             <Button
               title={meal ? "Meals and grocery list" : "Add your go-to meals"}
               quiet
-              icon="dinner"
+              hat="chef"
               onPress={() => router.push("/hat/home")}
             />
           </Panel>
@@ -313,12 +322,13 @@ export default function Today() {
             <Button
               title="Plan your next date"
               quiet
-              icon="heart"
+              hat="fedora"
               onPress={() => router.push("/hat/husband")}
             />
           </Panel>
           {today.slice(5) === "10-31" ? (
-            <Panel>
+            <Panel tint="#EDE0FA">
+              <Hat id="wizard" size={60} wobble />
               <T bold>Make room for Halloween</T>
               <T muted>
                 Check your family’s plans, costumes, weather, and the time
@@ -330,7 +340,7 @@ export default function Today() {
             <Button
               title="Explore family outings nearby"
               quiet
-              icon="calendar"
+              hat="safari"
               onPress={() =>
                 Linking.openURL(
                   `https://www.google.com/maps/search/${encodeURIComponent(`family activities near ${data.preferences.city || "me"}`)}`,

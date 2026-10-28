@@ -81,7 +81,7 @@ export default function Task() {
   };
   return (
     <Page tabs={false}>
-      <Header title="Make it fit your life." back />
+      <Header title="Make it fit your life." back hat={HATS[hat].art} />
       <Field label="Task" value={title} onChangeText={setTitle} />
       <Row>
         {HAT_IDS.map((h) => (
@@ -134,6 +134,7 @@ export default function Task() {
       />
       {task.steps.map((step, i) => (
         <Check
+          strike
           key={i}
           title={step.title}
           done={step.done}

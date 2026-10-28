@@ -56,6 +56,7 @@ export function Streaks({ hat }: { hat?: PersonalHat }) {
   return (
     <View style={{ gap: 14 }}>
       <Section
+        hat="crown"
         title="Streaks worth keeping"
         action="Add a streak"
         onPress={add}

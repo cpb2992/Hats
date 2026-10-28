@@ -1,6 +1,7 @@
 import { Platform } from "react-native";
 import {
   FlexWidget,
+  SvgWidget,
   TextWidget,
   requestPinWidget,
   requestWidgetUpdate,
@@ -9,6 +10,7 @@ import {
 import { nowMinutes, todayISO } from "../engine/dates";
 import { finishStep, nextStep, planDay, reschedule } from "./engine";
 import { HATS, type PersonalData } from "./model";
+import { hatSvg } from "./hatArt";
 import { loadPersonal, savePersonal } from "./storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
@@ -30,27 +32,45 @@ export function PersonalWidget({
       style={{
         width: "match_parent",
         height: "match_parent",
-        backgroundColor: "#F5F1E9",
+        backgroundColor: "#FFF4E3",
         borderRadius: 24,
-        padding: 18,
+        borderWidth: 2,
+        borderBottomWidth: 5,
+        borderColor: "#1D2D45",
+        padding: 16,
         flexDirection: "column",
         justifyContent: "space-between",
       }}
     >
-      <TextWidget
-        text={
-          say
-            ? "HATS · CAPTURE"
-            : home
-              ? "HATS · HOME LIFE"
-              : "HATS · NEXT STEP"
-        }
-        style={{
-          fontSize: 12,
-          fontFamily: "InterTight-Bold",
-          color: "#3D65A2",
-        }}
-      />
+      <FlexWidget style={{ flexDirection: "row", alignItems: "center" }}>
+        <SvgWidget
+          svg={hatSvg(
+            say
+              ? "wizard"
+              : home
+                ? "cap"
+                : task
+                  ? HATS[task.hat].art
+                  : "sunhat",
+            64,
+          )}
+          style={{ width: 34, height: 34, marginRight: 8 }}
+        />
+        <TextWidget
+          text={
+            say
+              ? "HATS · CAPTURE"
+              : home
+                ? "HATS · HOME LIFE"
+                : "HATS · NEXT STEP"
+          }
+          style={{
+            fontSize: 12,
+            fontFamily: "InterTight-Bold",
+            color: "#1D2D45",
+          }}
+        />
+      </FlexWidget>
       <TextWidget
         text={
           say
@@ -85,13 +105,15 @@ export function PersonalWidget({
             accessibilityLabel="Complete the next step"
             style={{
               padding: 10,
-              backgroundColor: "#192A41",
-              borderRadius: 14,
+              backgroundColor: "#F7C948",
+              borderRadius: 16,
+              borderWidth: 2,
+              borderColor: "#1D2D45",
             }}
           >
             <TextWidget
-              text="Step done"
-              style={{ fontSize: 13, color: "#FFFFFF" }}
+              text="Step done ✓"
+              style={{ fontSize: 13, color: "#1D2D45" }}
             />
           </FlexWidget>
           <FlexWidget

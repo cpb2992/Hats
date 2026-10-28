@@ -162,7 +162,7 @@ export default function Settings() {
     });
   return (
     <Page tabs={false}>
-      <Header title="Your life, your settings." back />
+      <Header title="Your life, your settings." back hat="hardhat" />
       {error ? (
         <Panel>
           <T>{error}</T>
@@ -172,14 +172,14 @@ export default function Settings() {
           />
         </Panel>
       ) : null}
-      <Section title="Personal setup" />
+      <Section hat="pompom" title="Personal setup" />
       <Panel>
         <T size={21} bold>
           {data.preferences.name || "Your profile"}
         </T>
         <T muted>
-          {data.preferences.city || "Area not set"} · up to {data.preferences.travelMinutes}{" "}
-          minutes of travel
+          {data.preferences.city || "Area not set"} · up to{" "}
+          {data.preferences.travelMinutes} minutes of travel
         </T>
         <Button
           title="Edit names and preferences"
@@ -265,7 +265,7 @@ export default function Settings() {
           personal calendar events.
         </T>
       </Panel>
-      <Section title="Reminders and widgets" />
+      <Section hat="nightcap" title="Reminders and widgets" />
       <Panel>
         <Check
           title="Optional adventures and playful prompts"
@@ -351,7 +351,7 @@ export default function Settings() {
           in Hats and your widget until handled.
         </T>
       </Panel>
-      <Section title="Private account and recovery" />
+      <Section hat="hardhat" title="Private account and recovery" />
       <Panel>
         <T size={21} bold>
           Protected family time
@@ -538,7 +538,7 @@ export default function Settings() {
           </>
         ) : null}
       </Panel>
-      <Section title="Google Calendar · read-only" />
+      <Section hat="safari" title="Google Calendar · read-only" />
       <Panel>
         <T muted>
           Choose personal calendars to read for the next 30 days. Hats never
@@ -611,7 +611,7 @@ export default function Settings() {
           live stream.
         </T>
       </Panel>
-      <Section title="More context" />
+      <Section hat="safari" title="More context" />
       <Panel>
         <T bold>School breaks and seasonal plans</T>
         <T muted>
@@ -646,7 +646,7 @@ export default function Settings() {
           and chosen contacts work independently.
         </T>
       </Panel>
-      <Section title="Backups and existing Hats data" />
+      <Section hat="stack" title="Backups and existing Hats data" />
       <Panel>
         <T muted>
           A backup contains your private notes and personal information. Keep it

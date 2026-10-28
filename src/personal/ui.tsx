@@ -15,22 +15,35 @@ import { router } from "expo-router";
 import { Icon, type IconName } from "../ui/icons";
 import { F } from "../ui/theme";
 import { HATS, type PersonalTask } from "./model";
+import { Hat } from "./Hat";
+import type { HatArtId } from "./hatArt";
 import { finishStep, nextStep, reschedule } from "./engine";
 import { usePersonal } from "./Store";
 import { fmtRelative, fmtTime } from "../engine/dates";
 
 export const P = {
-  bg: "#F5F1E9",
-  paper: "#FFFDFA",
+  bg: "#FFF4E3",
+  paper: "#FFFDF8",
   ink: "#1D2D45",
-  muted: "#617083",
-  line: "#DDDCD7",
-  soft: "#E9EDF3",
+  muted: "#56647A",
+  line: "#E6D8C3",
+  soft: "#EAF1FB",
   blue: "#3D65A2",
-  orange: "#B45C43",
-  warm: "#F3E2D6",
+  orange: "#B4512F",
+  warm: "#FFE6D2",
   dark: "#1D2D45",
+  sun: "#F7C948",
+  sky: "#CFE3F7",
+  peach: "#FFD9C2",
+  lilac: "#EDE0FA",
+  mint: "#D3F0E8",
 };
+/** Sticker edge: a dark outline with a chunkier bottom, like a cut-out. */
+export const sticker = (lift = 5): ViewStyle => ({
+  borderWidth: 2,
+  borderColor: P.ink,
+  borderBottomWidth: lift,
+});
 export function T({
   children,
   size = 15,
@@ -93,26 +106,37 @@ export function Page({
 export function Panel({
   children,
   dark = false,
+  tint,
   style,
   onPress,
 }: {
   children: ReactNode;
   dark?: boolean;
+  tint?: string;
   style?: ViewStyle;
   onPress?: () => void;
 }) {
   const s: ViewStyle = {
     padding: 22,
-    borderRadius: 24,
-    backgroundColor: dark ? P.dark : P.paper,
+    borderRadius: 26,
+    backgroundColor: dark ? P.dark : (tint ?? P.paper),
     gap: 14,
+    ...sticker(),
     ...style,
   };
   return onPress ? (
     <Pressable
       accessibilityRole="button"
       onPress={onPress}
-      style={({ pressed }) => [s, { opacity: pressed ? 0.88 : 1 }]}
+      style={({ pressed }) => [
+        s,
+        pressed
+          ? {
+              transform: [{ translateY: 2 }, { scale: 0.99 }],
+              borderBottomWidth: 3,
+            }
+          : null,
+      ]}
     >
       {children}
     </Pressable>
@@ -125,6 +149,7 @@ export function Button({
   onPress,
   quiet = false,
   icon,
+  hat,
   disabled = false,
   small = false,
 }: {
@@ -132,6 +157,7 @@ export function Button({
   onPress: () => void;
   quiet?: boolean;
   icon?: IconName;
+  hat?: HatArtId;
   disabled?: boolean;
   small?: boolean;
 }) {
@@ -144,17 +170,30 @@ export function Button({
       style={({ pressed }) => ({
         minHeight: 48,
         paddingHorizontal: small ? 14 : 20,
-        paddingVertical: 12,
-        borderRadius: 16,
+        paddingVertical: 10,
+        borderRadius: 18,
         backgroundColor: quiet ? P.soft : P.ink,
         flexDirection: "row",
         gap: 9,
         justifyContent: "center",
         alignItems: "center",
-        opacity: disabled ? 0.4 : pressed ? 0.8 : 1,
+        ...sticker(pressed ? 2 : 4),
+        transform: [{ translateY: pressed ? 2 : 0 }],
+        opacity: disabled ? 0.4 : 1,
       })}
     >
-      {icon ? (
+      {hat ? (
+        <View
+          style={{
+            backgroundColor: quiet ? "transparent" : P.paper,
+            borderRadius: 18,
+            padding: quiet ? 0 : 2,
+          }}
+        >
+          <Hat id={hat} size={small ? 24 : 28} />
+        </View>
+      ) : null}
+      {icon && !hat ? (
         <Icon name={icon} color={quiet ? P.ink : P.paper} size={18} />
       ) : null}
       <T
@@ -186,13 +225,16 @@ export function Chip({
       style={{
         minHeight: 44,
         paddingHorizontal: 14,
-        paddingVertical: 10,
-        borderRadius: 14,
-        backgroundColor: selected ? P.ink : P.soft,
+        paddingVertical: 9,
+        borderRadius: 22,
+        backgroundColor: selected ? P.sun : P.paper,
+        borderWidth: 2,
+        borderColor: selected ? P.ink : P.line,
         justifyContent: "center",
       }}
     >
-      <T size={13} bold color={selected ? P.paper : P.ink}>
+      <T size={13} bold color={P.ink}>
+        {selected ? "✓ " : ""}
         {title}
       </T>
     </Pressable>
@@ -211,10 +253,10 @@ export function Field({ label, ...props }: TextInputProps & { label: string }) {
         style={[
           {
             minHeight: 50,
-            borderRadius: 14,
+            borderRadius: 16,
             backgroundColor: P.paper,
-            borderWidth: 1,
-            borderColor: P.line,
+            borderWidth: 2,
+            borderColor: P.ink,
             padding: 14,
             fontFamily: F.body,
             fontSize: 16,
@@ -259,10 +301,12 @@ export function Header({
   title,
   subtitle,
   back = false,
+  hat,
 }: {
   title: string;
   subtitle?: string;
   back?: boolean;
+  hat?: HatArtId;
 }) {
   return (
     <View style={{ gap: 16 }}>
@@ -285,31 +329,39 @@ export function Header({
             <Icon name="back" color={P.ink} />
           </Pressable>
         ) : (
-          <T display size={27}>
-            hats.
-          </T>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <Hat id="cap" size={34} tilt={-10} />
+            <T display size={27}>
+              hats.
+            </T>
+          </View>
         )}
         <Pressable
           accessibilityRole="button"
           accessibilityLabel="Settings and connections"
           onPress={() => router.push("/settings")}
-          style={{
-            width: 44,
-            height: 44,
-            borderRadius: 22,
-            backgroundColor: P.paper,
+          style={({ pressed }) => ({
+            width: 52,
+            height: 52,
+            borderRadius: 26,
+            backgroundColor: P.sun,
             alignItems: "center",
             justifyContent: "center",
-          }}
+            ...sticker(pressed ? 2 : 4),
+            transform: [{ translateY: pressed ? 2 : 0 }],
+          })}
         >
-          <Icon name="settings" color={P.ink} />
+          <Hat id="hardhat" size={36} />
         </Pressable>
       </View>
-      <View style={{ gap: 7 }}>
-        <T display size={34}>
-          {title}
-        </T>
-        {subtitle ? <T muted>{subtitle}</T> : null}
+      <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 10 }}>
+        <View style={{ flex: 1, gap: 7 }}>
+          <T display size={34}>
+            {title}
+          </T>
+          {subtitle ? <T muted>{subtitle}</T> : null}
+        </View>
+        {hat ? <Hat id={hat} size={76} tilt={8} /> : null}
       </View>
     </View>
   );
@@ -318,10 +370,12 @@ export function Section({
   title,
   action,
   onPress,
+  hat,
 }: {
   title: string;
   action?: string;
   onPress?: () => void;
+  hat?: HatArtId;
 }) {
   return (
     <View
@@ -332,18 +386,39 @@ export function Section({
         gap: 12,
       }}
     >
-      <T size={20} bold>
-        {title}
-      </T>
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 8,
+          flexShrink: 1,
+        }}
+      >
+        {hat ? <Hat id={hat} size={36} tilt={-6} /> : null}
+        <T size={20} bold style={{ flexShrink: 1 }}>
+          {title}
+        </T>
+      </View>
       {action ? (
         <Pressable
           accessibilityRole="button"
           onPress={onPress}
           style={{ minHeight: 44, justifyContent: "center" }}
         >
-          <T size={13} bold color={P.blue}>
-            {action}
-          </T>
+          <View
+            style={{
+              backgroundColor: P.paper,
+              borderRadius: 16,
+              borderWidth: 2,
+              borderColor: P.ink,
+              paddingHorizontal: 12,
+              paddingVertical: 6,
+            }}
+          >
+            <T size={13} bold color={P.ink}>
+              + {action}
+            </T>
+          </View>
         </Pressable>
       ) : null}
     </View>
@@ -354,14 +429,17 @@ export function Empty({
   detail,
   action,
   onPress,
+  hat = "stack",
 }: {
   title: string;
   detail?: string;
   action?: string;
   onPress?: () => void;
+  hat?: HatArtId;
 }) {
   return (
     <Panel>
+      <Hat id={hat} size={64} wobble />
       <T bold>{title}</T>
       {detail ? <T muted>{detail}</T> : null}
       {action && onPress ? (
@@ -370,14 +448,17 @@ export function Empty({
     </Panel>
   );
 }
+/** A checkbox. `strike` crosses out finished steps; leave it off for settings toggles. */
 export function Check({
   title,
   done,
   onPress,
+  strike = false,
 }: {
   title: string;
   done: boolean;
   onPress: () => void;
+  strike?: boolean;
 }) {
   return (
     <Pressable
@@ -393,21 +474,23 @@ export function Check({
     >
       <View
         style={{
-          height: 26,
-          width: 26,
-          borderRadius: 8,
-          backgroundColor: done ? P.ink : P.soft,
+          height: 28,
+          width: 28,
+          borderRadius: 10,
+          backgroundColor: done ? P.sun : P.paper,
+          borderWidth: 2,
+          borderColor: P.ink,
           alignItems: "center",
           justifyContent: "center",
         }}
       >
-        {done ? <Icon name="check" color={P.paper} size={17} /> : null}
+        {done ? <Icon name="check" color={P.ink} size={17} /> : null}
       </View>
       <T
         style={{
           flex: 1,
-          textDecorationLine: done ? "line-through" : "none",
-          opacity: done ? 0.65 : 1,
+          textDecorationLine: done && strike ? "line-through" : "none",
+          opacity: done && strike ? 0.65 : 1,
         }}
       >
         {title}
@@ -430,13 +513,29 @@ export function TaskCard({
         style={{
           flexDirection: "row",
           justifyContent: "space-between",
+          alignItems: "center",
           gap: 8,
         }}
       >
-        <T size={12} bold color={HATS[task.hat].color}>
-          {HATS[task.hat].name.toUpperCase()}
-          {task.essential ? " · ESSENTIAL" : ""}
-        </T>
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            backgroundColor: HATS[task.hat].tint,
+            borderRadius: 16,
+            paddingRight: 10,
+            paddingLeft: 4,
+            paddingVertical: 2,
+            flexShrink: 1,
+          }}
+        >
+          <Hat id={HATS[task.hat].art} size={26} />
+          <T size={12} bold color={P.ink}>
+            {HATS[task.hat].name}
+            {task.essential ? " · Essential" : ""}
+          </T>
+        </View>
         <T size={12} muted>
           {fmtRelative(task.date, today)}
           {plannedTime ? ` · ${fmtTime(plannedTime, true)}` : ""}
@@ -465,7 +564,7 @@ export function TaskCard({
               const t = d.tasks.find((t) => t.id === task.id);
               if (t) finishStep(t);
             });
-            say("Saved. Undo is available above.");
+            say("Hat tip! Saved. Undo is up top if you need it.");
           }}
         />
         {!task.fixed ? (
@@ -509,10 +608,11 @@ export function Loading() {
         gap: 20,
       }}
     >
+      <Hat id="cap" size={96} wobble />
       <T display size={42}>
         hats.
       </T>
-      <ActivityIndicator color={P.blue} />
+      <ActivityIndicator color={P.ink} />
     </View>
   );
 }

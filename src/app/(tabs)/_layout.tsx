@@ -3,14 +3,15 @@ import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
 import { Pressable, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePersonal } from "../../personal/Store";
-import { P, T } from "../../personal/ui";
-import { Icon, type IconName } from "../../ui/icons";
+import { P, T, sticker } from "../../personal/ui";
+import { Hat } from "../../personal/Hat";
+import type { HatArtId } from "../../personal/hatArt";
 
-const tabs: Record<string, { title: string; icon: IconName }> = {
-  index: { title: "Today", icon: "home" },
-  hats: { title: "My hats", icon: "groups" },
-  plan: { title: "Plan", icon: "calendar" },
-  capture: { title: "Capture", icon: "mic" },
+const tabs: Record<string, { title: string; hat: HatArtId }> = {
+  index: { title: "Today", hat: "sunhat" },
+  hats: { title: "My hats", hat: "stack" },
+  plan: { title: "Plan", hat: "safari" },
+  capture: { title: "Capture", hat: "wizard" },
 };
 function Bar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const inset = useSafeAreaInsets();
@@ -30,11 +31,9 @@ function Bar({ state, emitter, navigateToTab }: BottomTabBarProps) {
           width: "100%",
           flexDirection: "row",
           backgroundColor: P.paper,
-          borderRadius: 25,
+          borderRadius: 28,
           padding: 6,
-          borderWidth: 1,
-          borderColor: P.line,
-          elevation: 6,
+          ...sticker(5),
         }}
       >
         {state.routes.map((route, i) => {
@@ -57,20 +56,22 @@ function Bar({ state, emitter, navigateToTab }: BottomTabBarProps) {
               }}
               style={{
                 flex: 1,
-                minHeight: 60,
+                minHeight: 64,
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 4,
-                borderRadius: 19,
-                backgroundColor: selected ? P.ink : "transparent",
+                gap: 1,
+                borderRadius: 22,
+                backgroundColor: selected ? P.sun : "transparent",
+                borderWidth: 2,
+                borderColor: selected ? P.ink : "transparent",
               }}
             >
-              <Icon
-                name={meta.icon}
-                color={selected ? P.paper : P.muted}
-                size={21}
+              <Hat
+                id={meta.hat}
+                size={selected ? 38 : 32}
+                tilt={selected ? -8 : 0}
               />
-              <T size={11} bold color={selected ? P.paper : P.muted}>
+              <T size={11} bold color={P.ink}>
                 {meta.title}
               </T>
             </Pressable>
