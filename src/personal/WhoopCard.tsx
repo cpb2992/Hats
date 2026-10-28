@@ -67,7 +67,7 @@ export function WhoopToday() {
           WHOOP · TODAY
         </T>
       </Row>
-      <T size={20} bold>
+      <T size={18} bold>
         {whoopLine(t)}
       </T>
       {t.hrv != null || t.restingHr != null ? (

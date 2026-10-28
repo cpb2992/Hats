@@ -12,7 +12,7 @@ import { useFonts } from "expo-font";
 import { Stack, router } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
-import { useEffect } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { View, AppState } from "react-native";
 import Focus from "../../modules/hats-focus";
 import {
@@ -22,10 +22,18 @@ import {
 import { PersonalProvider, usePersonal } from "../personal/Store";
 import { Loading, P, T } from "../personal/ui";
 import { Hat } from "../personal/Hat";
+import { Intro } from "../personal/Intro";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
+// The hat-tower intro plays once per app launch, not on every remount.
+let introPlayed = false;
 function Shell({ fontsReady }: { fontsReady: boolean }) {
   const { ready, message } = usePersonal();
+  const [intro, setIntro] = useState(() => !introPlayed);
+  const endIntro = useCallback(() => {
+    introPlayed = true;
+    setIntro(false);
+  }, []);
   useEffect(() => {
     if (!ready || !fontsReady || !Focus) return;
     const focus = Focus;
@@ -44,9 +52,17 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
   }, [ready, fontsReady]);
   const insets = useSafeAreaInsets();
   useEffect(() => {
-    if (ready && fontsReady) SplashScreen.hide();
-  }, [ready, fontsReady]);
-  if (!ready || !fontsReady) return <Loading />;
+    // The intro covers data loading, so the native splash can step aside early.
+    if (fontsReady && (ready || intro)) SplashScreen.hide();
+  }, [ready, fontsReady, intro]);
+  const overlay = intro && fontsReady ? <Intro onDone={endIntro} /> : null;
+  if (!ready || !fontsReady)
+    return (
+      <View style={{ flex: 1, backgroundColor: P.bg }}>
+        <Loading />
+        {overlay}
+      </View>
+    );
   return (
     <View style={{ flex: 1, backgroundColor: P.bg }}>
       <StatusBar style="dark" />
@@ -85,6 +101,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
           </T>
         </View>
       ) : null}
+      {overlay}
     </View>
   );
 }

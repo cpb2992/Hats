@@ -269,7 +269,7 @@ export default function Hat() {
       {hat === "husband" ? (
         <>
           <Panel dark>
-            <T size={25} display color="#FFFDFA">
+            <T size={21} display color="#FFFDFA">
               Small things, remembered.
             </T>
             <T color="#D5DDE8">
@@ -302,7 +302,7 @@ export default function Hat() {
             .reverse()
             .map((date) => (
               <Panel key={date.id}>
-                <T size={22} display>
+                <T size={19} display>
                   {date.title}
                 </T>
                 <T muted>
@@ -370,7 +370,7 @@ export default function Hat() {
             .filter((p) => p.role === "child")
             .map((p) => (
               <Panel key={p.id}>
-                <T size={22} display>
+                <T size={19} display>
                   {p.name}
                 </T>
                 <T muted>{p.interests}</T>
@@ -413,7 +413,7 @@ export default function Hat() {
               </Panel>
             ))}
           <Panel>
-            <T size={22} display>
+            <T size={19} display>
               {activityFor(data, today)[1]}
             </T>
             <T muted>{activityFor(data, today)[2]}</T>
@@ -432,7 +432,7 @@ export default function Hat() {
             />
           </Panel>
           <Panel>
-            <T size={22} display>
+            <T size={19} display>
               A weekend worth looking forward to
             </T>
             <T muted>
@@ -484,7 +484,7 @@ export default function Hat() {
             .filter((p) => p.role === "pet")
             .map((p) => (
               <Panel key={p.id}>
-                <T size={22} display>
+                <T size={19} display>
                   {p.name}
                 </T>
                 <T muted>{p.interests}</T>
@@ -543,7 +543,7 @@ export default function Hat() {
           ) : null}
           {data.meals.map((m) => (
             <Panel key={m.id}>
-              <T size={22} display>
+              <T size={19} display>
                 {m.name}
               </T>
               <T muted>
@@ -675,7 +675,7 @@ export default function Hat() {
             .filter((p) => p.role === "friend")
             .map((p) => (
               <Panel key={p.id}>
-                <T size={22} display>
+                <T size={19} display>
                   {p.name}
                 </T>
                 <T muted>{p.interests}</T>
@@ -723,7 +723,7 @@ export default function Hat() {
       {hat === "myself" ? (
         <>
           <Panel dark>
-            <T size={25} display color="#FFFDFA">
+            <T size={21} display color="#FFFDFA">
               You get room here, too.
             </T>
             <T color="#D5DDE8">

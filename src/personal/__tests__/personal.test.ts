@@ -255,29 +255,57 @@ test("a private setup profile imports only known fields and links the kitchen ha
   const { parseBackup } = await import("../profile");
   const profile = {
     format: "hats-personal-profile",
-    preferences: { name: "Sam", partner: "Alex", city: "Springfield", travelMinutes: 30, dateBudget: 100, apiKey: "nope" },
+    preferences: {
+      name: "Sam",
+      partner: "Alex",
+      city: "Springfield",
+      travelMinutes: 30,
+      dateBudget: 100,
+      apiKey: "nope",
+    },
     people: [
       { id: "kid", name: "Robin", role: "child", interests: "puzzles" },
       { name: "Rex", role: "pet" },
       { name: "Boss", role: "coworker" },
     ],
-    notes: [{ text: "Likes tulips", hat: "husband", secret: "drop me" }, { text: "bad hat", hat: "work" }],
+    notes: [
+      { text: "Likes tulips", hat: "husband", secret: "drop me" },
+      { text: "bad hat", hat: "work" },
+    ],
     habits: [
-      { title: "Finish the kitchen", hat: "home", frequency: "daily", target: 1, taskSource: "starter-kitchen" },
-      { title: "Guitar", hat: "myself", frequency: "weekly", target: 3, extra: true },
+      {
+        title: "Finish the kitchen",
+        hat: "home",
+        frequency: "daily",
+        target: 1,
+        taskSource: "starter-kitchen",
+      },
+      {
+        title: "Guitar",
+        hat: "myself",
+        frequency: "weekly",
+        target: 3,
+        extra: true,
+      },
       { title: "Too much", hat: "myself", frequency: "weekly", target: 9 },
     ],
   };
   const data = parseBackup(JSON.stringify(profile), "2026-10-27");
   assert.equal(data.preferences.city, "Springfield");
   assert.equal("apiKey" in data.preferences, false);
-  assert.deepEqual(data.people.map((p) => p.name), ["Robin", "Rex"]);
+  assert.deepEqual(
+    data.people.map((p) => p.name),
+    ["Robin", "Rex"],
+  );
   assert.equal(data.notes.length, 1);
   assert.equal("secret" in data.notes[0], false);
-  assert.deepEqual(data.habits?.map((h) => [h.title, h.target, h.taskSource ?? null]), [
-    ["Finish the kitchen", 1, "starter-kitchen"],
-    ["Guitar", 3, null],
-  ]);
+  assert.deepEqual(
+    data.habits?.map((h) => [h.title, h.target, h.taskSource ?? null]),
+    [
+      ["Finish the kitchen", 1, "starter-kitchen"],
+      ["Guitar", 3, null],
+    ],
+  );
   assert.equal("extra" in (data.habits?.[1] ?? {}), false);
   assert.ok(data.tasks.some((t) => t.source === "starter-kitchen"));
   assert.ok(validData(data));
@@ -290,7 +318,14 @@ test("fresh data carries no household location", () => {
 });
 
 test("a corrupted weekly target cannot hang the streak count", () => {
-  const habit: Habit = { id: "h", title: "x", hat: "myself", frequency: "weekly", target: 0, checkins: [] };
+  const habit: Habit = {
+    id: "h",
+    title: "x",
+    hat: "myself",
+    frequency: "weekly",
+    target: 0,
+    checkins: [],
+  };
   const s = streakFor(habit, "2026-10-27");
   assert.equal(s.current, 0);
   assert.equal(s.target, 1);
@@ -312,9 +347,11 @@ test("native screens use no HTML elements (they crash React Native on launch)", 
   walk(join(root, "app"));
   walk(join(root, "personal"));
   const offenders = files.flatMap((f) =>
-    [...readFileSync(f, "utf8").matchAll(/(?<![\w.$])<([a-z][a-z0-9]*)(?=[\s/>])/g)].map(
-      (m) => `${f.slice(root.length)}: <${m[1]}>`,
-    ),
+    [
+      ...readFileSync(f, "utf8").matchAll(
+        /(?<![\w.$])<([a-z][a-z0-9]*)(?=[\s/>])/g,
+      ),
+    ].map((m) => `${f.slice(root.length)}: <${m[1]}>`),
   );
   assert.deepEqual(offenders, []);
 });
@@ -322,8 +359,13 @@ test("native screens use no HTML elements (they crash React Native on launch)", 
 test("every space and screen hat has sticker art that renders to valid SVG", async () => {
   const { HAT_ART_IDS, hatSvg, hatShapes } = await import("../hatArt");
   const { HATS: spaces } = await import("../model");
-  for (const space of Object.values(spaces)) assert.ok(HAT_ART_IDS.includes(space.art));
-  assert.equal(new Set(Object.values(spaces).map((s) => s.art)).size, 6, "each space wears a different hat");
+  for (const space of Object.values(spaces))
+    assert.ok(HAT_ART_IDS.includes(space.art));
+  assert.equal(
+    new Set(Object.values(spaces).map((s) => s.art)).size,
+    6,
+    "each space wears a different hat",
+  );
   for (const id of HAT_ART_IDS) {
     assert.ok(hatShapes(id).length > 2);
     const svg = hatSvg(id);
@@ -339,14 +381,22 @@ test("WHOOP: today's card only uses data scored today and never invents numbers"
   assert.equal(band(34), "steady");
   assert.equal(band(66), "steady");
   assert.equal(band(67), "high");
-  const at = (d: string, h: number) => new Date(`${d}T${String(h).padStart(2, "0")}:00:00`).toISOString();
+  const at = (d: string, h: number) =>
+    new Date(`${d}T${String(h).padStart(2, "0")}:00:00`).toISOString();
   const summary = {
     connected: true,
     recovery: [
       { at: at("2026-10-28", 6), score: 28, hrv: 41.2, restingHr: 58 },
       { at: at("2026-10-27", 6), score: 80, hrv: 70, restingHr: 52 },
     ],
-    sleep: [{ start: at("2026-10-27", 23), end: at("2026-10-28", 6), performance: 71, hoursAsleep: 5.9 }],
+    sleep: [
+      {
+        start: at("2026-10-27", 23),
+        end: at("2026-10-28", 6),
+        performance: 71,
+        hoursAsleep: 5.9,
+      },
+    ],
     strain: [
       { start: at("2026-10-28", 6), strain: 3.1 },
       { start: at("2026-10-27", 6), strain: 14.2 },

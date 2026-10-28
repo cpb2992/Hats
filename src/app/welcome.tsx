@@ -6,47 +6,30 @@ import { usePersonal } from "../personal/Store";
 import { View } from "react-native";
 import { Hat } from "../personal/Hat";
 import { HATS, HAT_IDS } from "../personal/model";
-import { Button, Field, Page, Panel, Row, T } from "../personal/ui";
+import { Button, Field, Page, Panel, T } from "../personal/ui";
 export default function Welcome() {
   const { data, mutate, today, replace, say } = usePersonal();
   const [name, setName] = useState(data.preferences.name);
   const [partner, setPartner] = useState(data.preferences.partner);
   return (
     <Page tabs={false}>
-      <View
-        style={{
-          flexDirection: "row",
-          flexWrap: "wrap",
-          gap: 4,
-          justifyContent: "space-between",
-        }}
-      >
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
         {HAT_IDS.map((h, i) => (
-          <Hat
-            key={h}
-            id={HATS[h].art}
-            size={52}
-            tilt={i % 2 ? 9 : -9}
-            wobble
-          />
+          <Hat key={h} id={HATS[h].art} size={38} tilt={i % 2 ? 9 : -9} />
         ))}
       </View>
-      <T display size={32}>
-        hats.
-      </T>
-      <T display size={44}>
-        {"Your life.\nA little more room."}
-      </T>
-      <T size={18} muted>
-        A private place to care for your people, your home, and yourself.
-      </T>
-      <Panel>
-        <T bold size={22}>
-          Already have your personal setup?
+      <View style={{ gap: 4 }}>
+        <T display size={30}>
+          Your life, with a little more room.
         </T>
-        <T muted>
-          Import it once to bring in your family, pets, preferences, and
-          routines. Your old Hats data stays untouched.
+        <T muted>Care for your people, your home, and yourself. Privately.</T>
+      </View>
+      <Panel>
+        <T bold size={17}>
+          Have your setup file?
+        </T>
+        <T muted size={14}>
+          Brings in your family, pets, routines, and streaks in one tap.
         </T>
         <Button
           title="Import my setup or backup"
@@ -64,6 +47,9 @@ export default function Welcome() {
           }}
         />
       </Panel>
+      <T bold size={15}>
+        Or start fresh
+      </T>
       <Field
         label="What should Hats call you?"
         value={name}
@@ -87,15 +73,8 @@ export default function Welcome() {
           router.replace("/");
         }}
       />
-      <Row>
-        <T size={12} muted>
-          Just you. No partner signup. No work tasks.
-        </T>
-      </Row>
       <T size={12} muted>
-        The installed app protects local data with encryption. Connect your
-        private account in Settings for sync and recovery. Browser previews use
-        browser storage.
+        Just you · encrypted on this phone · sync is optional in Settings.
       </T>
     </Page>
   );

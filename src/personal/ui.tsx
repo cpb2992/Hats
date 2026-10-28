@@ -89,14 +89,14 @@ export function Page({
     <ScrollView
       style={{ flex: 1, backgroundColor: P.bg }}
       contentContainerStyle={{
-        paddingTop: insets.top + 18,
+        paddingTop: insets.top + 10,
         paddingHorizontal: 20,
         paddingBottom: insets.bottom + (tabs ? 115 : 40),
       }}
       keyboardShouldPersistTaps="handled"
     >
       <View
-        style={{ width: "100%", maxWidth: 1080, alignSelf: "center", gap: 22 }}
+        style={{ width: "100%", maxWidth: 1080, alignSelf: "center", gap: 16 }}
       >
         {children}
       </View>
@@ -117,10 +117,10 @@ export function Panel({
   onPress?: () => void;
 }) {
   const s: ViewStyle = {
-    padding: 22,
-    borderRadius: 26,
+    padding: 17,
+    borderRadius: 22,
     backgroundColor: dark ? P.dark : (tint ?? P.paper),
-    gap: 14,
+    gap: 10,
     ...sticker(),
     ...style,
   };
@@ -168,9 +168,9 @@ export function Button({
       disabled={disabled}
       onPress={onPress}
       style={({ pressed }) => ({
-        minHeight: 48,
-        paddingHorizontal: small ? 14 : 20,
-        paddingVertical: 10,
+        minHeight: 46,
+        paddingHorizontal: small ? 12 : 18,
+        paddingVertical: 7,
         borderRadius: 18,
         backgroundColor: quiet ? P.soft : P.ink,
         flexDirection: "row",
@@ -309,7 +309,7 @@ export function Header({
   hat?: HatArtId;
 }) {
   return (
-    <View style={{ gap: 16 }}>
+    <View style={{ gap: 10 }}>
       <View
         style={{
           flexDirection: "row",
@@ -330,8 +330,8 @@ export function Header({
           </Pressable>
         ) : (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <Hat id="cap" size={34} tilt={-10} />
-            <T display size={27}>
+            <Hat id="cap" size={28} tilt={-10} />
+            <T display size={22}>
               hats.
             </T>
           </View>
@@ -341,9 +341,9 @@ export function Header({
           accessibilityLabel="Settings and connections"
           onPress={() => router.push("/settings")}
           style={({ pressed }) => ({
-            width: 52,
-            height: 52,
-            borderRadius: 26,
+            width: 46,
+            height: 46,
+            borderRadius: 23,
             backgroundColor: P.sun,
             alignItems: "center",
             justifyContent: "center",
@@ -351,17 +351,17 @@ export function Header({
             transform: [{ translateY: pressed ? 2 : 0 }],
           })}
         >
-          <Hat id="hardhat" size={36} />
+          <Hat id="hardhat" size={32} />
         </Pressable>
       </View>
       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 10 }}>
-        <View style={{ flex: 1, gap: 7 }}>
-          <T display size={34}>
+        <View style={{ flex: 1, gap: 4 }}>
+          <T display size={27}>
             {title}
           </T>
           {subtitle ? <T muted>{subtitle}</T> : null}
         </View>
-        {hat ? <Hat id={hat} size={76} tilt={8} /> : null}
+        {hat ? <Hat id={hat} size={58} tilt={8} /> : null}
       </View>
     </View>
   );
@@ -394,8 +394,8 @@ export function Section({
           flexShrink: 1,
         }}
       >
-        {hat ? <Hat id={hat} size={36} tilt={-6} /> : null}
-        <T size={20} bold style={{ flexShrink: 1 }}>
+        {hat ? <Hat id={hat} size={30} tilt={-6} /> : null}
+        <T size={18} bold style={{ flexShrink: 1 }}>
           {title}
         </T>
       </View>
@@ -439,7 +439,7 @@ export function Empty({
 }) {
   return (
     <Panel>
-      <Hat id={hat} size={64} wobble />
+      <Hat id={hat} size={52} wobble />
       <T bold>{title}</T>
       {detail ? <T muted>{detail}</T> : null}
       {action && onPress ? (
@@ -541,7 +541,7 @@ export function TaskCard({
           {plannedTime ? ` · ${fmtTime(plannedTime, true)}` : ""}
         </T>
       </View>
-      <T size={20} bold>
+      <T size={18} bold>
         {task.title}
       </T>
       {task.steps.length ? (

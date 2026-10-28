@@ -232,12 +232,7 @@ function CaptureForm({
           }}
         />
         {!["task", "pantry", "groceries"].includes(kind) ? (
-          <Button
-            title="Keep a photo"
-            hat="chef"
-            quiet
-            onPress={choosePhoto}
-          />
+          <Button title="Keep a photo" hat="chef" quiet onPress={choosePhoto} />
         ) : null}
       </Row>
       {photo ? (

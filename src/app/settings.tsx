@@ -175,7 +175,7 @@ export default function Settings() {
       ) : null}
       <Section hat="pompom" title="Personal setup" />
       <Panel>
-        <T size={21} bold>
+        <T size={18} bold>
           {data.preferences.name || "Your profile"}
         </T>
         <T muted>
@@ -354,7 +354,7 @@ export default function Settings() {
       </Panel>
       <Section hat="hardhat" title="Private account and recovery" />
       <Panel>
-        <T size={21} bold>
+        <T size={18} bold>
           Protected family time
         </T>
         <T muted>

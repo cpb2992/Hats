@@ -61,7 +61,7 @@ export default function AuthCallback() {
     <Page tabs={false}>
       <Hat id={state === "error" ? "hardhat" : "cap"} size={84} wobble />
       <Panel>
-        <T size={24} display>
+        <T size={20} display>
           {state === "working"
             ? "Signing you in…"
             : state === "done"

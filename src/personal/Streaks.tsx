@@ -78,7 +78,7 @@ export function Streaks({ hat }: { hat?: PersonalHat }) {
               <T size={12} bold>
                 {HATS[h.hat].name.toUpperCase()}
               </T>
-              <T size={21} bold>
+              <T size={18} bold>
                 {h.title}
               </T>
               <Row>

@@ -7,7 +7,7 @@
     "orientation": "default",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "light",
-    "backgroundColor": "#F5F1E9",
+    "backgroundColor": "#FFF4E3",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hatsfocus.app",
@@ -49,10 +49,10 @@
         {
           "image": "./assets/splash-icon.png",
           "imageWidth": 120,
-          "backgroundColor": "#F5F1E9",
+          "backgroundColor": "#FFF4E3",
           "dark": {
             "image": "./assets/splash-icon.png",
-            "backgroundColor": "#F5F1E9"
+            "backgroundColor": "#FFF4E3"
           }
         }
       ],
@@ -136,6 +136,17 @@
     ],
     "experiments": {
       "typedRoutes": false
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/00000000-0000-0000-0000-000000000000",
+      "requestHeaders": {
+        "expo-channel-name": "personal"
+      },
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     }
   }
 }

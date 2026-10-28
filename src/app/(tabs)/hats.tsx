@@ -31,7 +31,7 @@ export default function Hats() {
                 flexGrow: 1,
                 flexBasis: 145,
                 maxWidth: 340,
-                minHeight: 205,
+                minHeight: 170,
                 backgroundColor: hat.tint,
                 borderRadius: 26,
                 padding: 20,
@@ -45,8 +45,8 @@ export default function Hats() {
                 ],
               })}
             >
-              <Hat id={hat.art} size={78} tilt={index % 2 ? 8 : -8} />
-              <T size={23} display>
+              <Hat id={hat.art} size={60} tilt={index % 2 ? 8 : -8} />
+              <T size={20} display>
                 {hat.name}
               </T>
               <T size={13} muted>

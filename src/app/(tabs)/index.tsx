@@ -92,7 +92,7 @@ export default function Today() {
           <T size={12} bold color="#C8D7EA">
             TIME SET ASIDE
           </T>
-          <T size={24} display color={P.paper}>
+          <T size={20} display color={P.paper}>
             {data.protectedLabel}
           </T>
           <T color="#D5DDE8">
@@ -125,7 +125,7 @@ export default function Today() {
           <Panel dark>
             <Hat
               id={[0, 6].includes(weekday(today)) ? "sunhat" : "nightcap"}
-              size={64}
+              size={52}
               wobble
             />
             <T size={12} bold color="#C8D7EA">
@@ -133,7 +133,7 @@ export default function Today() {
                 ? "YOUR WEEKEND"
                 : "YOUR EVENING"}
             </T>
-            <T size={29} display color={P.paper}>
+            <T size={24} display color={P.paper}>
               {low ? "Simple is enough today." : "A plan with breathing room."}
             </T>
             <T color="#D5DDE8">
@@ -190,7 +190,7 @@ export default function Today() {
               <T size={12} bold color={P.orange}>
                 A LITTLE ADVENTURE · OPTIONAL
               </T>
-              <T size={23} display>
+              <T size={20} display>
                 Choose something you want to do.
               </T>
               <T muted>
@@ -237,7 +237,7 @@ export default function Today() {
             <T size={12} bold color={P.orange}>
               DINNER, BEFORE YOU’RE EXHAUSTED
             </T>
-            <T size={23} display>
+            <T size={20} display>
               {meal ? meal.name : "What reliably works for your family?"}
             </T>
             {meal ? (
@@ -278,7 +278,7 @@ export default function Today() {
             <T size={12} bold color={P.blue}>
               SOMETHING TO ENJOY TOGETHER
             </T>
-            <T size={23} display>
+            <T size={20} display>
               {low ? "A short favorite story" : activity[1]}
             </T>
             <T muted>
@@ -314,7 +314,7 @@ export default function Today() {
             <T size={12} bold color={P.orange}>
               THE TWO OF YOU
             </T>
-            <T size={23} display>
+            <T size={20} display>
               Make the plan. Handle the details.
             </T>
             <T muted>
@@ -355,7 +355,7 @@ export default function Today() {
               <T size={12} bold color={P.blue}>
                 MOMENTS YOU MADE ROOM FOR
               </T>
-              <T size={23} display>
+              <T size={20} display>
                 A life you’re showing up for.
               </T>
               {(data.moments ?? [])
