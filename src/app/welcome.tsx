@@ -14,8 +14,7 @@ export default function Welcome() {
         hats.
       </T>
       <T display size={44}>
-        Your life.
-        <br />A little more room.
+        {"Your life.\nA little more room."}
       </T>
       <T size={18} muted>
         A private place to care for your people, your home, and yourself.

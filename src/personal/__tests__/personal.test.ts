@@ -295,3 +295,26 @@ test("a corrupted weekly target cannot hang the streak count", () => {
   assert.equal(s.current, 0);
   assert.equal(s.target, 1);
 });
+
+test("native screens use no HTML elements (they crash React Native on launch)", async () => {
+  const { readdirSync, readFileSync, statSync } = await import("node:fs");
+  const { join } = await import("node:path");
+  const root = join(__dirname, "..", "..");
+  const files: string[] = [];
+  const walk = (dir: string) => {
+    for (const name of readdirSync(dir)) {
+      const p = join(dir, name);
+      if (statSync(p).isDirectory()) {
+        if (name !== "__tests__") walk(p);
+      } else if (p.endsWith(".tsx")) files.push(p);
+    }
+  };
+  walk(join(root, "app"));
+  walk(join(root, "personal"));
+  const offenders = files.flatMap((f) =>
+    [...readFileSync(f, "utf8").matchAll(/(?<![\w.$])<([a-z][a-z0-9]*)(?=[\s/>])/g)].map(
+      (m) => `${f.slice(root.length)}: <${m[1]}>`,
+    ),
+  );
+  assert.deepEqual(offenders, []);
+});
