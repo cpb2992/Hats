@@ -1,5 +1,5 @@
 /**
- * The Hats sticker set: playful hats with little faces, drawn on a 64×64 grid.
+ * The Hats sticker set: playful hats, drawn on a 64×64 grid.
  * Pure data so the same art renders in the app (react-native-svg), in home-screen
  * widgets (SVG string), and in tests. Shape tells hats apart, never colour alone.
  */
@@ -74,7 +74,6 @@ export const C = {
   orange: "#F08A4B",
   coral: "#E8735A",
   rose: "#F5A9B8",
-  blush: "#F6A28E",
   sky: "#8DB8EA",
   blue: "#3D65A2",
   navy: "#2C3E63",
@@ -85,78 +84,6 @@ export const C = {
 };
 
 const S = 2.6; // outline weight
-
-function face(
-  cx: number,
-  cy: number,
-  opts: { s?: number; eye?: string; mood?: "happy" | "sleepy" | "cat" } = {},
-): Shape[] {
-  const s = opts.s ?? 1;
-  const eye = opts.eye ?? INK;
-  const mood = opts.mood ?? "happy";
-  const out: Shape[] = [
-    {
-      t: "ellipse",
-      cx: cx - 8.5 * s,
-      cy: cy + 3 * s,
-      rx: 2.6 * s,
-      ry: 1.6 * s,
-      fill: C.blush,
-      o: 0.85,
-    },
-    {
-      t: "ellipse",
-      cx: cx + 8.5 * s,
-      cy: cy + 3 * s,
-      rx: 2.6 * s,
-      ry: 1.6 * s,
-      fill: C.blush,
-      o: 0.85,
-    },
-  ];
-  if (mood === "sleepy")
-    out.push(
-      {
-        t: "path",
-        d: `M${cx - 6.5 * s} ${cy} q${2 * s} ${1.8 * s} ${4 * s} 0`,
-        stroke: eye,
-        w: 1.8 * s,
-      },
-      {
-        t: "path",
-        d: `M${cx + 2.5 * s} ${cy} q${2 * s} ${1.8 * s} ${4 * s} 0`,
-        stroke: eye,
-        w: 1.8 * s,
-      },
-    );
-  else
-    out.push(
-      { t: "circle", cx: cx - 4.5 * s, cy, r: 1.9 * s, fill: eye },
-      { t: "circle", cx: cx + 4.5 * s, cy, r: 1.9 * s, fill: eye },
-    );
-  if (mood === "cat")
-    out.push(
-      {
-        t: "path",
-        d: `M${cx - 1.2 * s} ${cy + 2.2 * s} h${2.4 * s} l${-1.2 * s} ${1.3 * s} z`,
-        fill: C.coral,
-      },
-      {
-        t: "path",
-        d: `M${cx - 3 * s} ${cy + 4 * s} q${1.5 * s} ${2 * s} ${3 * s} 0 q${1.5 * s} ${2 * s} ${3 * s} 0`,
-        stroke: eye,
-        w: 1.6 * s,
-      },
-    );
-  else
-    out.push({
-      t: "path",
-      d: `M${cx - 3 * s} ${cy + 3 * s} q${3 * s} ${3.2 * s} ${6 * s} 0`,
-      stroke: eye,
-      w: 1.8 * s,
-    });
-  return out;
-}
 
 function star(cx: number, cy: number, r: number, fill: string): Shape {
   const pts: string[] = [];
@@ -203,7 +130,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       stroke: INK,
       w: 1.8,
     },
-    ...face(38, 31),
   ],
   tophat: [
     {
@@ -243,9 +169,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       w: 1.6,
     },
     { t: "path", d: "M39 41 q1.5 -1.4 3 0", stroke: "#fff", w: 1.3, o: 0.8 },
-    ...face(32, 25, { eye: C.cream }),
-    { t: "circle", cx: 36.5, cy: 25, r: 4.4, stroke: C.sun, w: 1.6 },
-    { t: "path", d: "M40.6 26.5 Q44 31 42 36", stroke: C.sun, w: 1.2 },
   ],
   hardhat: [
     {
@@ -274,7 +197,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       w: S,
     },
     star(47, 31, 3.2, C.orange),
-    ...face(28, 34),
   ],
   fedora: [
     {
@@ -294,7 +216,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
     },
     { t: "rect", x: 15.2, y: 34, width: 33.6, height: 6, fill: INK },
     heart(41.5, 34.8, 1, C.rose),
-    ...face(28, 27, { s: 0.85 }),
   ],
   propeller: [
     { t: "rect", x: 30.6, y: 12, width: 2.8, height: 11, fill: INK },
@@ -338,7 +259,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       stroke: INK,
       w: S,
     },
-    ...face(32, 35, { s: 0.9 }),
   ],
   catbeanie: [
     {
@@ -381,7 +301,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       stroke: INK,
       w: S,
     },
-    ...face(32, 35, { mood: "cat" }),
   ],
   party: [
     { t: "path", d: "M32 9 L49 51 L15 51 Z", fill: C.lilac, stroke: INK, w: S },
@@ -412,7 +331,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       stroke: C.coral,
       w: 2,
     },
-    ...face(32, 38, { s: 0.8 }),
   ],
   pompom: [
     {
@@ -444,7 +362,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
     { t: "path", d: "M48 24 v-7 l4 -1 v6", stroke: INK, w: 1.6 },
     { t: "ellipse", cx: 46.8, cy: 24.3, rx: 1.8, ry: 1.4, fill: INK },
     { t: "ellipse", cx: 50.8, cy: 22.3, rx: 1.8, ry: 1.4, fill: INK },
-    ...face(32, 32),
   ],
   chef: [
     {
@@ -479,7 +396,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       w: 1.3,
       o: 0.4,
     },
-    ...face(32, 29, { s: 0.9 }),
   ],
   wizard: [
     {
@@ -506,7 +422,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       stroke: INK,
       w: S,
     },
-    ...face(30, 40, { eye: C.cream, s: 0.8 }),
   ],
   safari: [
     {
@@ -532,7 +447,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
     },
     { t: "rect", x: 14.3, y: 35, width: 35.4, height: 5, fill: "#7C5A2E" },
     { t: "circle", cx: 32, cy: 15.5, r: 2.6, fill: C.tan, stroke: INK, w: 1.6 },
-    ...face(32, 27, { s: 0.85 }),
   ],
   crown: [
     {
@@ -562,7 +476,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       stroke: INK,
       w: 2.4,
     },
-    ...face(32, 33),
   ],
   sunhat: [
     {
@@ -617,7 +530,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       w: 1.2,
     },
     { t: "circle", cx: 47.4, cy: 39.2, r: 1.6, fill: C.orange },
-    ...face(31, 31, { s: 0.75 }),
   ],
   nightcap: [
     {
@@ -641,7 +553,6 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
       stroke: INK,
       w: S,
     },
-    ...face(31, 35, { mood: "sleepy", s: 0.9 }),
     { t: "path", d: "M50 8 h5 l-5 6 h5", stroke: INK, w: 1.6 },
   ],
 };
