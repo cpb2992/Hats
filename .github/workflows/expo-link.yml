@@ -1,0 +1,45 @@
+# One-off: creates (or finds) the Expo project for Hats using the EXPO_TOKEN secret and
+# publishes only the resulting public project id to the setup/expo-result branch.
+name: Link Expo project
+on:
+  push:
+    branches: [setup/expo]
+permissions:
+  contents: write
+jobs:
+  link:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: codex/hats-personal-life
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check the token is present
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: test -n "$EXPO_TOKEN" || (echo "::error::EXPO_TOKEN secret is missing" && exit 1)
+      - name: Create or link the Expo project
+        env:
+          EXPO_TOKEN: ${{ secrets.EXPO_TOKEN }}
+        run: |
+          npx eas-cli@latest whoami
+          npx eas-cli@latest init --non-interactive --force
+          node -e "const e=require('./app.json').expo; console.log(JSON.stringify({projectId:e.extra&&e.extra.eas&&e.extra.eas.projectId, owner:e.owner||null}))" > expo-link.json
+          cat expo-link.json
+          npx eas-cli@latest whoami > expo-owner.txt
+      - name: Publish the project id
+        run: |
+          git config user.name "hats-setup"
+          git config user.email "hats-setup@users.noreply.github.com"
+          mkdir -p /tmp/out && cp expo-link.json expo-owner.txt /tmp/out/
+          git checkout --orphan setup/expo-result
+          git rm -rq --cached . || true
+          find . -mindepth 1 -maxdepth 1 ! -name .git -exec rm -rf {} +
+          cp /tmp/out/* .
+          git add expo-link.json expo-owner.txt
+          git commit -qm "Expo project link result"
+          git push -f -q origin setup/expo-result
