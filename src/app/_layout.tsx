@@ -23,12 +23,13 @@ import { PersonalProvider, usePersonal } from "../personal/Store";
 import { Loading, P, T } from "../personal/ui";
 import { Hat } from "../personal/Hat";
 import { Intro } from "../personal/Intro";
+import { CelebrationLayer } from "../personal/Celebrate";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 // The hat-tower intro plays once per app launch, not on every remount.
 let introPlayed = false;
 function Shell({ fontsReady }: { fontsReady: boolean }) {
-  const { ready, message } = usePersonal();
+  const { ready, message, celebration } = usePersonal();
   const [intro, setIntro] = useState(() => !introPlayed);
   const endIntro = useCallback(() => {
     introPlayed = true;
@@ -101,6 +102,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
           </T>
         </View>
       ) : null}
+      <CelebrationLayer c={celebration} />
       {overlay}
     </View>
   );

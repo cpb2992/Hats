@@ -1,3 +1,4 @@
+import { routineBlocks } from "./routine";
 import {
   addDays,
   daysBetween,
@@ -97,6 +98,8 @@ export function dayWindows(
   const blocked = data.events
     .filter((e) => e.date === date && !e.allDay)
     .map((e) => ({ start: minutesOf(e.start), end: minutesOf(e.end) }));
+  // Keep the family's evening rhythm free (dinner, bath night, stories, bedtime).
+  blocked.push(...routineBlocks(data, date));
   if (p.gymDays.includes(weekday(date)))
     blocked.push({
       start: minutesOf(p.gymStart),

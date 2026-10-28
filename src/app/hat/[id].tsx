@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { Image, Linking } from "react-native";
+import { Image, Linking, Pressable, View } from "react-native";
+import { Hat } from "../../personal/Hat";
 import { addDays, fmtRelative } from "../../engine/dates";
 import {
   activityFor,
@@ -24,6 +25,7 @@ import {
   Chip,
   Empty,
   Header,
+  P,
   Page,
   Panel,
   Row,
@@ -32,20 +34,25 @@ import {
   TaskCard,
 } from "../../personal/ui";
 
-export default function Hat() {
+export default function HatPage() {
   const params = useLocalSearchParams<{ id: PersonalHat }>();
   const hat = HAT_IDS.includes(params.id) ? params.id : "home";
   const def = HATS[hat];
   const { data, mutate, today, say, undo } = usePersonal();
   const editor = useEditor();
   const [showDone, setShowDone] = useState(false);
+  const [showKnown, setShowKnown] = useState(false);
   const tasks = data.tasks.filter(
     (t) => t.hat === hat && (showDone ? !!t.doneAt : !t.doneAt),
   );
-  const notes = data.notes
+  const allNotes = data.notes
     .filter((n) => n.hat === hat)
     .slice()
     .reverse();
+  // Notes imported from the private setup describe the family for planning;
+  // they fold away instead of looking like to-dos.
+  const known = allNotes.filter((n) => n.id.startsWith("profile-note-"));
+  const notes = allNotes.filter((n) => !n.id.startsWith("profile-note-"));
   const capture = (kind = "task") =>
     router.push({ pathname: "/capture", params: { hat, kind } });
   const person = (role: "child" | "friend" | "pet") =>
@@ -369,14 +376,39 @@ export default function Hat() {
           {data.people
             .filter((p) => p.role === "child")
             .map((p) => (
-              <Panel key={p.id}>
+              <Panel key={p.id} tint={def.tint}>
                 <T size={19} display>
                   {p.name}
                 </T>
-                <T muted>{p.interests}</T>
-                {p.detail ? <T muted>{p.detail}</T> : null}
+                <Row>
+                  {p.interests
+                    .split(/,| and /)
+                    .map((x) => x.trim().replace(/\.$/, ""))
+                    .filter(Boolean)
+                    .slice(0, 6)
+                    .map((x) => (
+                      <View
+                        key={x}
+                        style={{
+                          backgroundColor: P.paper,
+                          borderRadius: 12,
+                          paddingHorizontal: 9,
+                          paddingVertical: 3,
+                        }}
+                      >
+                        <T size={12} bold>
+                          {x}
+                        </T>
+                      </View>
+                    ))}
+                </Row>
+                {p.detail ? (
+                  <T muted size={13}>
+                    {p.detail}
+                  </T>
+                ) : null}
                 <Button
-                  title="Edit details"
+                  title="Edit"
                   quiet
                   small
                   onPress={() =>
@@ -762,26 +794,44 @@ export default function Hat() {
             Based on purchases you log here. A financial provider is not
             connected.
           </T>
-          {(["takeout", "dates", "gifts", "family"] as const).map(
-            (category) => {
-              const b = budgetSummary(data, category, today.slice(0, 7));
+          {(() => {
+            const cats = (["takeout", "dates", "gifts", "family"] as const).map(
+              (category) => ({
+                category,
+                b: budgetSummary(data, category, today.slice(0, 7)),
+              }),
+            );
+            const active = cats.filter(
+              (c) => c.b.spent > 0 || c.b.left != null,
+            );
+            if (!active.length)
               return (
-                <Panel key={category}>
-                  <Row>
-                    <T size={19} bold>
-                      {category.charAt(0).toUpperCase() + category.slice(1)}
-                    </T>
-                    <T muted>${b.spent.toFixed(2)} logged this month</T>
-                  </Row>
-                  <T muted>
-                    {b.left == null
-                      ? "No target set"
-                      : `$${b.left.toFixed(2)} left in your $${b.limit.toFixed(2)} target`}
+                <Panel>
+                  <T bold>Nothing logged this month</T>
+                  <T muted size={14}>
+                    Log takeout, dates, gifts, or family spending when it
+                    happens and Hats keeps a simple monthly picture.
                   </T>
                 </Panel>
               );
-            },
-          )}
+            return (
+              <Panel>
+                {active.map(({ category, b }) => (
+                  <Row key={category}>
+                    <T bold style={{ width: 70 }}>
+                      {category.charAt(0).toUpperCase() + category.slice(1)}
+                    </T>
+                    <T muted size={14} style={{ flex: 1 }}>
+                      ${b.spent.toFixed(0)} this month
+                      {b.left == null
+                        ? ""
+                        : ` · $${b.left.toFixed(0)} left of $${b.limit.toFixed(0)}`}
+                    </T>
+                  </Row>
+                ))}
+              </Panel>
+            );
+          })()}
           <T muted>
             Savings target:{" "}
             {data.preferences.budgets.savings
@@ -901,7 +951,7 @@ export default function Hat() {
             />
           ) : null}
           <Button
-            title="Remove note"
+            title="Remove"
             quiet
             small
             onPress={() =>
@@ -912,6 +962,53 @@ export default function Hat() {
           />
         </Panel>
       ))}
+      {!notes.length ? (
+        <T muted size={14}>
+          Gift ideas, links, and little things to remember land here.
+        </T>
+      ) : null}
+      {known.length ? (
+        <Panel tint={def.tint}>
+          <Pressable
+            accessibilityRole="button"
+            accessibilityState={{ expanded: showKnown }}
+            onPress={() => setShowKnown(!showKnown)}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 8,
+              minHeight: 40,
+            }}
+          >
+            <Hat id={def.art} size={26} />
+            <T bold style={{ flex: 1 }}>
+              What Hats knows here · {known.length}
+            </T>
+            <T bold>{showKnown ? "–" : "+"}</T>
+          </Pressable>
+          {showKnown
+            ? known.map((n) => (
+                <Row key={n.id}>
+                  <T size={14} style={{ flex: 1 }}>
+                    · {n.text}
+                  </T>
+                  <Pressable
+                    accessibilityRole="button"
+                    accessibilityLabel="Forget this"
+                    hitSlop={10}
+                    onPress={() =>
+                      mutate((d) => {
+                        d.notes = d.notes.filter((x) => x.id !== n.id);
+                      })
+                    }
+                  >
+                    <T muted>✕</T>
+                  </Pressable>
+                </Row>
+              ))
+            : null}
+        </Panel>
+      ) : null}
       {editor.node}
     </Page>
   );

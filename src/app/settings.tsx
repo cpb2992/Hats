@@ -13,6 +13,9 @@ import {
   verifyCode,
 } from "../personal/cloud";
 import { WhoopSettings } from "../personal/WhoopCard";
+import { routinePrefs } from "../personal/routine";
+import { fmtTime } from "../engine/dates";
+import { parseClock } from "../personal/clock";
 import { exportPersonal, pickBackup } from "../personal/backup";
 import { useEditor, required } from "../personal/Editor";
 import { makeTask } from "../personal/engine";
@@ -95,6 +98,62 @@ export default function Settings() {
     } finally {
       setBusy(false);
     }
+  };
+  const evening = () => {
+    const r = routinePrefs(data);
+    editor.open({
+      title: "Your evening rhythm",
+      detail:
+        "Rough times are fine. Hats keeps these clear of chores and shows them as tonight’s timeline. Type 5:45 pm or 17:45.",
+      fields: [
+        ...(data.preferences.partner
+          ? [
+              {
+                key: "partnerHome",
+                label: `${data.preferences.partner} usually home`,
+                value: fmtTime(r.partnerHome, true),
+              },
+            ]
+          : []),
+        {
+          key: "dinnerTime",
+          label: "Dinner",
+          value: fmtTime(r.dinnerTime, true),
+        },
+        {
+          key: "storyTime",
+          label: "Stories",
+          value: fmtTime(r.storyTime, true),
+        },
+        {
+          key: "bedtime",
+          label: "Kids’ bedtime",
+          value: fmtTime(r.bedtime, true),
+        },
+      ],
+      onSave: (v) => {
+        const parsed: Record<string, string> = {};
+        for (const k of ["partnerHome", "dinnerTime", "storyTime", "bedtime"]) {
+          if (v[k] === undefined) continue;
+          const t = parseClock(v[k]);
+          if (!t)
+            throw new Error(
+              `“${v[k]}” isn’t a time Hats understands. Try 6:30 pm.`,
+            );
+          parsed[k] = t;
+        }
+        if (
+          parsed.dinnerTime &&
+          parsed.storyTime &&
+          parsed.storyTime <= parsed.dinnerTime
+        )
+          throw new Error("Stories should come after dinner.");
+        mutate((d) => {
+          Object.assign(d.preferences, parsed);
+        });
+        say("Evening rhythm saved.");
+      },
+    });
   };
   const routine = () =>
     editor.open({
@@ -241,6 +300,32 @@ export default function Settings() {
             })
           }
         />
+        <Button title="Evening rhythm" quiet hat="nightcap" onPress={evening} />
+        <T size={13} bold>
+          Baths
+        </T>
+        <Row>
+          {(
+            [
+              ["alternate", "Every other night"],
+              ["nightly", "Every night"],
+              ["off", "Don’t show"],
+            ] as const
+          ).map(([value, label]) => (
+            <Chip
+              key={value}
+              title={label}
+              selected={routinePrefs(data).bathNights === value}
+              onPress={() =>
+                mutate((d) => {
+                  d.preferences.bathNights = value;
+                  if (value === "alternate" && !d.preferences.bathAnchor)
+                    d.preferences.bathAnchor = today;
+                })
+              }
+            />
+          ))}
+        </Row>
         <Button title="Edit planning windows" quiet onPress={routine} />
         <T size={13} bold>
           Usual gym days · tap to choose

@@ -52,6 +52,7 @@ export function T({
   display = false,
   color,
   style,
+  numberOfLines,
 }: {
   children: ReactNode;
   size?: number;
@@ -60,9 +61,11 @@ export function T({
   display?: boolean;
   color?: string;
   style?: object;
+  numberOfLines?: number;
 }) {
   return (
     <Text
+      numberOfLines={numberOfLines}
       style={[
         {
           fontFamily: display ? F.display : bold ? F.semi : F.body,
@@ -152,9 +155,12 @@ export function Button({
   hat,
   disabled = false,
   small = false,
+  tone,
 }: {
   title: string;
   onPress: () => void;
+  /** "sun": bright primary for dark surfaces. */
+  tone?: "sun";
   quiet?: boolean;
   icon?: IconName;
   hat?: HatArtId;
@@ -172,7 +178,7 @@ export function Button({
         paddingHorizontal: small ? 12 : 18,
         paddingVertical: 7,
         borderRadius: 18,
-        backgroundColor: quiet ? P.soft : P.ink,
+        backgroundColor: tone === "sun" ? P.sun : quiet ? P.soft : P.ink,
         flexDirection: "row",
         gap: 9,
         justifyContent: "center",
@@ -185,7 +191,7 @@ export function Button({
       {hat ? (
         <View
           style={{
-            backgroundColor: quiet ? "transparent" : P.paper,
+            backgroundColor: quiet || tone === "sun" ? "transparent" : P.paper,
             borderRadius: 18,
             padding: quiet ? 0 : 2,
           }}
@@ -194,12 +200,16 @@ export function Button({
         </View>
       ) : null}
       {icon && !hat ? (
-        <Icon name={icon} color={quiet ? P.ink : P.paper} size={18} />
+        <Icon
+          name={icon}
+          color={quiet || tone === "sun" ? P.ink : P.paper}
+          size={18}
+        />
       ) : null}
       <T
         size={small ? 13 : 15}
         bold
-        color={quiet ? P.ink : P.paper}
+        color={quiet || tone === "sun" ? P.ink : P.paper}
         style={{ flexShrink: 1 }}
       >
         {title}

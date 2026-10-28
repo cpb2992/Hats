@@ -418,3 +418,120 @@ test("WHOOP: today's card only uses data scored today and never invents numbers"
   assert.equal(whoopToday({ connected: false }, "2026-10-28"), null);
   assert.equal(whoopToday(null, "2026-10-28"), null);
 });
+
+test("timeline: evening rhythm, alternating bath nights, and what's 'now'", async () => {
+  const { dayTimeline, nowAndNext, isBathNight, isFaded } =
+    await import("../timeline");
+  const { planDay } = await import("../engine");
+  const d = freshPersonal();
+  d.preferences.partner = "Alex";
+  d.preferences.unavailableDays = [1, 2, 3, 4, 5];
+  d.preferences.bathAnchor = "2026-10-28";
+  d.people.push({
+    id: "k",
+    name: "Robin",
+    role: "child",
+    interests: "",
+    detail: "",
+  });
+  const wed = "2026-10-28";
+  // Bath nights alternate and "Not tonight" (moving the anchor) flips them.
+  assert.equal(isBathNight(d, wed), true);
+  assert.equal(isBathNight(d, "2026-10-29"), false);
+  assert.equal(isBathNight(d, "2026-10-30"), true);
+  d.preferences.bathAnchor = "2026-10-29";
+  assert.equal(isBathNight(d, wed), false);
+  d.preferences.bathAnchor = wed;
+
+  const { items } = dayTimeline(d, wed, 17 * 60, true);
+  const keys = items.filter((i) => i.kind === "routine").map((i) => i.key);
+  assert.deepEqual(keys, [
+    "home",
+    "dinner",
+    "partner",
+    "bath",
+    "stories",
+    "bedtime",
+  ]);
+  assert.ok(items.find((i) => i.key === "partner")!.title.includes("Alex"));
+
+  // At 7:20 PM stories (7:15) is "now", not the earlier bath; bedtime is next.
+  const later = dayTimeline(d, wed, 19 * 60 + 20, true).items;
+  const { now, next } = nowAndNext(later, 19 * 60 + 20);
+  assert.equal(now?.key, "stories");
+  assert.equal(next?.key, "bedtime");
+  // Steps long past without a check fade instead of nagging.
+  assert.equal(
+    isFaded(
+      later.find((i) => i.key === "home")!,
+      19 * 60 + 20,
+    ),
+    true,
+  );
+  assert.equal(
+    isFaded(
+      later.find((i) => i.key === "stories")!,
+      19 * 60 + 20,
+    ),
+    false,
+  );
+
+  // Checked-off steps are done; tomorrow's timeline starts fresh.
+  d.routineDone = { [wed]: ["dinner"] };
+  assert.equal(
+    dayTimeline(d, wed, 0, true).items.find((i) => i.key === "dinner")!.done,
+    true,
+  );
+  assert.equal(
+    dayTimeline(d, "2026-10-29", 0, false).items.find(
+      (i) => i.key === "dinner",
+    )!.done,
+    false,
+  );
+  assert.ok(validData(d));
+
+  // The planner keeps dinner, bath, stories, and bedtime free for the family.
+  d.tasks.push({
+    ...d.tasks[0],
+    id: "t1",
+    title: "Fold laundry",
+    hat: "home",
+    date: wed,
+    time: null,
+    minutes: 30,
+    essential: true,
+    fixed: false,
+    doneAt: null,
+    steps: [],
+    repeat: "none",
+    createdAt: new Date().toISOString(),
+    deferred: 0,
+  } as never);
+  const mins = (t: string) => Number(t.slice(0, 2)) * 60 + Number(t.slice(3));
+  const placed = planDay(d, wed, 17 * 60 + 30).find((x) => x.task.id === "t1")!;
+  assert.ok(placed.time);
+  const s = mins(placed.time!),
+    e = s + 30;
+  for (const [a, b] of [
+    [17 * 60 + 45, 18 * 60 + 25],
+    [18 * 60 + 45, 19 * 60 + 10],
+    [19 * 60 + 15, 19 * 60 + 40],
+    [19 * 60 + 45, 20 * 60],
+  ])
+    assert.ok(e <= a || s >= b, `task at ${placed.time} overlaps family time`);
+});
+
+test("evening times accept the way people type them", async () => {
+  const { parseClock } = await import("../clock");
+  assert.equal(parseClock("5:45 pm"), "17:45");
+  assert.equal(parseClock("5:45PM"), "17:45");
+  assert.equal(parseClock("545pm"), "17:45");
+  assert.equal(parseClock("6 pm"), "18:00");
+  assert.equal(parseClock("17:45"), "17:45");
+  assert.equal(parseClock("12:15 am"), "00:15");
+  assert.equal(parseClock("12 pm"), "12:00");
+  assert.equal(parseClock("7:5"), null);
+  assert.equal(parseClock("25:00"), null);
+  assert.equal(parseClock("13 pm"), null);
+  assert.equal(parseClock("dinner"), null);
+});

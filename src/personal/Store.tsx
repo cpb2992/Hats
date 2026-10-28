@@ -18,6 +18,7 @@ import { syncPersonalReminders } from "./reminders";
 import { loadPersonal, preserveBeforeImport, savePersonal } from "./storage";
 import { updatePersonalWidgets } from "./widgets";
 import { configureFocus } from "./focus";
+import type { Celebration } from "./Celebrate";
 
 interface SyncMeta {
   owner: string | null;
@@ -41,6 +42,8 @@ interface State {
   resolve: (remote: boolean) => Promise<void>;
   replace: (data: PersonalData) => Promise<void>;
   reload: () => Promise<void>;
+  celebration: Celebration | null;
+  celebrate: (c: Omit<Celebration, "id">) => void;
 }
 const Context = createContext<State | null>(null);
 const clone = (d: PersonalData) =>
@@ -55,6 +58,11 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
   const [clock, setClock] = useState(new Date());
   const [syncStatus, setSyncStatus] = useState("On this device");
   const [conflict, setConflict] = useState<Remote | null>(null);
+  const [celebration, setCelebration] = useState<Celebration | null>(null);
+  const celebrate = useCallback(
+    (c: Omit<Celebration, "id">) => setCelebration({ ...c, id: Date.now() }),
+    [],
+  );
   const meta = useRef<SyncMeta>({ owner: null, revision: 0, dirty: false });
   const undoRef = useRef<PersonalData | null>(null);
   const syncing = useRef(false);
@@ -378,6 +386,8 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
         resolve,
         replace,
         reload,
+        celebration,
+        celebrate,
       }}
     >
       {children}

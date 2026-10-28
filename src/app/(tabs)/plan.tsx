@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { router } from "expo-router";
-import { View } from "react-native";
+import { ScrollView, View } from "react-native";
 import {
   addDays,
   dayShort,
@@ -9,12 +9,13 @@ import {
   fromISO,
 } from "../../engine/dates";
 import { planDay } from "../../personal/engine";
+import { dayTimeline } from "../../personal/timeline";
+import { Timeline } from "../../personal/TodayParts";
 import { id } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
 import {
   Button,
   Chip,
-  Empty,
   Field,
   Header,
   Page,
@@ -22,7 +23,6 @@ import {
   Row,
   Section,
   T,
-  TaskCard,
 } from "../../personal/ui";
 
 export default function Plan() {
@@ -35,6 +35,7 @@ export default function Plan() {
   const [closure, setClosure] = useState(false);
   const plans = planDay(data, date, date === today ? nowMin : 0);
   const events = data.events.filter((e) => e.date === date);
+  const timeline = dayTimeline(data, date, nowMin, date === today);
   return (
     <Page>
       <Header
@@ -42,16 +43,23 @@ export default function Plan() {
         subtitle="Google events stay read-only. Your flexible plans live here."
         hat="safari"
       />
-      <Row>
-        {Array.from({ length: 7 }, (_, i) => addDays(today, i)).map((d) => (
-          <Chip
-            key={d}
-            title={`${dayShort(d)} ${fromISO(d).getDate()}`}
-            selected={date === d}
-            onPress={() => setDate(d)}
-          />
-        ))}
-      </Row>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+      >
+        {Array.from({ length: 14 }, (_, i) => addDays(today, i)).map((d) => {
+          const busy = data.events.some((e) => e.date === d);
+          return (
+            <Chip
+              key={d}
+              title={`${d === today ? "Today" : dayShort(d)} ${fromISO(d).getDate()}${busy ? " •" : ""}`}
+              selected={date === d}
+              onPress={() => setDate(d)}
+            />
+          );
+        })}
+      </ScrollView>
       <Section
         title={fmtLong(date)}
         action={adding ? "Close" : "Add event"}
@@ -119,58 +127,52 @@ export default function Plan() {
           />
         </Panel>
       ) : null}
-      {events.map((e) => (
-        <Panel key={e.id}>
-          <T bold size={19}>
-            {e.title}
-          </T>
-          <T muted>
-            {e.allDay
-              ? "All day"
-              : `${fmtTime(e.start, true)}–${fmtTime(e.end, true)}`}{" "}
-            ·{" "}
-            {e.source === "google"
-              ? "Google · read-only"
-              : "Personal commitment"}
-          </T>
-          {e.location ? <T muted>{e.location}</T> : null}
-          {e.source === "hats" ? (
-            <Button
-              title="Remove event"
-              quiet
-              onPress={() =>
-                mutate((d) => {
-                  d.events = d.events.filter((x) => x.id !== e.id);
-                })
-              }
-            />
-          ) : null}
-        </Panel>
-      ))}
-      {plans
-        .filter((x) => x.time)
-        .map((x) => (
-          <TaskCard key={x.task.id} task={x.task} plannedTime={x.time} />
-        ))}
-      {!events.length && !plans.some((x) => x.time) ? (
-        <Empty
-          title="A little breathing room"
-          detail="No fixed events or scheduled next steps here yet."
-          action="Capture something"
-          onPress={() => router.push("/capture")}
-        />
-      ) : null}
+      <Timeline
+        items={timeline.items}
+        allDay={timeline.allDay}
+        isToday={date === today}
+      />
       {plans.some((x) => !x.time) ? (
         <Panel>
           <T bold>Waiting for room</T>
+          <T size={13} muted>
+            Not piled onto this day. Hats places them at your next real opening.
+          </T>
           {plans
             .filter((x) => !x.time)
             .map((x) => (
-              <T muted key={x.task.id}>
-                {x.task.title} · {x.reason}
-              </T>
+              <T key={x.task.id}>· {x.task.title}</T>
             ))}
         </Panel>
+      ) : null}
+      {events.filter((e) => e.source === "hats").length ? (
+        <View style={{ gap: 6 }}>
+          <T size={13} bold muted>
+            Your events this day
+          </T>
+          {events
+            .filter((e) => e.source === "hats")
+            .map((e) => (
+              <Row key={e.id}>
+                <T style={{ flex: 1 }}>
+                  {e.title} ·{" "}
+                  {e.allDay
+                    ? "all day"
+                    : `${fmtTime(e.start, true)}–${fmtTime(e.end, true)}`}
+                </T>
+                <Button
+                  title="Remove"
+                  small
+                  quiet
+                  onPress={() =>
+                    mutate((d) => {
+                      d.events = d.events.filter((x) => x.id !== e.id);
+                    })
+                  }
+                />
+              </Row>
+            ))}
+        </View>
       ) : null}
       <Button
         title="Calendar connections and school closures"

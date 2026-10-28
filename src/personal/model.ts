@@ -171,7 +171,24 @@ export interface Preferences {
   playful?: boolean;
   focusConsent?: boolean;
   distractingPackages?: string[];
+  /** Evening rhythm (all optional; defaults in ROUTINE_DEFAULTS). */
+  partnerHome?: string;
+  dinnerTime?: string;
+  storyTime?: string;
+  bedtime?: string;
+  /** "alternate" = every other night (swappable), "nightly", or "off". */
+  bathNights?: "alternate" | "nightly" | "off";
+  /** A date that was a bath night; alternate nights count from it. */
+  bathAnchor?: string;
 }
+export const ROUTINE_DEFAULTS = {
+  partnerHome: "18:00",
+  dinnerTime: "17:45",
+  storyTime: "19:15",
+  bedtime: "19:45",
+  bathNights: "alternate" as const,
+  bathAnchor: "2026-01-01",
+};
 export interface PersonalData {
   version: 2;
   preferences: Preferences;
@@ -200,6 +217,8 @@ export interface PersonalData {
     source: string;
   }[];
   habits?: Habit[];
+  /** Routine steps checked off, by day: { "2026-10-28": ["dinner", "bath"] }. */
+  routineDone?: Record<string, string[]>;
 }
 export const id = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
@@ -337,6 +356,23 @@ export function validData(value: unknown): value is PersonalData {
       !v.activities ||
       !Object.values(v.dinners).every(text) ||
       !Object.values(v.activities).every(text)
+    )
+      return false;
+    if (
+      ![p.partnerHome, p.dinnerTime, p.storyTime, p.bedtime].every(
+        (x) => x === undefined || time(x),
+      ) ||
+      (p.bathNights !== undefined &&
+        !["alternate", "nightly", "off"].includes(p.bathNights)) ||
+      (p.bathAnchor !== undefined && !validDate(p.bathAnchor))
+    )
+      return false;
+    if (
+      v.routineDone !== undefined &&
+      (typeof v.routineDone !== "object" ||
+        !Object.entries(v.routineDone).every(
+          ([day, keys]) => validDate(day) && strings(keys),
+        ))
     )
       return false;
     if (

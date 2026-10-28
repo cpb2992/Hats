@@ -3,10 +3,12 @@ import { HATS, id, type PersonalHat } from "./model";
 import { required, useEditor } from "./Editor";
 import { usePersonal } from "./Store";
 import { streakFor } from "./streaks";
+import { toggleHabit } from "./TodayParts";
 import { Button, Panel, Row, Section, T } from "./ui";
 
 export function Streaks({ hat }: { hat?: PersonalHat }) {
-  const { data, mutate, today, say } = usePersonal();
+  const personal = usePersonal();
+  const { data, mutate, today } = personal;
   const editor = useEditor();
   const habits = (data.habits ?? []).filter((h) => !hat || h.hat === hat);
   const add = () =>
@@ -102,20 +104,7 @@ export function Streaks({ hat }: { hat?: PersonalHat }) {
                   title={s.done ? "Undo today’s check-in" : "I did this today"}
                   small
                   quiet={s.done}
-                  onPress={() => {
-                    mutate((d) => {
-                      const habit = d.habits?.find((x) => x.id === h.id);
-                      if (!habit) return;
-                      habit.checkins = s.done
-                        ? habit.checkins.filter((x) => x !== today)
-                        : [...habit.checkins, today];
-                    });
-                    say(
-                      s.done
-                        ? "Today’s check-in removed."
-                        : "A little consistency, recorded.",
-                    );
-                  }}
+                  onPress={() => toggleHabit(personal, h)}
                 />
                 <Button
                   title="Stop tracking"

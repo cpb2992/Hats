@@ -146,7 +146,8 @@
         "expo-channel-name": "personal"
       },
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0
+      "fallbackToCacheTimeout": 0,
+      "enabled": false
     }
   }
 }
