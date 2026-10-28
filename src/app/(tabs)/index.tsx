@@ -66,7 +66,7 @@ export default function Today() {
   return (
     <Page>
       <Header
-        title={`${nowMin < 720 ? "Good morning" : nowMin < 1020 ? "A little room for life" : "Home. Be here."}${data.preferences.name ? `, ${data.preferences.name}` : "."}`}
+        title={`${nowMin < 720 ? "Good morning" : nowMin < 1020 ? "A little room for life" : "Home. Be here"}${data.preferences.name ? `, ${data.preferences.name}.` : "."}`}
         subtitle={fmtLong(today)}
       />
       <Row>

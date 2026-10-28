@@ -81,15 +81,15 @@ adb logcat -d -b crash > smoke/c-crash.txt
 
 # --- D: share text from another app, warm then cold
 adb shell am start -W -n $PKG/.MainActivity; sleep 6
-adb shell am start -W -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "Warm%sshare%stest" -n $PKG/.MainActivity
+adb shell am start -W -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "Warm_share_test" -n $PKG/.MainActivity
 sleep 6
 shot d-share-warm
-seen "Warm.share.test" "warm share lands in Capture"
+seen "Warm_share_test" "warm share lands in Capture"
 adb shell am force-stop $PKG
-adb shell am start -W -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "Cold%sshare%stest" -n $PKG/.MainActivity
+adb shell am start -W -a android.intent.action.SEND -t text/plain --es android.intent.extra.TEXT "Cold_share_test" -n $PKG/.MainActivity
 sleep 20
 shot d-share-cold
-seen "Cold.share.test" "cold share lands in Capture"
+seen "Cold_share_test" "cold share lands in Capture"
 
 # --- E: finish every step of the kitchen reset and look for the streak
 adb shell am force-stop $PKG
