@@ -1,63 +1,89 @@
-import { BricolageGrotesque_500Medium, BricolageGrotesque_600SemiBold } from '@expo-google-fonts/bricolage-grotesque';
-import { InterTight_400Regular, InterTight_500Medium, InterTight_600SemiBold, InterTight_700Bold } from '@expo-google-fonts/inter-tight';
-import * as Notifications from 'expo-notifications';
-import { useFonts } from 'expo-font';
-import { router, Stack } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { StatusBar } from 'expo-status-bar';
-import { useEffect } from 'react';
-import { Platform, View } from 'react-native';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
-import { AppStoreProvider, useApp } from '../store/AppStore';
-import { BootSplash } from '../ui/BootSplash';
-import { C } from '../ui/theme';
-import { Toast } from '../ui/Toast';
+import {
+  BricolageGrotesque_500Medium,
+  BricolageGrotesque_600SemiBold,
+} from "@expo-google-fonts/bricolage-grotesque";
+import {
+  InterTight_400Regular,
+  InterTight_500Medium,
+  InterTight_600SemiBold,
+  InterTight_700Bold,
+} from "@expo-google-fonts/inter-tight";
+import { useFonts } from "expo-font";
+import { Stack, router } from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import { StatusBar } from "expo-status-bar";
+import { useEffect } from "react";
+import { View, AppState } from "react-native";
+import Focus from "../../modules/hats-focus";
+import {
+  SafeAreaProvider,
+  useSafeAreaInsets,
+} from "react-native-safe-area-context";
+import { PersonalProvider, usePersonal } from "../personal/Store";
+import { Loading, P, T } from "../personal/ui";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
-
-/** Opens the screen a reminder points to (morning plan, shutdown, Now). */
-function useNotificationRoutes(enabled: boolean) {
-  useEffect(() => {
-    if (!enabled || Platform.OS === 'web') return;
-    const open = (url: unknown) => { if (typeof url === 'string' && url !== '/') router.push(url as never); };
-    const last = Notifications.getLastNotificationResponse();
-    if (last) open(last.notification.request.content.data?.url);
-    const sub = Notifications.addNotificationResponseReceivedListener(r => open(r.notification.request.content.data?.url));
-    return () => sub.remove();
-  }, [enabled]);
-}
-
 function Shell({ fontsReady }: { fontsReady: boolean }) {
-  const { ready } = useApp();
-  const all = ready && fontsReady;
-  useEffect(() => { if (all) SplashScreen.hide(); }, [all]);
-  useNotificationRoutes(all);
-  const modal = { presentation: 'modal' as const, animation: 'slide_from_bottom' as const };
+  const { ready, message } = usePersonal();
+  useEffect(() => {
+    if (!ready || !fontsReady || !Focus) return;
+    const consume = async () => {
+      const text = await Focus.consumeSharedText();
+      if (text)
+        router.push({ pathname: "/capture", params: { text, kind: "idea" } });
+    };
+    Promise.resolve()
+      .then(consume)
+      .catch(() => {});
+    const sub = AppState.addEventListener("change", (state) => {
+      if (state === "active") consume().catch(() => {});
+    });
+    return () => sub.remove();
+  }, [ready, fontsReady]);
+  const insets = useSafeAreaInsets();
+  useEffect(() => {
+    if (ready && fontsReady) SplashScreen.hide();
+  }, [ready, fontsReady]);
+  if (!ready || !fontsReady) return <Loading />;
   return (
-    <View style={{ flex: 1, backgroundColor: C.bg }}>
-      <StatusBar style="light" />
-      {all ? (
-        <Stack screenOptions={{ headerShown: false, contentStyle: { backgroundColor: C.bg }, animation: 'fade_from_bottom' }}>
-          <Stack.Screen name="(tabs)" options={{ animation: 'fade' }} />
-          <Stack.Screen name="welcome" options={{ animation: 'fade' }} />
-          <Stack.Screen name="focus" options={{ presentation: 'fullScreenModal', animation: 'fade' }} />
-          <Stack.Screen name="capture" options={modal} />
-          <Stack.Screen name="task/[id]" options={modal} />
-          <Stack.Screen name="event/[id]" options={modal} />
-          <Stack.Screen name="student-edit" options={modal} />
-          <Stack.Screen name="student-import" options={modal} />
-          <Stack.Screen name="pulse-sort" options={modal} />
-          <Stack.Screen name="kids" options={{ animation: 'fade', contentStyle: { backgroundColor: C.night } }} />
-        </Stack>
+    <View style={{ flex: 1, backgroundColor: P.bg }}>
+      <StatusBar style="dark" />
+      <Stack
+        screenOptions={{
+          headerShown: false,
+          contentStyle: { backgroundColor: P.bg },
+          animation: "fade_from_bottom",
+        }}
+      >
+        <Stack.Screen name="(tabs)" />
+        <Stack.Screen name="welcome" />
+        <Stack.Screen name="task/[id]" options={{ presentation: "modal" }} />
+        <Stack.Screen name="hat/[id]" />
+        <Stack.Screen name="settings" />
+      </Stack>
+      {message ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            bottom: insets.bottom + 102,
+            left: 20,
+            right: 20,
+            padding: 16,
+            borderRadius: 18,
+            backgroundColor: P.ink,
+          }}
+        >
+          <T color={P.paper} size={14}>
+            {message}
+          </T>
+        </View>
       ) : null}
-      {all ? <Toast /> : null}
-      <BootSplash ready={all} fontsReady={fontsReady} />
     </View>
   );
 }
-
-export default function RootLayout() {
-  const [fontsLoaded, fontError] = useFonts({
+export default function Root() {
+  const [loaded, error] = useFonts({
     BricolageGrotesque_500Medium,
     BricolageGrotesque_600SemiBold,
     InterTight_400Regular,
@@ -67,9 +93,9 @@ export default function RootLayout() {
   });
   return (
     <SafeAreaProvider>
-      <AppStoreProvider>
-        <Shell fontsReady={fontsLoaded || !!fontError} />
-      </AppStoreProvider>
+      <PersonalProvider>
+        <Shell fontsReady={loaded || !!error} />
+      </PersonalProvider>
     </SafeAreaProvider>
   );
 }

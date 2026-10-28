@@ -1,139 +1,194 @@
-import { router, useLocalSearchParams } from 'expo-router';
-import { useState } from 'react';
-import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import { completeTask, deleteTask, reopenTask, toggleThree } from '../../engine/actions';
-import { addDays, fmtRelative, fmtShort, fmtTime, minutesOf, nextMonday, nowMinutes, timeOf } from '../../engine/dates';
-import { ALL_HATS, HATS } from '../../engine/hats';
-import { parseCapture } from '../../engine/parse';
-import { dayLog } from '../../engine/plan';
-import type { Task } from '../../engine/types';
-import { useApp } from '../../store/AppStore';
-import { Btn, Chip, CircleBtn, Field, Label, Patch, Stepper, tap, Txt } from '../../ui/kit';
-import { C } from '../../ui/theme';
+import { useState } from "react";
+import { router, useLocalSearchParams } from "expo-router";
+import { Alert } from "react-native";
+import { usePersonal } from "../../personal/Store";
+import { HAT_IDS, HATS, type PersonalHat } from "../../personal/model";
+import {
+  Button,
+  Check,
+  Chip,
+  Empty,
+  Field,
+  Header,
+  Page,
+  Row,
+  T,
+} from "../../personal/ui";
 
-export default function TaskScreen() {
+export default function Task() {
   const { id } = useLocalSearchParams<{ id: string }>();
-  const { data, today, mutate } = useApp();
-  const insets = useSafeAreaInsets();
-  const task = data.tasks.find(t => t.id === id);
-  const [dateText, setDateText] = useState('');
-
-  if (!task) {
+  const { data, mutate, say, today } = usePersonal();
+  const task = data.tasks.find((t) => t.id === id);
+  const [title, setTitle] = useState(task?.title ?? "");
+  const [date, setDate] = useState(task?.date ?? today);
+  const [time, setTime] = useState(task?.time ?? "");
+  const [minutes, setMinutes] = useState(String(task?.minutes ?? 15));
+  const [hat, setHat] = useState<PersonalHat>(task?.hat ?? "home");
+  const [fixed, setFixed] = useState(task?.fixed ?? false);
+  const [essential, setEssential] = useState(task?.essential ?? false);
+  const [repeat, setRepeat] = useState(task?.repeat ?? "none");
+  const [note, setNote] = useState(task?.note ?? "");
+  if (!task)
     return (
-      <View style={{ flex: 1, backgroundColor: C.deep, padding: 24, paddingTop: insets.top + 24, gap: 16 }}>
-        <Txt v="title">This task is gone.</Txt>
-        <Btn title="Back" kind="ghost" onPress={() => router.back()} />
-      </View>
+      <Page tabs={false}>
+        <Header title="That task isn’t here." back />
+        <Empty
+          title="It may have been removed"
+          action="Back to today"
+          onPress={() => router.replace("/")}
+        />
+      </Page>
     );
-  }
-
-  const set = (patch: Partial<Task>) => mutate(d => { const t = d.tasks.find(x => x.id === task.id); if (t) Object.assign(t, patch); });
-  const inThree = dayLog(data, today).three.includes(task.id);
-  const quarter = () => timeOf(Math.ceil((nowMinutes() + 1) / 15) * 15);
-  const dateChoices: { label: string; value: string | null }[] = [
-    { label: 'Today', value: today },
-    { label: 'Tomorrow', value: addDays(today, 1) },
-    { label: 'Next week', value: nextMonday(today) },
-    { label: 'Anytime', value: null },
-  ];
-  const customDate = task.date && !dateChoices.some(c => c.value === task.date) ? task.date : null;
-
+  const save = () => {
+    if (
+      !title.trim() ||
+      !/^\d{4}-\d{2}-\d{2}$/.test(date) ||
+      !Number.isFinite(new Date(`${date}T12:00:00`).getTime())
+    ) {
+      say("Add a title and a valid date in YYYY-MM-DD format.");
+      return;
+    }
+    if (time && !/^([01]\d|2[0-3]):[0-5]\d$/.test(time)) {
+      say("Use a time like 18:30, or leave it empty.");
+      return;
+    }
+    const length = Number(minutes);
+    if (!Number.isFinite(length) || length < 1 || length > 240) {
+      say("Choose a length between 1 and 240 minutes.");
+      return;
+    }
+    if (fixed && !time) {
+      say("A fixed commitment needs a time.");
+      return;
+    }
+    mutate((d) => {
+      const t = d.tasks.find((t) => t.id === id);
+      if (t)
+        Object.assign(t, {
+          title: title.trim(),
+          date,
+          time: time || null,
+          minutes: length,
+          hat,
+          fixed,
+          essential,
+          repeat,
+          note,
+        });
+    });
+    say("Task updated.");
+    router.back();
+  };
   return (
-    <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : undefined} style={{ flex: 1, backgroundColor: C.deep }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', paddingTop: insets.top + 12, paddingHorizontal: 20 }}>
-        <Txt v="fine">{task.done ? 'Done' : task.date && task.date > today ? fmtRelative(task.date, today) : 'Open'}</Txt>
-        <CircleBtn icon="close" size={44} kind="quiet" label="Close" onPress={() => router.back()} />
-      </View>
-      <ScrollView contentContainerStyle={{ padding: 20, gap: 26, paddingBottom: insets.bottom + 40 }} keyboardShouldPersistTaps="handled">
-        <Field big multiline value={task.title} onChangeText={title => set({ title })} accessibilityLabel="Task" placeholder="What needs doing?" />
-
-        <View style={{ gap: 12 }}>
-          <Label>Hat</Label>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-            {ALL_HATS.map(h => {
-              const on = task.hat === h;
-              return (
-                <Pressable key={h} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={HATS[h].name} onPress={() => { tap(); set({ hat: h }); }} style={{ alignItems: 'center', gap: 6, width: 66, opacity: on ? 1 : 0.55 }}>
-                  <View style={{ borderRadius: 26, borderWidth: 2, borderColor: on ? C.gold : 'transparent', padding: 2 }}>
-                    <Patch hat={h} size={44} />
-                  </View>
-                  <Txt v="fine" color={on ? C.ink : C.ink2} center>{HATS[h].name}</Txt>
-                </Pressable>
-              );
-            })}
-          </View>
-        </View>
-
-        <View style={{ gap: 12 }}>
-          <Label>When</Label>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {dateChoices.map(c => <Chip key={c.label} label={c.label} on={task.date === c.value} onPress={() => set({ date: c.value, deferredAt: null })} />)}
-            {customDate ? <Chip label={fmtShort(customDate)} on /> : null}
-          </View>
-          <Field
-            value={dateText}
-            onChangeText={setDateText}
-            placeholder="Or type a day: Friday, Nov 2, in 3 days"
-            accessibilityLabel="Type a date"
-            returnKeyType="done"
-            onSubmitEditing={() => { const p = parseCapture(dateText, today); if (p.date) { set({ date: p.date }); setDateText(''); } }}
+    <Page tabs={false}>
+      <Header title="Make it fit your life." back />
+      <Field label="Task" value={title} onChangeText={setTitle} />
+      <Row>
+        {HAT_IDS.map((h) => (
+          <Chip
+            key={h}
+            title={HATS[h].name}
+            selected={hat === h}
+            onPress={() => setHat(h)}
           />
-        </View>
-
-        <View style={{ gap: 12 }}>
-          <Label>Time</Label>
-          {task.time ? (
-            <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-              <Stepper label="time" value={fmtTime(task.time, true)} onMinus={() => set({ time: timeOf(minutesOf(task.time!) - 15) })} onPlus={() => set({ time: timeOf(minutesOf(task.time!) + 15) })} />
-              <Chip label="No time" onPress={() => set({ time: null })} />
-            </View>
-          ) : (
-            <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-              <Chip label="Add a time" icon="clock" onPress={() => set({ time: quarter() })} />
-            </View>
-          )}
-        </View>
-
-        <View style={{ gap: 12 }}>
-          <Label>About how long</Label>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-            {[5, 10, 15, 25, 45, 60].map(m => <Chip key={m} label={`${m} min`} on={task.minutes === m} onPress={() => set({ minutes: m })} />)}
-          </View>
-        </View>
-
-        <View style={{ gap: 12 }}>
-          <Label>Student (initials, optional)</Label>
-          <Field value={task.student ?? ''} onChangeText={v => set({ student: v.trim() ? v.toUpperCase() : null })} placeholder="A.R." autoCapitalize="characters" accessibilityLabel="Student initials" />
-        </View>
-
-        <View style={{ gap: 10 }}>
-          {!task.done ? (
-            <Btn title={inThree ? 'Remove from today’s three' : 'Make it one of today’s three'} kind="quiet" icon="star" onPress={() => mutate(d => { toggleThree(d, today, task.id); })} />
-          ) : null}
-          <Btn
-            title={task.done ? 'Reopen' : 'Mark done'}
-            kind={task.done ? 'ghost' : 'gold'}
-            icon={task.done ? 'undo' : 'check'}
-            onPress={() => {
-              const nowIso = new Date().toISOString();
-              mutate(d => (task.done ? reopenTask(d, task.id) : completeTask(d, task.id, nowIso)));
-              if (!task.done) router.back();
-            }}
+        ))}
+      </Row>
+      <Field label="Date · YYYY-MM-DD" value={date} onChangeText={setDate} />
+      <Field
+        label="Time · HH:MM, or leave flexible"
+        value={time}
+        onChangeText={setTime}
+      />
+      <Field
+        label="Minutes for the next step"
+        value={minutes}
+        onChangeText={setMinutes}
+        keyboardType="number-pad"
+      />
+      <Check
+        title="Fixed commitment · never move automatically"
+        done={fixed}
+        onPress={() => setFixed(!fixed)}
+      />
+      <Check
+        title="Essential care · keep on low-energy days"
+        done={essential}
+        onPress={() => setEssential(!essential)}
+      />
+      <T bold>Repeat after completion</T>
+      <Row>
+        {(["none", "daily", "weekly"] as const).map((r) => (
+          <Chip
+            key={r}
+            title={r}
+            selected={repeat === r}
+            onPress={() => setRepeat(r)}
           />
-          <Btn
-            title="Delete"
-            kind="ghost"
-            icon="trash"
-            onPress={() =>
-              Alert.alert('Delete this task?', task.title, [
-                { text: 'Cancel', style: 'cancel' },
-                { text: 'Delete', style: 'destructive', onPress: () => { router.back(); mutate(d => deleteTask(d, task.id)); } },
-              ])
-            }
-          />
-        </View>
-      </ScrollView>
-    </KeyboardAvoidingView>
+        ))}
+      </Row>
+      <Field
+        label="Useful details"
+        value={note}
+        onChangeText={setNote}
+        multiline
+      />
+      {task.steps.map((step, i) => (
+        <Check
+          key={i}
+          title={step.title}
+          done={step.done}
+          onPress={() =>
+            mutate((d) => {
+              const t = d.tasks.find((t) => t.id === id);
+              if (!t) return;
+              t.steps[i].done = !t.steps[i].done;
+              t.doneAt = t.steps.every((s) => s.done)
+                ? new Date().toISOString()
+                : null;
+            })
+          }
+        />
+      ))}
+      <Button title="Save changes" onPress={save} />
+      {task.doneAt ? (
+        <Button
+          title="Reopen task"
+          quiet
+          onPress={() => {
+            mutate((d) => {
+              const t = d.tasks.find((t) => t.id === id);
+              if (t) {
+                t.doneAt = null;
+                if (t.steps.length) t.steps[t.steps.length - 1].done = false;
+              }
+            });
+            say("Task reopened.");
+          }}
+        />
+      ) : null}
+      <Button
+        title="Delete task"
+        quiet
+        onPress={() =>
+          Alert.alert(
+            "Delete this task?",
+            "Undo is available after deleting.",
+            [
+              { text: "Cancel", style: "cancel" },
+              {
+                text: "Delete",
+                style: "destructive",
+                onPress: () => {
+                  mutate((d) => {
+                    d.tasks = d.tasks.filter((t) => t.id !== id);
+                  });
+                  router.back();
+                },
+              },
+            ],
+          )
+        }
+      />
+    </Page>
   );
 }

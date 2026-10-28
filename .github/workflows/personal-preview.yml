@@ -1,0 +1,46 @@
+name: Hats personal preview
+on:
+  push:
+    branches: [codex/hats-personal-life]
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: personal-preview-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - run: npx expo prebuild --platform android --no-install
+      - name: Build Android preview
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+      - run: cp android/app/build/outputs/apk/release/app-release.apk Hats-Personal.apk
+      - uses: actions/upload-artifact@v4
+        with:
+          name: Hats-Personal
+          path: Hats-Personal.apk
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: personal-preview-${{ github.run_number }}
+          name: Hats Personal Preview ${{ github.run_number }}
+          prerelease: true
+          make_latest: false
+          body: Personal-life rebuild. Download Hats-Personal.apk. Provider connections require private setup; no personal profile is embedded in this public build. Preview is signed with the standard development key.
+          files: Hats-Personal.apk

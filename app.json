@@ -3,11 +3,11 @@
     "name": "Hats",
     "slug": "hats-focus",
     "scheme": "hats",
-    "version": "1.0.0",
+    "version": "2.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#0D110F",
+    "userInterfaceStyle": "light",
+    "backgroundColor": "#F5F1E9",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hatsfocus.app",
@@ -23,7 +23,19 @@
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 2,
+      "intentFilters": [
+        {
+          "action": "SEND",
+          "category": [
+            "DEFAULT"
+          ],
+          "data": {
+            "mimeType": "text/plain"
+          }
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -37,10 +49,10 @@
         {
           "image": "./assets/splash-icon.png",
           "imageWidth": 120,
-          "backgroundColor": "#0D110F",
+          "backgroundColor": "#F5F1E9",
           "dark": {
             "image": "./assets/splash-icon.png",
-            "backgroundColor": "#0D110F"
+            "backgroundColor": "#F5F1E9"
           }
         }
       ],
@@ -48,7 +60,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#F2C14E"
+          "color": "#3D65A2"
         }
       ],
       [
@@ -73,8 +85,8 @@
           "widgets": [
             {
               "name": "HatsNow",
-              "label": "Hats · Now",
-              "description": "Your one thing, with Focus and Done. Shows your class when you're teaching.",
+              "label": "Hats \u00b7 Now",
+              "description": "Your personal home life, with a useful next step.",
               "minWidth": "250dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
@@ -85,8 +97,8 @@
             },
             {
               "name": "HatsLog",
-              "label": "Hats · Caseload +1",
-              "description": "Tap a student to log a data point. The class in front of you comes first.",
+              "label": "Hats \u00b7 Home life",
+              "description": "Your personal home life, with a useful next step.",
               "minWidth": "250dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
@@ -97,8 +109,8 @@
             },
             {
               "name": "HatsSay",
-              "label": "Hats · Say anything",
-              "description": "One tap to capture a thought out loud.",
+              "label": "Hats \u00b7 Say anything",
+              "description": "Your personal home life, with a useful next step.",
               "minWidth": "110dp",
               "minHeight": "50dp",
               "targetCellWidth": 2,
@@ -118,7 +130,9 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": false
