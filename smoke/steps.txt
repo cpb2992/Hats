@@ -1,0 +1,23 @@
+installed
+A alive: NOT RUNNING
+FAIL: welcome screen shows on first launch
+could not find 'What should Hats call you'
+could not find 'Make room for what matters'
+FAIL: Today screen after setup
+could not find '^\|?My hats|My hats$'
+could not find '^\|?Plan|Plan$'
+could not find '^\|?Capture|Capture$'
+could not find '^\|?Today|Today$'
+PASS: Settings opens by link
+B alive: RUNNING
+C alive after widget refresh (open): RUNNING
+C process after widget wake (closed): RUNNING
+FAIL: warm share lands in Capture
+FAIL: cold share lands in Capture
+could not find 'Kitchen reset'
+could not find 'Wash or load the dishes'
+could not find 'Wipe the counters'
+could not find 'Sweep what needs it'
+could not find 'Put the last things away'
+E alive: RUNNING
+CRASH BUFFER NOT EMPTY
