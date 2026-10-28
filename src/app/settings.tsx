@@ -12,6 +12,7 @@ import {
   signOut,
   verifyCode,
 } from "../personal/cloud";
+import { WhoopSettings } from "../personal/WhoopCard";
 import { exportPersonal, pickBackup } from "../personal/backup";
 import { useEditor, required } from "../personal/Editor";
 import { makeTask } from "../personal/engine";
@@ -639,13 +640,13 @@ export default function Settings() {
           onPress={() => router.push("/plan")}
         />
       </Panel>
+      <WhoopSettings signedIn={!!account} />
       <Panel>
-        <T bold>WHOOP, financial data, and personal email</T>
+        <T bold>Financial data and personal email</T>
         <T muted>
           These providers are not connected in this build. Hats will not invent
-          recovery scores, balances, transactions, or email-derived plans. Your
-          routines, saved meals, personal notes, and logged spending work
-          without them.
+          balances, transactions, or email-derived plans. Your routines, saved
+          meals, personal notes, and logged spending work without them.
         </T>
         <T size={12} muted>
           Google Keep and Facebook are not required dependencies. Saved links

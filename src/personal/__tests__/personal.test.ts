@@ -331,3 +331,40 @@ test("every space and screen hat has sticker art that renders to valid SVG", asy
     assert.doesNotMatch(svg, /NaN|undefined/);
   }
 });
+
+test("WHOOP: today's card only uses data scored today and never invents numbers", async () => {
+  const { band, whoopToday, whoopLine } = await import("../whoop");
+  assert.equal(band(0), "low");
+  assert.equal(band(33), "low");
+  assert.equal(band(34), "steady");
+  assert.equal(band(66), "steady");
+  assert.equal(band(67), "high");
+  const at = (d: string, h: number) => new Date(`${d}T${String(h).padStart(2, "0")}:00:00`).toISOString();
+  const summary = {
+    connected: true,
+    recovery: [
+      { at: at("2026-10-28", 6), score: 28, hrv: 41.2, restingHr: 58 },
+      { at: at("2026-10-27", 6), score: 80, hrv: 70, restingHr: 52 },
+    ],
+    sleep: [{ start: at("2026-10-27", 23), end: at("2026-10-28", 6), performance: 71, hoursAsleep: 5.9 }],
+    strain: [
+      { start: at("2026-10-28", 6), strain: 3.1 },
+      { start: at("2026-10-27", 6), strain: 14.2 },
+    ],
+  };
+  const t = whoopToday(summary, "2026-10-28")!;
+  assert.equal(t.recovery, 28);
+  assert.equal(t.band, "low");
+  assert.equal(t.suggestLighter, true);
+  assert.equal(t.sleepHours, 5.9);
+  assert.equal(t.yesterdayStrain, 14.2);
+  assert.equal(whoopLine(t), "Low recovery (28%) · 5.9 h asleep");
+  // Before WHOOP scores today: no recovery, no suggestion, honest wording.
+  const early = whoopToday(summary, "2026-10-29")!;
+  assert.equal(early.recovery, null);
+  assert.equal(early.suggestLighter, false);
+  assert.match(whoopLine(early), /isn't scored yet/);
+  // Not connected: nothing to show.
+  assert.equal(whoopToday({ connected: false }, "2026-10-28"), null);
+  assert.equal(whoopToday(null, "2026-10-28"), null);
+});

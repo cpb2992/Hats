@@ -12,6 +12,7 @@
   "exclude": [
     "node_modules",
     "src/engine/__tests__",
-    "src/personal/__tests__"
+    "src/personal/__tests__",
+    "supabase/functions"
   ]
 }

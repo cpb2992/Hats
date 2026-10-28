@@ -4,6 +4,7 @@ import * as WebBrowser from "expo-web-browser";
 import { validData, type PersonalData, type PersonalEvent } from "./model";
 import { secretGet, secretSet } from "./storage";
 import { addDays, todayISO, timeOf } from "../engine/dates";
+import type { WhoopSummary } from "./whoop";
 
 WebBrowser.maybeCompleteAuthSession();
 export interface CloudConfig {
@@ -189,6 +190,7 @@ export async function signOut() {
     );
   }
   await secretSet("hats.cloud.session", null);
+  await secretSet("hats.whoop.summary", null);
 }
 export async function readRemote(): Promise<Remote | null> {
   const s = await currentSession();
@@ -331,4 +333,67 @@ export async function readGoogleEvents(
     } while (page);
   }
   return collected;
+}
+
+// ---- WHOOP (read-only, through the private `whoop` server function) ----
+const WHOOP_CACHE = "hats.whoop.summary";
+async function whoopCall(
+  action: string,
+): Promise<WhoopSummary & { url?: string; configured?: boolean }> {
+  const config = await getConfig();
+  const s = await currentSession();
+  if (!config || !s) throw new Error("Sign in to Hats sync first.");
+  const response = await fetch(`${config.url}/functions/v1/whoop`, {
+    method: "POST",
+    headers: {
+      apikey: config.key,
+      Authorization: `Bearer ${s.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ action }),
+    signal: AbortSignal.timeout(25000),
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok)
+    throw new Error(
+      body?.error || `WHOOP connection failed (${response.status}).`,
+    );
+  return body;
+}
+/** Opens WHOOP's own sign-in; the server keeps the tokens. */
+export async function connectWhoop() {
+  const { url } = await whoopCall("start");
+  if (!url) throw new Error("WHOOP sign-in could not start.");
+  const back = Linking.createURL("auth-callback");
+  const result = await WebBrowser.openAuthSessionAsync(url, back);
+  if (result.type !== "success")
+    throw new Error("WHOOP connection was cancelled.");
+  const params = new URL(result.url).searchParams;
+  if (params.get("status") !== "connected")
+    throw new Error(params.get("error_description") || "WHOOP didn't connect.");
+  return refreshWhoop();
+}
+/** Fetches the latest summary and keeps it only on this phone. */
+export async function refreshWhoop(): Promise<WhoopSummary> {
+  const summary = await whoopCall("summary");
+  await secretSet(
+    WHOOP_CACHE,
+    summary.connected ? JSON.stringify(summary) : null,
+  );
+  return summary;
+}
+export async function cachedWhoop(): Promise<WhoopSummary | null> {
+  const raw = await secretGet(WHOOP_CACHE).catch(() => null);
+  try {
+    return raw ? (JSON.parse(raw) as WhoopSummary) : null;
+  } catch {
+    return null;
+  }
+}
+export async function disconnectWhoop() {
+  await whoopCall("disconnect");
+  await secretSet(WHOOP_CACHE, null);
+}
+export async function forgetWhoopOnThisPhone() {
+  await secretSet(WHOOP_CACHE, null);
 }

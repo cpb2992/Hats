@@ -11,7 +11,10 @@ export default function AuthCallback() {
   const params = useLocalSearchParams<{
     code?: string;
     error_description?: string;
+    whoop?: string;
+    status?: string;
   }>();
+  const whoop = params.whoop === "1";
   const { sync } = usePersonal();
   const [state, setState] = useState<State>("working");
   const started = useRef(false);
@@ -27,6 +30,9 @@ export default function AuthCallback() {
     started.current = true;
     const finish = async () => {
       if (failure) throw new Error(failure.replace(/\+/g, " "));
+      // WHOOP finishes on the server; this screen only reports the result.
+      if (whoop)
+        return params.status === "connected" ? "WHOOP" : ("idle" as const);
       // Google sign-in finishes inside its own browser session; only an
       // emailed link from this phone is redeemed here.
       if (!code || !(await emailLinkPending())) return "idle" as const;
@@ -50,7 +56,7 @@ export default function AuthCallback() {
         );
         setState("error");
       });
-  }, [code, failure, sync]);
+  }, [code, failure, sync, whoop, params.status]);
   return (
     <Page tabs={false}>
       <Hat id={state === "error" ? "hardhat" : "cap"} size={84} wobble />
@@ -68,7 +74,9 @@ export default function AuthCallback() {
           {state === "working"
             ? "One moment while Hats checks the link."
             : state === "done"
-              ? `Signed in as ${detail}. Your plan is syncing privately.`
+              ? detail === "WHOOP"
+                ? "WHOOP is connected. Your recovery shows on Today."
+                : `Signed in as ${detail}. Your plan is syncing privately.`
               : state === "error"
                 ? `${detail} Your plan on this phone hasn’t changed.`
                 : "Return to Settings to check your connection. Your personal plan has not been changed."}

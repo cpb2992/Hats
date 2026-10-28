@@ -13,6 +13,7 @@ import { HATS, type PersonalHat } from "../../personal/model";
 import { useFocusEnabled } from "../../personal/focus";
 import { Streaks } from "../../personal/Streaks";
 import { Hat } from "../../personal/Hat";
+import { WhoopToday } from "../../personal/WhoopCard";
 import { usePersonal } from "../../personal/Store";
 import {
   Button,
@@ -118,6 +119,7 @@ export default function Today() {
           />
         </Panel>
       ) : null}
+      <WhoopToday />
       <Columns>
         <View style={{ flex: 1, gap: 16 }}>
           <Panel dark>
