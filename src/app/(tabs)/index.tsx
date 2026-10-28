@@ -333,7 +333,7 @@ export default function Today() {
               icon="calendar"
               onPress={() =>
                 Linking.openURL(
-                  `https://www.google.com/maps/search/${encodeURIComponent(`family activities near ${data.preferences.city}`)}`,
+                  `https://www.google.com/maps/search/${encodeURIComponent(`family activities near ${data.preferences.city || "me"}`)}`,
                 )
               }
             />

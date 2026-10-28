@@ -43,3 +43,9 @@ yarn-error.*
 # local env
 .env
 .env.local
+
+# private household setup and exported backups never belong in the repo
+PRIVATE/
+*Private_Setup*.json
+hats-personal-profile*.json
+Hats-personal-backup-*.json

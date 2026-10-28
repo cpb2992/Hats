@@ -35,7 +35,9 @@ export function streakFor(habit: Habit, today: string) {
     counts.set(week, (counts.get(week) ?? 0) + 1);
   }
   const thisWeek = weekStart(today);
-  const met = (week: string) => (counts.get(week) ?? 0) >= habit.target;
+  // Guard against a corrupted target so the streak loop always terminates.
+  const target = Math.min(7, Math.max(1, Math.round(habit.target) || 1));
+  const met = (week: string) => (counts.get(week) ?? 0) >= target;
   let cursor = met(thisWeek) ? thisWeek : addDays(thisWeek, -7);
   let current = 0;
   while (met(cursor)) {
@@ -59,7 +61,7 @@ export function streakFor(habit: Habit, today: string) {
     current,
     best,
     progress: counts.get(thisWeek) ?? 0,
-    target: habit.target,
+    target,
     unit: "week",
     done: dates.includes(today),
   };

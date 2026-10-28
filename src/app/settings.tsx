@@ -178,7 +178,7 @@ export default function Settings() {
           {data.preferences.name || "Your profile"}
         </T>
         <T muted>
-          {data.preferences.city} · up to {data.preferences.travelMinutes}{" "}
+          {data.preferences.city || "Area not set"} · up to {data.preferences.travelMinutes}{" "}
           minutes of travel
         </T>
         <Button

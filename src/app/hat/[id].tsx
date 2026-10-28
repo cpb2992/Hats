@@ -328,7 +328,7 @@ export default function Hat() {
                     small
                     onPress={() =>
                       Linking.openURL(
-                        `https://www.google.com/maps/search/${encodeURIComponent(`restaurants near ${data.preferences.city}`)}`,
+                        `https://www.google.com/maps/search/${encodeURIComponent(`restaurants near ${data.preferences.city || "me"}`)}`,
                       )
                     }
                   />
@@ -438,7 +438,7 @@ export default function Hat() {
                 quiet
                 onPress={() =>
                   Linking.openURL(
-                    `https://www.google.com/maps/search/${encodeURIComponent(`family activities near ${data.preferences.city}`)}`,
+                    `https://www.google.com/maps/search/${encodeURIComponent(`family activities near ${data.preferences.city || "me"}`)}`,
                   )
                 }
               />

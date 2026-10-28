@@ -196,7 +196,7 @@ export function freshPersonal(): PersonalData {
     preferences: {
       name: "",
       partner: "",
-      city: "Quincy, MA",
+      city: "",
       travelMinutes: 45,
       dateBudget: 150,
       homeTime: "16:45",

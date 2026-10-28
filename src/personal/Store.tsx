@@ -80,6 +80,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
       const next = await loadPersonal();
       const raw = await AsyncStorage.getItem(META);
       if (raw) meta.current = JSON.parse(raw);
+      undoRef.current = null;
       apply(next);
       setError("");
     } catch {
@@ -156,6 +157,8 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
       next.updatedAt = new Date().toISOString();
       meta.current.dirty = true;
       await persist(next);
+      // Undo must not restore data from before an import.
+      undoRef.current = null;
       apply(next);
       setError("");
     },
@@ -193,6 +196,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
           );
           return;
         }
+        undoRef.current = null;
         apply(remote.payload);
         meta.current = {
           owner: session.user.id,
@@ -244,6 +248,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
             "Your plan changed during comparison. Review both versions again before choosing.",
           );
         if (useRemote) {
+          undoRef.current = null;
           apply(conflict.payload);
           meta.current = {
             owner: session.user.id,

@@ -250,3 +250,48 @@ test("another activity produces a different suggestion", () => {
   rotateActivity(d, today);
   assert.notEqual(activityFor(d, today)[0], first);
 });
+
+test("a private setup profile imports only known fields and links the kitchen habit", async () => {
+  const { parseBackup } = await import("../profile");
+  const profile = {
+    format: "hats-personal-profile",
+    preferences: { name: "Sam", partner: "Alex", city: "Springfield", travelMinutes: 30, dateBudget: 100, apiKey: "nope" },
+    people: [
+      { id: "kid", name: "Robin", role: "child", interests: "puzzles" },
+      { name: "Rex", role: "pet" },
+      { name: "Boss", role: "coworker" },
+    ],
+    notes: [{ text: "Likes tulips", hat: "husband", secret: "drop me" }, { text: "bad hat", hat: "work" }],
+    habits: [
+      { title: "Finish the kitchen", hat: "home", frequency: "daily", target: 1, taskSource: "starter-kitchen" },
+      { title: "Guitar", hat: "myself", frequency: "weekly", target: 3, extra: true },
+      { title: "Too much", hat: "myself", frequency: "weekly", target: 9 },
+    ],
+  };
+  const data = parseBackup(JSON.stringify(profile), "2026-10-27");
+  assert.equal(data.preferences.city, "Springfield");
+  assert.equal("apiKey" in data.preferences, false);
+  assert.deepEqual(data.people.map((p) => p.name), ["Robin", "Rex"]);
+  assert.equal(data.notes.length, 1);
+  assert.equal("secret" in data.notes[0], false);
+  assert.deepEqual(data.habits?.map((h) => [h.title, h.target, h.taskSource ?? null]), [
+    ["Finish the kitchen", 1, "starter-kitchen"],
+    ["Guitar", 3, null],
+  ]);
+  assert.equal("extra" in (data.habits?.[1] ?? {}), false);
+  assert.ok(data.tasks.some((t) => t.source === "starter-kitchen"));
+  assert.ok(validData(data));
+  assert.throws(() => parseBackup(JSON.stringify({ format: "other" })));
+});
+
+test("fresh data carries no household location", () => {
+  assert.equal(freshPersonal().preferences.city, "");
+  assert.ok(validData(freshPersonal()));
+});
+
+test("a corrupted weekly target cannot hang the streak count", () => {
+  const habit: Habit = { id: "h", title: "x", hat: "myself", frequency: "weekly", target: 0, checkins: [] };
+  const s = streakFor(habit, "2026-10-27");
+  assert.equal(s.current, 0);
+  assert.equal(s.target, 1);
+});
