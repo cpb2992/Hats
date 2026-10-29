@@ -12,12 +12,12 @@ import { Hat } from "../../personal/Hat";
 import type { HatArtId } from "../../personal/hatArt";
 
 const tabs: Record<string, { title: string; hat: HatArtId }> = {
-  index: { title: "Home", hat: "sunhat" },
-  meals: { title: "Meals", hat: "chef" },
+  index: { title: "Today", hat: "sunhat" },
+  week: { title: "Week", hat: "safari" },
   family: { title: "Family", hat: "propeller" },
-  me: { title: "Me", hat: "pompom" },
+  hats: { title: "Hats", hat: "stack" },
 };
-const ORDER = ["index", "meals", "capture", "family", "me"];
+const ORDER = ["index", "week", "capture", "family", "hats"];
 
 function Mic() {
   return (
@@ -206,10 +206,10 @@ export default function Layout() {
       }}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="meals" />
+      <Tabs.Screen name="week" />
       <Tabs.Screen name="capture" />
       <Tabs.Screen name="family" />
-      <Tabs.Screen name="me" />
+      <Tabs.Screen name="hats" />
     </Tabs>
   );
 }

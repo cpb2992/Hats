@@ -90,7 +90,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
   }, []);
   const apply = useCallback((next: PersonalData) => {
     ref.current = next;
-    setCustomHats(next.customHats);
+    setCustomHats(next.customHats, next.preferences);
     setData(next);
   }, []);
   const reload = useCallback(async () => {

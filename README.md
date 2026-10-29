@@ -1,6 +1,8 @@
-# Hats — your personal life, with room to breathe
+# Hats
 
-A native Expo/React Native app for the hats you wear at home: Husband, Dad, Pets, Home, Friends & Family, and Myself.
+**You wear a lot of hats. Keep them all in one place.**
+
+A native Expo/React Native app for the roles you juggle: partner, parent, pets, home, work, friends and family, yourself, and any hat you add (Coach, Garden, Band). Setup asks who's at home and which hats you wear, and builds your hats, work hours, and evenings from the answers.
 
 The personal rebuild combines separate spaces for each hat with a calm daily plan. It includes staged chores (laundry ends when it is put away), next-opening rescheduling, low-energy planning, date preparation with separate childcare/transport costs, family activities, meals and groceries, private reflections and gift ideas, pets and chosen contacts, manual spending targets and a reconsider-later list, voice/photo capture, optional adventures, and configurable daily/weekly streaks.
 

@@ -133,3 +133,13 @@ export function dayFrom(f: Record<"p2" | "p3" | "p4" | "p5" | "p6" | "p7", strin
     section(f.p7, "Period 7"),
   );
 }
+
+/** A plain work day, the same hours on each chosen weekday ("Work 9–5", "School 8–3"). */
+export function simpleWeek(days: number[], start: string, end: string, title: string) {
+  const week: Record<string, SchoolBlock[]> = {};
+  for (const d of days) week[String(d)] = [block(start, end, title, "homeroom")];
+  return week;
+}
+/** Whether a schedule is plain hours (one block a day) rather than class periods. */
+export const isSimpleWeek = (week: Record<string, SchoolBlock[]> | undefined) =>
+  !!week && Object.values(week).every((b) => b.length <= 1);

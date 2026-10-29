@@ -299,7 +299,11 @@ export function installRoutines(data: PersonalData, today: string) {
       "starter-date",
     ],
   ];
-  for (const [title, hat, steps, essential, source] of presets)
+  const hidden = data.preferences.hiddenHats ?? [];
+  for (const [title, hat, steps, essential, source] of presets) {
+    // No pets, no litter check; no partner, no date planning.
+    if (hidden.includes(hat as BuiltInHat)) continue;
+    if (source === "starter-date" && !data.preferences.partner) continue;
     data.tasks.push(
       makeTask(title, hat, today, {
         steps: steps.map((title) => ({ title, done: false })),
@@ -313,6 +317,7 @@ export function installRoutines(data: PersonalData, today: string) {
               : "daily",
       }),
     );
+  }
 }
 
 const ACTIVITIES = [

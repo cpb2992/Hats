@@ -35,12 +35,14 @@ export function isWorkday(data: PersonalData, date: string) {
 /** Evening blocks the planner keeps free: dinner, bath (if tonight), stories, bedtime. */
 export function routineBlocks(data: PersonalData, date: string) {
   const r = routinePrefs(data);
-  const blocks = [
-    { start: mins(r.dinnerTime), end: mins(r.dinnerTime) + 40 },
-    { start: mins(r.storyTime), end: mins(r.storyTime) + 25 },
-    { start: mins(r.bedtime), end: mins(r.bedtime) + 15 },
-  ];
-  if (isBathNight(data, date))
+  const kids = data.preferences.kidsRoutine !== false;
+  const blocks = [{ start: mins(r.dinnerTime), end: mins(r.dinnerTime) + 40 }];
+  if (kids)
+    blocks.push(
+      { start: mins(r.storyTime), end: mins(r.storyTime) + 25 },
+      { start: mins(r.bedtime), end: mins(r.bedtime) + 15 },
+    );
+  if (kids && isBathNight(data, date))
     blocks.push({ start: mins(r.storyTime) - 30, end: mins(r.storyTime) - 5 });
   return blocks;
 }

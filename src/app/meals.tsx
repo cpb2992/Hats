@@ -8,11 +8,11 @@ import {
   View,
   useWindowDimensions,
 } from "react-native";
-import { addDays, dayShort, fromISO } from "../../engine/dates";
-import { Icon } from "../../ui/icons";
-import { planWeek } from "../../personal/auto";
-import { Food, Hat } from "../../personal/Hat";
-import { haptic } from "../../personal/haptics";
+import { addDays, dayShort, fromISO } from "../engine/dates";
+import { Icon } from "../ui/icons";
+import { planWeek } from "../personal/auto";
+import { Food, Hat } from "../personal/Hat";
+import { haptic } from "../personal/haptics";
 import {
   asMeal,
   dinnerFor,
@@ -22,10 +22,10 @@ import {
   suggestRecipes,
   weekDinners,
   type MealFilter,
-} from "../../personal/meals";
-import { RecipeFlipCard, timeLabel } from "../../personal/RecipeCard";
-import { byAisle, recipeById, sameItem, type Recipe } from "../../personal/recipes";
-import { usePersonal } from "../../personal/Store";
+} from "../personal/meals";
+import { RecipeFlipCard, timeLabel } from "../personal/RecipeCard";
+import { byAisle, recipeById, sameItem, type Recipe } from "../personal/recipes";
+import { usePersonal } from "../personal/Store";
 import {
   Button,
   Chip,
@@ -37,7 +37,7 @@ import {
   Section,
   T,
   sticker,
-} from "../../personal/ui";
+} from "../personal/ui";
 
 const FILTERS: { key: MealFilter; label: string }[] = [
   { key: "all", label: "All ideas" },
@@ -120,11 +120,12 @@ export default function Meals() {
   };
 
   return (
-    <Page>
+    <Page tabs={false}>
       <Header
         title="Dinner’s handled."
         subtitle="Flip through ideas, plan the week, and the list builds itself."
         hat="chef"
+        back
       />
 
       {/* Tonight */}

@@ -85,7 +85,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="recipe/[id]" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="log" />
-        <Stack.Screen name="hats" />
+        <Stack.Screen name="meals" />
       </Stack>
       <Automations />
       {message ? (

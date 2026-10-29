@@ -157,7 +157,9 @@ export function routineSteps(
       `${slow.minutes} min now, then ${slow.wait}`,
       slow.minutes,
     );
-  if (isBathNight(data, date))
+  // The kids' evening (bath, stories, bedtime) unless you said there isn't one.
+  const kidsEvening = p.kidsRoutine !== false;
+  if (kidsEvening && isBathNight(data, date))
     add(
       "bath",
       hhmm(mins(r.storyTime) - 30),
@@ -166,15 +168,17 @@ export function routineSteps(
       kids.length ? "Every other night" : undefined,
       25,
     );
-  add(
-    "stories",
-    r.storyTime,
-    "Stories",
-    "wizard",
-    kids.length ? `${kids.map((k) => k.name).join(", ")}` : undefined,
-    25,
-  );
-  add("bedtime", r.bedtime, "Bedtime", "nightcap", undefined, 15);
+  if (kidsEvening) {
+    add(
+      "stories",
+      r.storyTime,
+      "Stories",
+      "wizard",
+      kids.length ? `${kids.map((k) => k.name).join(", ")}` : undefined,
+      25,
+    );
+    add("bedtime", r.bedtime, "Bedtime", "nightcap", undefined, 15);
+  }
   if (p.gymDays.includes(weekday(date)))
     if (low)
       add(

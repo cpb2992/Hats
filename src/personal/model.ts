@@ -88,11 +88,27 @@ export const isCustomHatId = (h: unknown): h is CustomHatId =>
 export const isHatId = (h: unknown): h is PersonalHat =>
   isBuiltInHat(h) || isCustomHatId(h);
 
-// The hats you added, kept in step with the saved data by the store, so any
-// screen can look up a hat by id.
+// The hats you added (and your names for the built-in ones), kept in step with the saved
+// data by the store, so any screen can look up a hat by id.
 let custom: CustomHat[] = [];
-export function setCustomHats(list: CustomHat[] | undefined) {
+let builtIns: Pick<Preferences, "hatNames" | "hatArt" | "hiddenHats"> = {};
+export function setCustomHats(list: CustomHat[] | undefined, prefs?: Preferences) {
   custom = list ?? [];
+  builtIns = prefs ? { hatNames: prefs.hatNames, hatArt: prefs.hatArt, hiddenHats: prefs.hiddenHats } : {};
+}
+/** A built-in hat with your name and look for it. */
+function builtIn(id: BuiltInHat): HatDef {
+  const def = HATS[id];
+  const name = builtIns.hatNames?.[id];
+  const art = builtIns.hatArt?.[id];
+  if (!name && !art) return def;
+  return {
+    ...def,
+    name: name || def.name,
+    art: art ?? def.art,
+    subtitle:
+      id === "work" && name && name !== "Teacher" ? "Your work day, block by block." : def.subtitle,
+  };
 }
 export const customHats = () => custom;
 
@@ -109,13 +125,13 @@ export function customDef(h: Pick<CustomHat, "name" | "art">): HatDef {
 }
 /** Any hat by id: built in, one you added, or Home if it's been hung up. */
 export function hatDef(id: PersonalHat, list: CustomHat[] = custom): HatDef {
-  if (isBuiltInHat(id)) return HATS[id];
+  if (isBuiltInHat(id)) return builtIn(id);
   const mine = list.find((h) => h.id === id);
   return mine ? customDef(mine) : HATS.home;
 }
 /** Every hat in order: the built-in ones, then yours. */
 export const allHats = (list: CustomHat[] = custom): PersonalHat[] => [
-  ...HAT_IDS,
+  ...HAT_IDS.filter((h) => !(builtIns.hiddenHats ?? []).includes(h)),
   ...list.map((h) => h.id),
 ];
 /** Hang up a hat you added: everything under it moves to Home. */
@@ -332,6 +348,14 @@ export interface Preferences {
   bathAnchor?: string;
   /** The school day (Teacher hat). */
   school?: SchoolPrefs;
+  /** Your words for the built-in hats ("Wife", "Mom", "Work"). */
+  hatNames?: Partial<Record<BuiltInHat, string>>;
+  /** A different look for a built-in hat (the Work hat as a bowler). */
+  hatArt?: Partial<Record<BuiltInHat, HatArtId>>;
+  /** Built-in hats you don't wear (no pets, no partner). */
+  hiddenHats?: BuiltInHat[];
+  /** Kids' evening routine (bath, stories, bedtime) on Today. On unless turned off. */
+  kidsRoutine?: boolean;
 }
 export const ROUTINE_DEFAULTS = {
   partnerHome: "18:00",
@@ -756,7 +780,22 @@ export function validData(value: unknown): value is PersonalData {
     return (
       typeof v.protectedLabel === "string" &&
       (v.protectedUntil === null || typeof v.protectedUntil === "string") &&
-      typeof p.onboarded === "boolean"
+      typeof p.onboarded === "boolean" &&
+      (p.hatNames === undefined ||
+        (typeof p.hatNames === "object" &&
+          p.hatNames !== null &&
+          Object.entries(p.hatNames).every(
+            ([k, v]) => isBuiltInHat(k) && typeof v === "string" && v.trim().length > 0 && v.length <= 30,
+          ))) &&
+      (p.hatArt === undefined ||
+        (typeof p.hatArt === "object" &&
+          p.hatArt !== null &&
+          Object.entries(p.hatArt).every(
+            ([k, v]) => isBuiltInHat(k) && HAT_ART_IDS.includes(v as HatArtId) && v !== "stack",
+          ))) &&
+      (p.hiddenHats === undefined ||
+        (Array.isArray(p.hiddenHats) && p.hiddenHats.every(isBuiltInHat))) &&
+      (p.kidsRoutine === undefined || typeof p.kidsRoutine === "boolean")
     );
   } catch {
     return false;

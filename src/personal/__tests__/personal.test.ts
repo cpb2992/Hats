@@ -1158,3 +1158,51 @@ test("a planned date night shows on its day, at its time, and keeps that time fr
   assert.ok(windows.every((w) => w.end <= 18 * 60 || w.start >= 21 * 60), JSON.stringify(windows));
   assert.equal(validData({ ...d, dates: [{ ...d.dates[0], time: "7pm" }] }), false);
 });
+
+test("setup builds hats and evenings from answers, for anyone", async () => {
+  const { applySetup } = await import("../setup");
+  const { dayTimeline } = await import("../timeline");
+  const { hatDef, allHats, setCustomHats } = await import("../model");
+  const thu = "2026-10-29";
+  // A single office worker with a dog, no kids, no partner.
+  const d = freshPersonal();
+  applySetup(d, {
+    name: "Sam", partner: "", partnerWord: "Partner", kids: [], parentWord: "Parent", pets: ["Biscuit"],
+    hats: ["home", "pets", "friends", "myself", "work"],
+    work: { name: "Work", art: "bowler", title: "Work", days: [1, 2, 3, 4, 5], start: "09:00", end: "17:00" },
+    dinner: "18:30", baths: "alternate",
+  }, thu);
+  assert.equal(validData(d), true);
+  setCustomHats(d.customHats, d.preferences);
+  assert.deepEqual(allHats(), ["pets", "home", "friends", "myself", "work"]);
+  assert.equal(hatDef("work").name, "Work");
+  assert.equal(hatDef("work").art, "bowler");
+  assert.match(hatDef("work").subtitle, /work day/);
+  const day = dayTimeline(d, thu, 8 * 60, thu);
+  const keys = day.items.map((i) => i.key ?? i.kind);
+  assert.ok(!keys.includes("stories") && !keys.includes("bedtime") && !keys.includes("bath"), keys.join(","));
+  assert.ok(day.items.some((i) => i.kind === "work" && i.title === "Work" && i.time === "09:00"));
+  assert.ok(!d.tasks.some((t) => t.source === "starter-date"));
+  assert.ok(d.tasks.some((t) => t.source === "starter-pets"));
+  assert.equal(day.items.find((i) => i.key === "dinner")?.time, "18:30");
+
+  // A mom with a wife and two kids, not working outside the home.
+  const e = freshPersonal();
+  applySetup(e, {
+    name: "Rae", partner: "Jo", partnerWord: "Wife", kids: ["Ami", "Leo"], parentWord: "Mom", pets: [],
+    hats: ["husband", "dad", "home", "friends", "myself"],
+    dinner: "17:30", stories: "19:00", bedtime: "19:30", baths: "nightly",
+  }, thu);
+  assert.equal(validData(e), true);
+  setCustomHats(e.customHats, e.preferences);
+  assert.equal(hatDef("husband").name, "Wife");
+  assert.equal(hatDef("dad").name, "Mom");
+  assert.ok(!allHats().includes("pets") && !allHats().includes("work"));
+  const eve = dayTimeline(e, thu, 8 * 60, thu).items;
+  assert.ok(eve.some((i) => i.key === "bath") && eve.some((i) => i.key === "stories"));
+  assert.ok(!eve.some((i) => i.kind === "work"));
+  assert.equal(e.people.filter((p) => p.role === "child").length, 2);
+  // Bad saved names are refused.
+  assert.equal(validData({ ...e, preferences: { ...e.preferences, hatNames: { office: "x" } as never } }), false);
+  setCustomHats([], undefined);
+});

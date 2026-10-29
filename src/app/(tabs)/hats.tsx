@@ -9,11 +9,18 @@ import {
 } from "../../engine/dates";
 import { budgetSummary } from "../../personal/engine";
 import { Hat } from "../../personal/Hat";
-import { HATS, hatDef } from "../../personal/model";
+import {
+  HATS,
+  allHats,
+  hatDef,
+  type PersonalData,
+  type PersonalHat,
+} from "../../personal/model";
+import { eventsOn } from "../../personal/repeat";
 import { usePersonal } from "../../personal/Store";
 import { StreakStrip } from "../../personal/TodayParts";
+import { dateTime } from "../../personal/timeline";
 import {
-  Button,
   Header,
   P,
   Page,
@@ -25,7 +32,27 @@ import {
 } from "../../personal/ui";
 import { WhoopToday } from "../../personal/WhoopCard";
 
-export default function Me() {
+/** The next thing under a hat in the coming two weeks: an event, a date night, or a to-do. */
+function nextFor(data: PersonalData, hat: PersonalHat, today: string) {
+  for (let i = 0; i < 14; i++) {
+    const date = addDays(today, i);
+    const when = (t?: string) =>
+      `${i === 0 ? "Today" : i === 1 ? "Tomorrow" : dayShort(date)}${t ? ` ${fmtTime(t, true)}` : ""}`;
+    const ev = eventsOn(data, date)
+      .filter((e) => e.hat === hat)
+      .sort((a, b) => a.start.localeCompare(b.start))[0];
+    if (ev) return `${ev.title} · ${when(ev.allDay ? undefined : ev.start)}`;
+    if (hat === "husband") {
+      const d = data.dates.find((x) => x.date === date);
+      if (d) return `Date night · ${when(dateTime(d))}`;
+    }
+    const t = data.tasks.find((x) => x.hat === hat && !x.doneAt && x.date === date);
+    if (t) return `${t.title} · ${when(t.time ?? undefined)}`;
+  }
+  return null;
+}
+
+export default function Hats() {
   const { data, today } = usePersonal();
   const p = data.preferences;
   const week = Array.from({ length: 7 }, (_, i) => addDays(today, i));
@@ -37,11 +64,96 @@ export default function Me() {
   return (
     <Page>
       <Header
-        title="You get room, too."
-        subtitle="Streaks, rest, music, money."
-        hat="pompom"
+        title="All the hats you wear."
+        subtitle="Keep them all in one place."
+        hat="stack"
       />
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+        {allHats(data.customHats).map((id, index) => {
+          const hat = hatDef(id, data.customHats);
+          const open = data.tasks.filter((t) => t.hat === id && !t.doneAt).length;
+          const next = nextFor(data, id, today);
+          return (
+            <Pressable
+              key={id}
+              accessibilityRole="button"
+              accessibilityLabel={`${hat.name}. ${next ? `Next: ${next}.` : ""} ${open} open.`}
+              onPress={() => router.push({ pathname: "/hat/[id]", params: { id } })}
+              style={({ pressed }) => ({
+                flexGrow: 1,
+                flexBasis: 145,
+                maxWidth: 340,
+                minHeight: 150,
+                backgroundColor: hat.tint,
+                borderRadius: 24,
+                padding: 16,
+                gap: 6,
+                ...sticker(pressed ? 3 : 5),
+                transform: [
+                  { translateY: pressed ? 2 : 0 },
+                  { rotate: pressed ? "0deg" : index % 2 ? "0.8deg" : "-0.8deg" },
+                ],
+              })}
+            >
+              <Hat id={hat.art} size={52} tilt={index % 2 ? 8 : -8} />
+              <T size={hat.name.length > 12 ? 17 : 19} display numberOfLines={2}>
+                {hat.name}
+              </T>
+              <T size={12} muted numberOfLines={2}>
+                {next ? `Next: ${next}` : hat.subtitle}
+              </T>
+              <T size={12} bold color={hat.color}>
+                {open ? `${open} open` : "All clear"}
+              </T>
+            </Pressable>
+          );
+        })}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Add a hat"
+          onPress={() => router.push("/hat-new")}
+          style={({ pressed }) => ({
+            flexGrow: 1,
+            flexBasis: 145,
+            maxWidth: 340,
+            minHeight: 150,
+            backgroundColor: P.paper,
+            borderRadius: 24,
+            padding: 16,
+            gap: 6,
+            alignItems: "center",
+            justifyContent: "center",
+            borderWidth: 2.5,
+            borderStyle: "dashed",
+            borderColor: P.ink,
+            transform: [{ translateY: pressed ? 2 : 0 }],
+          })}
+        >
+          <View
+            style={{
+              width: 52,
+              height: 52,
+              borderRadius: 26,
+              backgroundColor: P.sun,
+              alignItems: "center",
+              justifyContent: "center",
+              ...sticker(4),
+            }}
+          >
+            <T display size={30} style={{ lineHeight: 34 }}>
+              +
+            </T>
+          </View>
+          <T size={18} display>
+            Add a hat
+          </T>
+          <T size={12} muted style={{ textAlign: "center" }}>
+            Name it and pick one from the library.
+          </T>
+        </Pressable>
+      </View>
 
+      <Section hat="pompom" title="Room for you" />
       <Section
         hat="crown"
         title="Streaks"
@@ -170,12 +282,6 @@ export default function Me() {
         </Panel>
       ) : null}
 
-      <Button
-        title="All my hats"
-        quiet
-        hat="stack"
-        onPress={() => router.push("/hats")}
-      />
     </Page>
   );
 }
