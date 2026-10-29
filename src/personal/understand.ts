@@ -92,7 +92,7 @@ export function understand(
   nowMin = 0,
 ): Understood[] {
   if (!raw.trim()) return [];
-  return splitCapture(raw).map((piece) => {
+  const items = splitCapture(raw).map((piece) => {
     const p = parseCapture(piece, today);
     // Home life: a bare "at 7" for dinner, a date, a show, or tonight means evening.
     if (
@@ -122,8 +122,39 @@ export function understand(
         time: p.heard.time,
         minutes: p.heard.minutes,
       },
+      piece,
     };
   });
+  // Said on a Wednesday, "Wednesday" means next week ("today" means today).
+  for (const u of items)
+    if (
+      u.date === today &&
+      u.heard.date &&
+      /\b(mon|tue|wed|thu|fri|sat|sun)[a-z]*\b/i.test(u.heard.date)
+    )
+      u.date = addDays(today, 7);
+  // "Field trip Friday. Pack lunch." — a follow-up with no day of its own that
+  // points back at the thing before it belongs on that day.
+  for (let i = 1; i < items.length; i++) {
+    const u = items[i];
+    const prev = items[i - 1];
+    if (u.heard.date || !prev.heard.date) continue;
+    if (
+      /\b(that (?:morning|day|night|evening|afternoon)|for it|before it|lunch|pack|bring|wear)\b/i.test(
+        u.piece,
+      )
+    ) {
+      u.date = prev.date;
+      u.heard.date = prev.heard.date;
+      u.title = tidy(
+        u.title.replace(
+          /\s*\b(that (?:morning|day|night|evening|afternoon))\b/i,
+          "",
+        ),
+      );
+    }
+  }
+  return items.map(({ piece: _piece, ...u }) => u);
 }
 
 const hhmm = (n: number) =>

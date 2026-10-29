@@ -725,3 +725,32 @@ test("automation: skipped routines, the log, undo, energy, dinners, Google", asy
   assert.equal(d.log!.length, before + 1);
   assert.ok(validData(d));
 });
+
+test("capture: a follow-up belongs to the day it points at; today's weekday means next week", async () => {
+  const { understand } = await import("../understand");
+  const d = freshPersonal();
+  const out = understand(
+    "Field trip Friday. Pack lunch. Sign the form Wednesday.",
+    d,
+    "2026-10-28",
+    "dad",
+    21 * 60,
+  );
+  assert.deepEqual(
+    out.map((u) => [u.kind, u.title, u.date]),
+    [
+      ["event", "Field trip", "2026-10-30"],
+      ["task", "Pack lunch", "2026-10-30"],
+      ["task", "Sign the form", "2026-11-04"],
+    ],
+  );
+  // "today" still means today, and unrelated to-dos don't borrow a day.
+  const b = understand(
+    "Dentist Friday. Buy milk",
+    d,
+    "2026-10-28",
+    "home",
+    600,
+  );
+  assert.equal(b[1].date, "2026-10-28");
+});
