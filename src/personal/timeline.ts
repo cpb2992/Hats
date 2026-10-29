@@ -12,7 +12,7 @@ export { isBathNight, isWorkday, routinePrefs };
 /** One row in a day's timeline. Times are "HH:MM", local. */
 export interface TimelineItem {
   id: string;
-  kind: "routine" | "event" | "task" | "work";
+  kind: "routine" | "event" | "task" | "work" | "date";
   time: string;
   end?: string;
   title: string;
@@ -37,6 +37,9 @@ export interface TimelineItem {
   /** School blocks: what kind of block (class, off period, lunch...). */
   block?: "class" | "boost" | "homeroom" | "advisory" | "off" | "break";
 }
+
+/** When a date night starts: its time, or 7:00 PM. */
+export const dateTime = (plan: { time?: string }) => plan.time ?? "19:00";
 
 const mins = (t: string) => {
   const [h, m] = t.split(":").map(Number);
@@ -64,6 +67,9 @@ export function routineSteps(
   const meal = mealFor(data, date);
   const chosen = !!data.dinners[date];
   const steps: Omit<TimelineItem, "kind">[] = [];
+  const outTonight = data.dates
+    .filter((x) => x.date === date)
+    .map((x) => ({ start: mins(dateTime(x)) - 30, end: mins(dateTime(x)) + 150 }));
   const TAGS: Record<string, PersonalHat> = {
     home: "home",
     partner: "husband",
@@ -90,6 +96,10 @@ export function routineSteps(
         (date === clock.today && mins(end) <= clock.nowMin));
     const isSkipped = skipped.has(key);
     const auto = passed && !done.has(key) && !isSkipped;
+    // On date night, the kids' evening falls to childcare.
+    const covered =
+      ["dinner", "bath", "stories", "bedtime"].includes(key) &&
+      outTonight.some((o) => mins(time) >= o.start && mins(time) < o.end);
     steps.push({
       id: `routine:${key}`,
       key,
@@ -97,7 +107,7 @@ export function routineSteps(
       end,
       title,
       hat,
-      detail,
+      detail: covered ? "Childcare has it tonight · date night" : detail,
       done: !isSkipped && (done.has(key) || auto),
       auto,
       skipped: isSkipped,
@@ -266,6 +276,25 @@ export function dayTimeline(
       done: isToday && mins(e.end) <= nowMin,
     });
   }
+  // Date nights you planned in the Husband hat.
+  for (const plan of data.dates.filter((x) => x.date === date)) {
+    const time = dateTime(plan);
+    const end = hhmm(mins(time) + 150);
+    const left = plan.steps.filter((s) => !s.done);
+    items.push({
+      id: `date:${plan.id}`,
+      kind: "date",
+      time,
+      end,
+      title: /\bdate\b/i.test(plan.title) ? plan.title : `Date night · ${plan.title}`,
+      detail: left.length
+        ? `Still to do: ${left[0].title.charAt(0).toLowerCase()}${left[0].title.slice(1)}`
+        : "All set · enjoy it",
+      hat: "fedora",
+      tag: "husband",
+      done: isToday && mins(end) <= nowMin,
+    });
+  }
   for (const x of planDay(data, date, isToday ? nowMin : 0)) {
     if (!x.time) continue;
     items.push({
@@ -314,7 +343,12 @@ export function nowAndNext(items: TimelineItem[], nowMin: number) {
   const open = items.filter((i) => !i.done && i.kind !== "event");
   // Of the steps that have started and are still in their window (+30 min grace),
   // the most recent one is "now". Older unfinished steps quietly fade instead.
+  // While a date night is on, it's the big card (the evening routine is covered).
+  const dating = open.find(
+    (i) => i.kind === "date" && mins(i.time) <= nowMin && mins(i.end ?? i.time) >= nowMin,
+  );
   const current =
+    dating ??
     [...open]
       .filter(
         (i) =>

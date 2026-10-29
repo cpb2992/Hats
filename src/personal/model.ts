@@ -244,6 +244,8 @@ export interface PersonalEvent {
 export interface DatePlan {
   id: string;
   date: string;
+  /** When it starts, "HH:MM" (7:00 PM when not set). */
+  time?: string;
   title: string;
   budget: number;
   childcare: number;
@@ -690,6 +692,7 @@ export function validData(value: unknown): value is PersonalData {
           text(d.title) &&
           text(d.note) &&
           validDate(d.date) &&
+          (d.time === undefined || time(d.time)) &&
           money(d.budget) &&
           money(d.childcare) &&
           money(d.transport) &&

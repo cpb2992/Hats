@@ -109,6 +109,12 @@ export function dayWindows(
     .map((e) => ({ start: minutesOf(e.start), end: minutesOf(e.end) }));
   // Keep the family's evening rhythm free (dinner, bath night, stories, bedtime).
   blocked.push(...routineBlocks(data, date));
+  // Date night: getting ready and the date itself.
+  for (const plan of data.dates)
+    if (plan.date === date) {
+      const at = minutesOf(plan.time ?? "19:00");
+      blocked.push({ start: at - 30, end: at + 150 });
+    }
   if (p.gymDays.includes(weekday(date)))
     blocked.push({
       start: minutesOf(p.gymStart),

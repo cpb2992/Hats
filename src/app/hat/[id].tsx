@@ -5,6 +5,7 @@ import { Food, Hat } from "../../personal/Hat";
 import { dinnerFor } from "../../personal/meals";
 import { recipeById } from "../../personal/recipes";
 import { addDays, fmtRelative, fmtTime } from "../../engine/dates";
+import { parseClock } from "../../personal/clock";
 import { periodLabel, schoolBlocks, schoolOn } from "../../personal/school";
 import {
   activityFor,
@@ -104,6 +105,12 @@ export default function HatPage() {
           value: addDays(today, 7),
         },
         {
+          key: "time",
+          label: "Start time",
+          value: "7:00 PM",
+          placeholder: "7:00 PM",
+        },
+        {
           key: "childcare",
           label: "Estimated childcare cost",
           value: "0",
@@ -128,12 +135,15 @@ export default function HatPage() {
         )
           throw new Error("Use a valid date in YYYY-MM-DD format.");
         const title = required(v.title, "a date idea");
+        const time = parseClock(v.time || "7:00 PM");
+        if (!time) throw new Error("Use a start time like 7:00 PM.");
         const childcare = amount(v.childcare, true),
           transport = amount(v.transport, true);
         mutate((d) => {
           d.dates.push({
             id: id(),
             date: v.date,
+            time,
             title,
             budget: d.preferences.dateBudget,
             childcare,
@@ -354,8 +364,9 @@ export default function HatPage() {
                   {date.title}
                 </T>
                 <T muted>
-                  {date.date} · ${date.budget} date + ${date.childcare}{" "}
-                  childcare + ${date.transport} transport
+                  {fmtRelative(date.date, today)} · {date.date} at{" "}
+                  {fmtTime(date.time ?? "19:00", true)} · ${date.budget} date + $
+                  {date.childcare} childcare + ${date.transport} transport
                 </T>
                 <T bold>
                   Total planned: $
@@ -385,6 +396,31 @@ export default function HatPage() {
                       Linking.openURL(
                         `https://www.google.com/maps/search/${encodeURIComponent(`restaurants near ${data.preferences.city || "me"}`)}`,
                       )
+                    }
+                  />
+                  <Button
+                    title="Change time"
+                    quiet
+                    small
+                    onPress={() =>
+                      editor.open({
+                        title: "When does it start?",
+                        fields: [
+                          {
+                            key: "time",
+                            label: "Start time",
+                            value: fmtTime(date.time ?? "19:00", true),
+                          },
+                        ],
+                        onSave: (v) => {
+                          const t = parseClock(v.time);
+                          if (!t) throw new Error("Use a time like 7:00 PM.");
+                          mutate((d) => {
+                            const p = d.dates.find((x) => x.id === date.id);
+                            if (p) p.time = t;
+                          });
+                        },
+                      })
                     }
                   />
                   <Button

@@ -340,6 +340,15 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
             onPress={() => finishTaskStep(a, task.id)}
           />
         ) : null}
+        {now.kind === "date" ? (
+          <Button
+            title="Open the plan"
+            small
+            tone="sun"
+            hat="fedora"
+            onPress={() => router.push("/hat/husband")}
+          />
+        ) : null}
         {now.key === "bath" ? (
           <Button
             title="Not tonight"

@@ -1123,3 +1123,38 @@ test("repeating to-dos come back on their days, even ones Hats wasn't opened on"
   assert.equal(d.tasks.at(-1)?.date, "2026-11-19");
   assert.equal(validData({ ...d, tasks: [{ ...trash, rule: { freq: "week", every: 0 } as never }] }), false);
 });
+
+test("a planned date night shows on its day, at its time, and keeps that time free", async () => {
+  const { dayTimeline, nowAndNext } = await import("../timeline");
+  const d = freshPersonal();
+  const nov5 = "2026-11-05";
+  d.dates.push({
+    id: "dn",
+    date: nov5,
+    title: "A new restaurant and a walk",
+    budget: 150,
+    childcare: 60,
+    transport: 0,
+    note: "",
+    steps: [
+      { title: "Check our availability", done: true },
+      { title: "Confirm childcare", done: false },
+    ],
+  });
+  assert.equal(validData(d), true);
+  const row = dayTimeline(d, nov5, 600, "2026-10-29").items.find((i) => i.kind === "date");
+  assert.equal(row?.title, "Date night · A new restaurant and a walk");
+  assert.equal(row?.time, "19:00");
+  assert.equal(row?.detail, "Still to do: confirm childcare");
+  assert.equal(row?.tag, "husband");
+  // Not on other days.
+  assert.equal(dayTimeline(d, "2026-11-06", 600, "2026-10-29").items.some((i) => i.kind === "date"), false);
+  // Its own time, and it's the big card while it's happening.
+  d.dates[0].time = "18:30";
+  const items = dayTimeline(d, nov5, 18 * 60 + 45, nov5).items;
+  assert.equal(nowAndNext(items, 18 * 60 + 45).now?.kind, "date");
+  // Flexible to-dos don't get planned into it.
+  const windows = dayWindows(d, nov5);
+  assert.ok(windows.every((w) => w.end <= 18 * 60 || w.start >= 21 * 60), JSON.stringify(windows));
+  assert.equal(validData({ ...d, dates: [{ ...d.dates[0], time: "7pm" }] }), false);
+});
