@@ -356,6 +356,8 @@ export interface Preferences {
   hiddenHats?: BuiltInHat[];
   /** Kids' evening routine (bath, stories, bedtime) on Today. On unless turned off. */
   kidsRoutine?: boolean;
+  /** The afternoon "what's for dinner?" reminder when dinner isn't planned. On unless turned off. */
+  dinnerNudge?: boolean;
 }
 export const ROUTINE_DEFAULTS = {
   partnerHome: "18:00",
@@ -795,7 +797,8 @@ export function validData(value: unknown): value is PersonalData {
           ))) &&
       (p.hiddenHats === undefined ||
         (Array.isArray(p.hiddenHats) && p.hiddenHats.every(isBuiltInHat))) &&
-      (p.kidsRoutine === undefined || typeof p.kidsRoutine === "boolean")
+      (p.kidsRoutine === undefined || typeof p.kidsRoutine === "boolean") &&
+      (p.dinnerNudge === undefined || typeof p.dinnerNudge === "boolean")
     );
   } catch {
     return false;

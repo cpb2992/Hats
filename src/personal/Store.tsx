@@ -15,6 +15,7 @@ import { currentSession, readRemote, writeRemote, type Remote } from "./cloud";
 import { finishStep, materialize, reschedule } from "./engine";
 import { freshPersonal, setCustomHats, type PersonalData } from "./model";
 import { syncPersonalReminders } from "./reminders";
+import { router } from "expo-router";
 import { loadPersonal, preserveBeforeImport, savePersonal } from "./storage";
 import { updatePersonalWidgets } from "./widgets";
 import { configureFocus } from "./focus";
@@ -361,7 +362,13 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
       const taskId = String(
         response.notification.request.content.data?.taskId ?? "",
       );
-      if (!taskId) return;
+      if (!taskId) {
+        // A summary or the dinner nudge: open the screen it's about.
+        const url = String(response.notification.request.content.data?.url ?? "");
+        if (url.startsWith("/")) router.push(url as never);
+        Notifications.clearLastNotificationResponse();
+        return;
+      }
       if (response.actionIdentifier === "PERSONAL_DONE")
         mutate((d) => {
           const t = d.tasks.find((t) => t.id === taskId);

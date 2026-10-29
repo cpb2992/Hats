@@ -541,10 +541,20 @@ export default function Settings() {
             }
           />
           <T muted>
-            Morning {fmtTime(data.preferences.morningReminder, true)} · Evening{" "}
-            {fmtTime(data.preferences.eveningReminder, true)}. Watch vibrations
-            follow your phone/watch notification settings.
+            Morning {fmtTime(data.preferences.morningReminder, true)}: what’s on
+            today. Evening {fmtTime(data.preferences.eveningReminder, true)}: what’s
+            on tomorrow. Watch vibrations follow your phone/watch notification
+            settings.
           </T>
+          <Check
+            title="“What’s for dinner?” in the afternoon when dinner isn’t planned"
+            done={data.preferences.dinnerNudge !== false}
+            onPress={() =>
+              mutate((d) => {
+                d.preferences.dinnerNudge = d.preferences.dinnerNudge === false;
+              })
+            }
+          />
           <Button
             title="Change reminder times"
             quiet

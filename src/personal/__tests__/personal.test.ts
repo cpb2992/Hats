@@ -1206,3 +1206,22 @@ test("setup builds hats and evenings from answers, for anyone", async () => {
   assert.equal(validData({ ...e, preferences: { ...e.preferences, hatNames: { office: "x" } as never } }), false);
   setCustomHats([], undefined);
 });
+
+test("reminders say what's actually on, and dinner nudges only when it's not planned", async () => {
+  const { morningDigest, eveningDigest, dinnerNudge } = await import("../digest");
+  const { understand, addUnderstood } = await import("../understand");
+  const d = freshPersonal();
+  const thu = "2026-10-29";
+  addUnderstood(d, understand("Ami has violin every Thursday at 4:30", d, thu, "dad"));
+  const m = morningDigest(d, thu);
+  assert.match(m.title, /^Today: \d+ things? on your hats$/);
+  assert.match(m.body, /School 8:15 AM/);
+  assert.match(m.body, /4:30 PM Ami has violin/);
+  assert.match(m.body, /Dinner: not planned yet/);
+  assert.ok(dinnerNudge(d, thu)?.body.startsWith("Idea: "));
+  d.dinners[thu] = "r-turkey-tacos";
+  assert.match(morningDigest(d, thu).body, /Dinner: Taco night/);
+  assert.equal(dinnerNudge(d, thu), null);
+  // Saturday: no school, nothing on.
+  assert.equal(eveningDigest(d, "2026-10-31").title, "Tomorrow’s wide open");
+});

@@ -6,6 +6,7 @@ import {
 import { Platform } from "react-native";
 import { addDays, todayISO, nowMinutes } from "../engine/dates";
 import { planDay } from "./engine";
+import { dinnerNudge, eveningDigest, morningDigest } from "./digest";
 import type { PersonalData } from "./model";
 
 const channel = "hats-personal";
@@ -77,22 +78,29 @@ export async function syncPersonalReminders(data: PersonalData) {
   ]);
   const today = todayISO();
   const now = nowMinutes();
-  for (let n = 0; n < 7; n++)
-    for (const [name, time] of [
-      ["morning", data.preferences.morningReminder],
-      ["evening", data.preferences.eveningReminder],
-    ]) {
-      const date = new Date(`${addDays(today, n)}T${time}:00`);
+  // Morning: what's on today. Evening: what's on tomorrow. Afternoon: dinner, if it isn't planned.
+  const nudgeAt = (() => {
+    const [h, m] = (data.preferences.dinnerTime ?? "17:45").split(":").map(Number);
+    const at = Math.max(12 * 60, h * 60 + m - 165);
+    return `${String(Math.floor(at / 60)).padStart(2, "0")}:${String(at % 60).padStart(2, "0")}`;
+  })();
+  for (let n = 0; n < 7; n++) {
+    const day = addDays(today, n);
+    const slots: [string, string, { title: string; body: string; url?: string } | null][] = [
+      ["morning", data.preferences.morningReminder, morningDigest(data, day)],
+      ["evening", data.preferences.eveningReminder, eveningDigest(data, addDays(day, 1))],
+      ["dinner", nudgeAt, data.preferences.dinnerNudge === false ? null : dinnerNudge(data, day)],
+    ];
+    for (const [name, time, say] of slots) {
+      if (!say) continue;
+      const date = new Date(`${day}T${time}:00`);
       if (date.getTime() <= Date.now()) continue;
       await Notifications.scheduleNotificationAsync({
         identifier: `personal-${name}-${n}`,
         content: {
-          title:
-            name === "morning"
-              ? "A little room for what matters"
-              : "Your evening, made simpler",
-          body: "Open Hats for your personal plan.",
-          data: { url: "/" },
+          title: say.title,
+          body: say.body,
+          data: { url: say.url ?? (name === "evening" ? `/?date=${addDays(day, 1)}` : "/") },
         },
         trigger: {
           type: Notifications.SchedulableTriggerInputTypes.DATE,
@@ -101,6 +109,7 @@ export async function syncPersonalReminders(data: PersonalData) {
         },
       });
     }
+  }
   const plan = planDay(data, today, now);
   let count = 0;
   for (const item of plan) {
