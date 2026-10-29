@@ -1,7 +1,7 @@
 import { weekday } from "../engine/dates";
 import { mealFor, planDay } from "./engine";
 import type { HatArtId } from "./hatArt";
-import { HATS, type PersonalData, type PersonalHat } from "./model";
+import { HATS, type PersonalData, type PersonalHat, hatDef } from "./model";
 import { isBathNight, isWorkday, routinePrefs } from "./routine";
 import { isFree, periodLabel, schoolBlocks } from "./school";
 
@@ -234,7 +234,7 @@ export function dayTimeline(
       title: e.title,
       detail:
         e.location || (e.source === "google" ? "Google Calendar" : undefined),
-      hat: e.hat ? HATS[e.hat].art : "safari",
+      hat: e.hat ? hatDef(e.hat, data.customHats).art : "safari",
       tag: e.hat,
       source: e.source,
       eventId: e.id,
@@ -251,8 +251,8 @@ export function dayTimeline(
       title: x.task.title,
       detail: x.task.steps.length
         ? `${x.task.steps.filter((s) => s.done).length}/${x.task.steps.length} · next: ${x.task.steps.find((s) => !s.done)?.title ?? ""}`
-        : HATS[x.task.hat].name,
-      hat: HATS[x.task.hat].art,
+        : hatDef(x.task.hat, data.customHats).name,
+      hat: hatDef(x.task.hat, data.customHats).art,
       tag: x.task.hat,
       done: false,
       taskId: x.task.id,

@@ -9,6 +9,8 @@ import { parseCapture, splitCapture } from "../engine/parse";
 import { makeTask } from "./engine";
 import {
   HAT_IDS,
+  customHatFor,
+  type BuiltInHat,
   id,
   type PersonalData,
   type PersonalEvent,
@@ -37,7 +39,7 @@ const EVENING =
 const FILLER =
   /^(?:(?:please\s+)?(?:add|put|create|schedule|save)\s+(?:an?\s+)?(?:event|appointment|to-?do|task|reminder)?\s*(?:for|called|named)?\s*|(?:i|we)\s+(?:have|'ve got|got)\s+(?:an?\s+)?|there(?:'s| is)\s+(?:an?\s+)?|remind me to\s+|remember to\s+)/i;
 
-const HAT_WORDS: Record<PersonalHat, RegExp> = {
+const HAT_WORDS: Record<BuiltInHat, RegExp> = {
   husband:
     /\b(wife|partner|date night|flowers|anniversary|makeup|gift for (?:her|my wife))\b/i,
   dad: /\b(kids?|child|daughter|son|daycare|school|pickup|pick up the kids|story|recital|dance class|playdate|field trip|pediatrician)\b/i,
@@ -69,6 +71,8 @@ function hatFor(
     new RegExp(`\\b${data.preferences.partner}\\b`, "i").test(text)
   )
     return "husband";
+  const mine = customHatFor(text, data.customHats ?? []);
+  if (mine) return mine;
   return HAT_IDS.find((h) => HAT_WORDS[h].test(text)) ?? fallback;
 }
 

@@ -1,5 +1,5 @@
 import { View } from "react-native";
-import { HATS, id, type PersonalHat } from "./model";
+import { id, type PersonalHat, hatDef } from "./model";
 import { required, useEditor } from "./Editor";
 import { usePersonal } from "./Store";
 import { streakFor } from "./streaks";
@@ -78,7 +78,7 @@ export function Streaks({ hat }: { hat?: PersonalHat }) {
           return (
             <Panel key={h.id}>
               <T size={12} bold>
-                {HATS[h.hat].name.toUpperCase()}
+                {hatDef(h.hat).name.toUpperCase()}
               </T>
               <T size={18} bold>
                 {h.title}

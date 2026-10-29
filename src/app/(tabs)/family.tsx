@@ -4,7 +4,7 @@ import { addDays, daysBetween, fmtRelative } from "../../engine/dates";
 import { activityFor, rotateActivity } from "../../personal/engine";
 import { useFocusEnabled } from "../../personal/focus";
 import { Hat } from "../../personal/Hat";
-import { HATS, type PersonalHat } from "../../personal/model";
+import { HATS, type PersonalHat, hatDef } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
 import {
   Button,
@@ -253,13 +253,13 @@ export default function Family() {
               gap: 8,
               padding: 10,
               borderRadius: 18,
-              backgroundColor: HATS[h].tint,
+              backgroundColor: hatDef(h).tint,
               ...sticker(pressed ? 2 : 3),
             })}
           >
-            <Hat id={HATS[h].art} size={30} tilt={-6} />
+            <Hat id={hatDef(h).art} size={30} tilt={-6} />
             <T bold style={{ flex: 1 }}>
-              {HATS[h].name}
+              {hatDef(h).name}
             </T>
             <T muted>›</T>
           </Pressable>

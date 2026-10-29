@@ -9,6 +9,9 @@ import {
 } from "../engine/dates";
 import {
   HAT_IDS,
+  customHatFor,
+  customHats,
+  type BuiltInHat,
   id,
   type PersonalData,
   type PersonalHat,
@@ -417,7 +420,7 @@ export function captureTask(
   today: string,
 ): PersonalTask {
   let hat = defaultHat;
-  const words: Record<PersonalHat, RegExp> = {
+  const words: Record<BuiltInHat, RegExp> = {
     husband: /\b(wife|partner|date night|flowers|anniversary|makeup)\b/i,
     dad: /\b(kids?|child|daughter|son|daycare|school pickup|story)\b/i,
     pets: /\b(dog|cat|kitten|vet|litter|groom|walk the dog)\b/i,
@@ -426,7 +429,10 @@ export function captureTask(
     myself: /\b(gym|guitar|sleep|workout|save|budget)\b/i,
     work: /\b(lesson|grade|grading|students?|IEP|504|CPT|homeroom|report cards?|progress reports?|copies)\b/i,
   };
-  hat = HAT_IDS.find((h) => words[h].test(text)) ?? hat;
+  hat =
+    customHatFor(text, customHats()) ??
+    HAT_IDS.find((h) => words[h].test(text)) ??
+    hat;
   const date = /\btomorrow\b/i.test(text) ? addDays(today, 1) : today;
   const timed = text.match(/\bat\s+(\d{1,2})(?::(\d{2}))?\s*(am|pm)\b/i);
   let time: string | null = null;

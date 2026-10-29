@@ -2,7 +2,7 @@ import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Alert } from "react-native";
 import { usePersonal } from "../../personal/Store";
-import { HAT_IDS, HATS, type PersonalHat } from "../../personal/model";
+import { allHats, type PersonalHat, hatDef } from "../../personal/model";
 import {
   Button,
   Check,
@@ -81,13 +81,13 @@ export default function Task() {
   };
   return (
     <Page tabs={false}>
-      <Header title="Make it fit your life." back hat={HATS[hat].art} />
+      <Header title="Make it fit your life." back hat={hatDef(hat).art} />
       <Field label="Task" value={title} onChangeText={setTitle} />
       <Row>
-        {HAT_IDS.map((h) => (
+        {allHats(data.customHats).map((h) => (
           <Chip
             key={h}
-            title={HATS[h].name}
+            title={hatDef(h).name}
             selected={hat === h}
             onPress={() => setHat(h)}
           />

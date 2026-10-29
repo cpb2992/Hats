@@ -1,7 +1,19 @@
-import type { HatArtId } from "./hatArt";
-export type PersonalHat =
+import { HAT_ART_IDS, type HatArtId } from "./hatArt";
+import { libraryHat } from "./hatLibrary";
+export type BuiltInHat =
   "husband" | "dad" | "pets" | "home" | "friends" | "myself" | "work";
-export const HATS = {
+/** A hat you added yourself: "my-" and a short slug. */
+export type CustomHatId = `my-${string}`;
+export type PersonalHat = BuiltInHat | CustomHatId;
+export interface HatDef {
+  art: HatArtId;
+  tint: string;
+  name: string;
+  icon: string;
+  color: string;
+  subtitle: string;
+}
+export const HATS: Record<BuiltInHat, HatDef> = {
   husband: {
     art: "fedora" as HatArtId,
     tint: "#FCE1D8",
@@ -58,8 +70,96 @@ export const HATS = {
     color: "#2C3E63",
     subtitle: "Your school day, period by period.",
   },
-} as const;
-export const HAT_IDS = Object.keys(HATS) as PersonalHat[];
+};
+export const HAT_IDS = Object.keys(HATS) as BuiltInHat[];
+
+/** A hat you added: your name for it and the hat you picked from the library. */
+export interface CustomHat {
+  id: CustomHatId;
+  name: string;
+  art: HatArtId;
+  createdAt: string;
+}
+export const isBuiltInHat = (h: unknown): h is BuiltInHat =>
+  typeof h === "string" && (HAT_IDS as string[]).includes(h);
+export const isCustomHatId = (h: unknown): h is CustomHatId =>
+  typeof h === "string" && /^my-[a-z0-9-]{1,48}$/.test(h);
+export const isHatId = (h: unknown): h is PersonalHat =>
+  isBuiltInHat(h) || isCustomHatId(h);
+
+// The hats you added, kept in step with the saved data by the store, so any
+// screen can look up a hat by id.
+let custom: CustomHat[] = [];
+export function setCustomHats(list: CustomHat[] | undefined) {
+  custom = list ?? [];
+}
+export const customHats = () => custom;
+
+export function customDef(h: Pick<CustomHat, "name" | "art">): HatDef {
+  const lib = libraryHat(h.art);
+  return {
+    art: h.art,
+    tint: lib.tint,
+    name: h.name,
+    icon: "star",
+    color: lib.color,
+    subtitle: `Your space for ${h.name.toLowerCase()}.`,
+  };
+}
+/** Any hat by id: built in, one you added, or Home if it's been hung up. */
+export function hatDef(id: PersonalHat, list: CustomHat[] = custom): HatDef {
+  if (isBuiltInHat(id)) return HATS[id];
+  const mine = list.find((h) => h.id === id);
+  return mine ? customDef(mine) : HATS.home;
+}
+/** Every hat in order: the built-in ones, then yours. */
+export const allHats = (list: CustomHat[] = custom): PersonalHat[] => [
+  ...HAT_IDS,
+  ...list.map((h) => h.id),
+];
+/** Hang up a hat you added: everything under it moves to Home. */
+export function hangUpHat(d: PersonalData, id: CustomHatId) {
+  const home = (x: { hat?: PersonalHat }) => {
+    if (x.hat === id) x.hat = "home";
+  };
+  d.tasks.forEach(home);
+  d.notes.forEach(home);
+  d.events.forEach(home);
+  d.moments?.forEach(home);
+  d.habits?.forEach(home);
+  d.log?.forEach(home);
+  d.customHats = (d.customHats ?? []).filter((h) => h.id !== id);
+}
+/** The hat you added whose name is in `text` ("water the garden" → Garden). */
+export function customHatFor(text: string, list: CustomHat[]): CustomHatId | undefined {
+  for (const h of list) {
+    const words = h.name
+      .toLowerCase()
+      .replace(/[’']/g, "")
+      .split(/[^a-z0-9]+/)
+      .filter((w) => w.length >= 3 && !["the", "and", "for", "my"].includes(w));
+    if (!words.length) continue;
+    const esc = (w: string) => w.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
+    const all = words.every((w) =>
+      new RegExp(`\\b${esc(w)}(?:s|es)?\\b`, "i").test(text.replace(/[’']/g, "")),
+    );
+    if (all) return h.id;
+  }
+  return undefined;
+}
+/** A new id for a hat named `name`, not already taken. */
+export function customHatId(name: string, list: CustomHat[] = custom): CustomHatId {
+  const base =
+    name
+      .toLowerCase()
+      .replace(/[’']/g, "")
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/^-+|-+$/g, "")
+      .slice(0, 32) || "hat";
+  let id: CustomHatId = `my-${base}`;
+  for (let n = 2; list.some((h) => h.id === id); n++) id = `my-${base}-${n}`;
+  return id;
+}
 export interface Step {
   title: string;
   done: boolean;
@@ -247,6 +347,8 @@ export interface PersonalData {
     source: string;
   }[];
   habits?: Habit[];
+  /** Hats you added yourself, in the order you added them. */
+  customHats?: CustomHat[];
   /** Routine steps checked off, by day: { "2026-10-28": ["dinner", "bath"] }. */
   routineDone?: Record<string, string[]>;
   /** Routine steps that did NOT happen. Past steps count as done unless listed here. */
@@ -440,6 +542,23 @@ export function validData(value: unknown): value is PersonalData {
             ))))
     )
       return false;
+    if (
+      v.customHats !== undefined &&
+      (!Array.isArray(v.customHats) ||
+        !v.customHats.every(
+          (h) =>
+            h &&
+            isCustomHatId(h.id) &&
+            text(h.name) &&
+            h.name.trim().length > 0 &&
+            h.name.length <= 40 &&
+            HAT_ART_IDS.includes(h.art) &&
+            h.art !== "stack" &&
+            typeof h.createdAt === "string",
+        ) ||
+        new Set(v.customHats.map((h) => h.id)).size !== v.customHats.length)
+    )
+      return false;
     for (const map of [v.routineDone, v.routineSkipped, v.autoDeclined])
       if (
         map !== undefined &&
@@ -459,7 +578,7 @@ export function validData(value: unknown): value is PersonalData {
             text(e.id) &&
             text(e.title) &&
             validDate(e.date) &&
-            HAT_IDS.includes(e.hat),
+            isHatId(e.hat),
         ))
     )
       return false;
@@ -469,7 +588,7 @@ export function validData(value: unknown): value is PersonalData {
           t &&
           text(t.id) &&
           text(t.title) &&
-          HAT_IDS.includes(t.hat) &&
+          isHatId(t.hat) &&
           validDate(t.date) &&
           (t.time === null || time(t.time)) &&
           Number.isFinite(t.minutes) &&
@@ -501,7 +620,7 @@ export function validData(value: unknown): value is PersonalData {
           text(n.id) &&
           text(n.text) &&
           text(n.createdAt) &&
-          HAT_IDS.includes(n.hat) &&
+          isHatId(n.hat) &&
           ["reflection", "idea", "gift", "memory"].includes(n.kind),
       )
     )
@@ -578,7 +697,7 @@ export function validData(value: unknown): value is PersonalData {
           h &&
           text(h.id) &&
           text(h.title) &&
-          HAT_IDS.includes(h.hat) &&
+          isHatId(h.hat) &&
           ["daily", "weekly"].includes(h.frequency) &&
           Number.isInteger(h.target) &&
           h.target >= 1 &&
@@ -595,7 +714,7 @@ export function validData(value: unknown): value is PersonalData {
           m &&
           text(m.id) &&
           text(m.title) &&
-          HAT_IDS.includes(m.hat) &&
+          isHatId(m.hat) &&
           validDate(m.date) &&
           text(m.source),
       )

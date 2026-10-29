@@ -11,13 +11,7 @@ import {
   shoppingFor,
 } from "../../personal/engine";
 import { amount, required, useEditor } from "../../personal/Editor";
-import {
-  HATS,
-  HAT_IDS,
-  id,
-  type PersonalHat,
-  type Spending,
-} from "../../personal/model";
+import { hangUpHat, id, isBuiltInHat, isCustomHatId, type PersonalHat, type Spending, hatDef } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
 import { Streaks } from "../../personal/Streaks";
 import {
@@ -37,9 +31,13 @@ import {
 
 export default function HatPage() {
   const params = useLocalSearchParams<{ id: PersonalHat }>();
-  const hat = HAT_IDS.includes(params.id) ? params.id : "home";
-  const def = HATS[hat];
   const { data, mutate, today, say } = usePersonal();
+  const mine = isCustomHatId(params.id)
+    ? data.customHats?.find((h) => h.id === params.id)
+    : undefined;
+  const hat: PersonalHat = isBuiltInHat(params.id) || mine ? params.id : "home";
+  const def = hatDef(hat, data.customHats);
+  const [hangingUp, setHangingUp] = useState(false);
   const editor = useEditor();
   const [showDone, setShowDone] = useState(false);
   const [showKnown, setShowKnown] = useState(false);
@@ -273,6 +271,47 @@ export default function HatPage() {
           onPress={() => capture("idea")}
         />
       </Row>
+      {mine ? (
+        <Panel tint={def.tint}>
+          <T bold>A hat you added.</T>
+          <T size={13} muted>
+            Keep commitments and ideas for {mine.name.toLowerCase()} here. Say “{mine.name}” when you
+            add something and it lands under this hat.
+          </T>
+          {hangingUp ? (
+            <>
+              <T bold color={P.orange}>
+                Hang up {mine.name}? Anything kept here moves to Home, so nothing is lost.
+              </T>
+              <Row>
+                <Button
+                  title="Hang it up"
+                  small
+                  onPress={() => {
+                    mutate((d) => hangUpHat(d, mine.id));
+                    say(`${mine.name} is hung up. Its things are under Home.`);
+                    router.replace("/hats");
+                  }}
+                />
+                <Button title="Keep it" quiet small onPress={() => setHangingUp(false)} />
+              </Row>
+            </>
+          ) : (
+            <Row>
+              <Button
+                title="Change name or hat"
+                quiet
+                small
+                hat={def.art}
+                onPress={() =>
+                  router.push({ pathname: "/hat-new", params: { id: mine.id } })
+                }
+              />
+              <Button title="Hang up this hat" quiet small onPress={() => setHangingUp(true)} />
+            </Row>
+          )}
+        </Panel>
+      ) : null}
       {hat === "husband" ? (
         <>
           <Panel dark>

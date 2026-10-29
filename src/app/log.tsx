@@ -2,7 +2,7 @@ import { View } from "react-native";
 import { addDays } from "../engine/dates";
 import { logView, setSkipped, undoEntry } from "../personal/auto";
 import { Hat } from "../personal/Hat";
-import { HATS } from "../personal/model";
+import { hatDef } from "../personal/model";
 import { usePersonal } from "../personal/Store";
 import { Button, Empty, Header, P, Page, Panel, T } from "../personal/ui";
 
@@ -68,7 +68,7 @@ export default function Log() {
                     opacity: e.undone ? 0.55 : 1,
                   }}
                 >
-                  <Hat id={HATS[e.hat].art} size={32} />
+                  <Hat id={hatDef(e.hat).art} size={32} />
                   <View style={{ flex: 1, gap: 2 }}>
                     <T
                       bold

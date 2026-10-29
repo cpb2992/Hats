@@ -9,7 +9,7 @@ import {
 } from "../../engine/dates";
 import { budgetSummary } from "../../personal/engine";
 import { Hat } from "../../personal/Hat";
-import { HATS } from "../../personal/model";
+import { HATS, hatDef } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
 import { StreakStrip } from "../../personal/TodayParts";
 import {
@@ -158,7 +158,7 @@ export default function Me() {
             .reverse()
             .map((m) => (
               <Row key={m.id}>
-                <Hat id={HATS[m.hat].art} size={24} />
+                <Hat id={hatDef(m.hat).art} size={24} />
                 <T size={14} style={{ flex: 1 }}>
                   {m.title}
                 </T>

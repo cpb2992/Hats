@@ -14,7 +14,7 @@ import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { router } from "expo-router";
 import { Icon, type IconName } from "../ui/icons";
 import { F } from "../ui/theme";
-import { HATS, type PersonalTask } from "./model";
+import { type PersonalHat, type PersonalTask, hatDef } from "./model";
 import { Hat } from "./Hat";
 import { haptic } from "./haptics";
 import type { HatArtId } from "./hatArt";
@@ -550,7 +550,7 @@ export function TaskCard({
             flexDirection: "row",
             alignItems: "center",
             gap: 6,
-            backgroundColor: HATS[task.hat].tint,
+            backgroundColor: hatDef(task.hat).tint,
             borderRadius: 16,
             paddingRight: 10,
             paddingLeft: 4,
@@ -558,9 +558,9 @@ export function TaskCard({
             flexShrink: 1,
           }}
         >
-          <Hat id={HATS[task.hat].art} size={26} />
+          <Hat id={hatDef(task.hat).art} size={26} />
           <T size={12} bold color={P.ink}>
-            {HATS[task.hat].name}
+            {hatDef(task.hat).name}
             {task.essential ? " · Essential" : ""}
           </T>
         </View>
@@ -595,7 +595,7 @@ export function TaskCard({
             const last = task.steps.filter((s) => !s.done).length <= 1;
             say(last ? `${task.title} · all done` : `${current} · done`);
             celebrate({
-              hat: HATS[task.hat].art,
+              hat: hatDef(task.hat).art,
               big: last,
               title: last ? "All the way done!" : undefined,
             });
@@ -711,10 +711,10 @@ export function HatTag({
   hat,
   label,
 }: {
-  hat: keyof typeof HATS;
+  hat: PersonalHat;
   label?: string;
 }) {
-  const h = HATS[hat];
+  const h = hatDef(hat);
   return (
     <View
       style={{

@@ -820,3 +820,74 @@ test("school day: classes on Today, the current period is the big card, CPT take
   d.preferences.school = { on: true, week: { "4": [{ start: "10:00", end: "09:00", title: "x", kind: "class" }] } };
   assert.equal(validData(d), false);
 });
+
+test("hat library: every hat is on a shelf, and names suggest hats that fit", async () => {
+  const { HAT_ART_IDS, hatSvg } = await import("../hatArt");
+  const { LIBRARY, SHELVES, suggestHats, searchHats } = await import("../hatLibrary");
+  const arts = HAT_ART_IDS.filter((a) => a !== "stack");
+  assert.ok(arts.length >= 40);
+  assert.deepEqual([...LIBRARY.map((h) => h.art)].sort(), [...arts].sort());
+  for (const h of LIBRARY) {
+    assert.ok(SHELVES.includes(h.shelf));
+    assert.match(hatSvg(h.art), /^<svg[^]*<\/svg>$/);
+    assert.ok(!/NaN|undefined/.test(hatSvg(h.art)), h.art);
+  }
+  const first = (name: string) => suggestHats(name)[0]?.art;
+  assert.equal(first("Garden"), "straw");
+  assert.equal(first("Band"), "headphones");
+  assert.equal(first("Side hustle"), "bowler");
+  assert.equal(first("Science club"), "goggles");
+  assert.ok(suggestHats("Coach").some((h) => h.art === "football"));
+  assert.ok(suggestHats("Coach").some((h) => h.art === "captain"));
+  assert.ok(suggestHats("Baking").some((h) => h.art === "chef"));
+  assert.deepEqual(suggestHats(""), []);
+  assert.equal(searchHats("cowboy")[0].art, "cowboy");
+  assert.ok(searchHats("winter").some((h) => h.art === "earmuffs"));
+  assert.equal(searchHats("").length, LIBRARY.length);
+});
+
+test("hats you add: saved, looked up, routed by name, and hung up without losing anything", async () => {
+  const { understand } = await import("../understand");
+  const { customHatId, hangUpHat, hatDef, allHats, setCustomHats } = await import("../model");
+  const d = freshPersonal();
+  const id = customHatId("Garden", []);
+  assert.equal(id, "my-garden");
+  d.customHats = [{ id, name: "Garden", art: "straw", createdAt: "2026-10-29T11:00:00.000Z" }];
+  assert.equal(customHatId("Garden", d.customHats), "my-garden-2");
+  assert.equal(customHatId("Dad’s band!", d.customHats), "my-dads-band");
+  assert.equal(validData(d), true);
+
+  const def = hatDef(id, d.customHats);
+  assert.equal(def.name, "Garden");
+  assert.equal(def.art, "straw");
+  assert.equal(allHats(d.customHats).at(-1), id);
+  // The store keeps the lookup in step, so screens can look hats up by id alone.
+  setCustomHats(d.customHats);
+  assert.equal(hatDef(id).name, "Garden");
+  // A hat that's gone looks like Home instead of breaking a screen.
+  assert.equal(hatDef("my-gone").name, "Home");
+
+  // Saying the hat's name puts it under that hat.
+  assert.equal(understand("water the garden tomorrow", d, today, "home")[0].hat, id);
+  assert.equal(understand("buy tomato plants for the gardens", d, today, "home")[0].hat, id);
+  assert.equal(captureTask("weed the garden", "home", today).hat, id);
+  assert.notEqual(understand("laundry", d, today, "home")[0].hat, id);
+
+  d.tasks.push(makeTask("Plant bulbs", id, today));
+  d.notes.push({ id: "n1", hat: id, kind: "idea", text: "Raised beds", createdAt: "2026-10-29T11:00:00.000Z" });
+  assert.equal(validData(d), true);
+  hangUpHat(d, id);
+  assert.deepEqual(d.customHats, []);
+  assert.equal(d.tasks.at(-1)?.hat, "home");
+  assert.equal(d.notes.at(-1)?.hat, "home");
+  assert.equal(validData(d), true);
+  setCustomHats([]);
+
+  // Bad saved hats are refused instead of crashing the next launch.
+  assert.equal(validData({ ...d, customHats: [{ id: "garden", name: "x", art: "cap", createdAt: "" }] } as never), false);
+  assert.equal(validData({ ...d, customHats: [{ id: "my-x", name: "", art: "cap", createdAt: "" }] } as never), false);
+  assert.equal(validData({ ...d, customHats: [{ id: "my-x", name: "X", art: "sombrero", createdAt: "" }] } as never), false);
+  const twice = { id: "my-x", name: "X", art: "cap", createdAt: "" };
+  assert.equal(validData({ ...d, customHats: [twice, twice] } as never), false);
+  assert.equal(validData({ ...d, tasks: [makeTask("x", "office" as never, today)] }), false);
+});

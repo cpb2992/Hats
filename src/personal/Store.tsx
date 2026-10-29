@@ -13,7 +13,7 @@ import { AppState, Platform } from "react-native";
 import { nowMinutes, todayISO } from "../engine/dates";
 import { currentSession, readRemote, writeRemote, type Remote } from "./cloud";
 import { finishStep, materialize, reschedule } from "./engine";
-import { freshPersonal, type PersonalData } from "./model";
+import { freshPersonal, setCustomHats, type PersonalData } from "./model";
 import { syncPersonalReminders } from "./reminders";
 import { loadPersonal, preserveBeforeImport, savePersonal } from "./storage";
 import { updatePersonalWidgets } from "./widgets";
@@ -90,6 +90,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
   }, []);
   const apply = useCallback((next: PersonalData) => {
     ref.current = next;
+    setCustomHats(next.customHats);
     setData(next);
   }, []);
   const reload = useCallback(async () => {

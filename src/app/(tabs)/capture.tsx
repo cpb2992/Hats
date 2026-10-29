@@ -12,7 +12,7 @@ import {
   type Understood,
 } from "../../personal/understand";
 import { fmtLong, fmtRelative, fmtTime } from "../../engine/dates";
-import { HATS, HAT_IDS, id, type PersonalHat } from "../../personal/model";
+import { allHats, id, isHatId, type PersonalHat, hatDef } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
 import {
   Button,
@@ -74,7 +74,7 @@ function CaptureForm({
       : "task",
   );
   const [hat, setHat] = useState<PersonalHat>(
-    params.hat && HAT_IDS.includes(params.hat) ? params.hat : "home",
+    params.hat && isHatId(params.hat) ? params.hat : "home",
   );
   const [manual, setManual] = useState(!!params.hat);
   const [listening, setListening] = useState(false);
@@ -200,7 +200,7 @@ function CaptureForm({
           : `${first.kind === "event" ? "Event" : "To-do"} added · ${when}`,
       );
       celebrate({
-        hat: first.kind === "event" ? "safari" : HATS[first.hat].art,
+        hat: first.kind === "event" ? "safari" : hatDef(first.hat).art,
       });
       router.push({ pathname: "/", params: { date: first.date } });
       return;
@@ -360,14 +360,14 @@ function CaptureForm({
             showsHorizontalScrollIndicator={false}
             contentContainerStyle={{ gap: 8, paddingRight: 4 }}
           >
-            {HAT_IDS.map((h) => {
+            {allHats(data.customHats).map((h) => {
               const on = (manual ? hat : draft.hat) === h;
               return (
                 <Pressable
                   key={h}
                   accessibilityRole="button"
                   accessibilityState={{ selected: on }}
-                  accessibilityLabel={HATS[h].name}
+                  accessibilityLabel={hatDef(h).name}
                   onPress={() => {
                     setHat(h);
                     setManual(true);
@@ -378,19 +378,43 @@ function CaptureForm({
                     width: 78,
                     paddingVertical: 8,
                     borderRadius: 18,
-                    backgroundColor: on ? HATS[h].tint : P.paper,
+                    backgroundColor: on ? hatDef(h).tint : P.paper,
                     borderWidth: 2,
                     borderColor: on ? P.ink : P.line,
                   }}
                 >
-                  <Hat id={HATS[h].art} size={34} tilt={on ? -8 : 0} />
+                  <Hat id={hatDef(h).art} size={34} tilt={on ? -8 : 0} />
                   <T size={11} bold numberOfLines={1}>
                     {on ? "✓ " : ""}
-                    {HATS[h].name.split(" ")[0]}
+                    {hatDef(h).name.split(" ")[0]}
                   </T>
                 </Pressable>
               );
             })}
+            <Pressable
+              accessibilityRole="button"
+              accessibilityLabel="Add a new hat"
+              onPress={() => router.push("/hat-new")}
+              style={{
+                alignItems: "center",
+                justifyContent: "center",
+                gap: 2,
+                width: 78,
+                paddingVertical: 8,
+                borderRadius: 18,
+                backgroundColor: P.paper,
+                borderWidth: 2,
+                borderStyle: "dashed",
+                borderColor: P.ink,
+              }}
+            >
+              <T display size={26}>
+                +
+              </T>
+              <T size={11} bold>
+                New hat
+              </T>
+            </Pressable>
           </ScrollView>
         </>
       ) : null}
@@ -404,7 +428,7 @@ function CaptureForm({
             <View key={i} style={{ gap: 6 }}>
               <Row>
                 <Hat
-                  id={u.kind === "event" ? "safari" : HATS[u.hat].art}
+                  id={u.kind === "event" ? "safari" : hatDef(u.hat).art}
                   size={28}
                 />
                 <T bold style={{ flex: 1 }}>

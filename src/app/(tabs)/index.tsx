@@ -20,7 +20,7 @@ import {
 import { didToday, undoEntry } from "../../personal/auto";
 import { planDay } from "../../personal/engine";
 import { Hat } from "../../personal/Hat";
-import { HATS, type PersonalHat } from "../../personal/model";
+import { type PersonalHat, hatDef } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
 import {
   dayTimeline,
@@ -417,12 +417,12 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
                 paddingRight: 7,
                 paddingVertical: 1,
                 borderRadius: 10,
-                backgroundColor: HATS[hat].tint,
+                backgroundColor: hatDef(hat).tint,
                 borderWidth: 1.5,
                 borderColor: P.ink,
               }}
             >
-              <Hat id={HATS[hat].art} size={16} />
+              <Hat id={hatDef(hat).art} size={16} />
               <T size={11} bold>
                 {n}
               </T>

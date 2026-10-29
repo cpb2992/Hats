@@ -11,7 +11,7 @@ import {
   shoppingFor,
 } from "./engine";
 import { Hat } from "./Hat";
-import { HATS, type Habit, type PersonalData } from "./model";
+import { type Habit, type PersonalData, hatDef } from "./model";
 import { usePersonal } from "./Store";
 import { streakFor } from "./streaks";
 import {
@@ -55,7 +55,7 @@ export function toggleHabit(a: Actions, h: Habit) {
     after.progress >= h.target;
   a.say(`Checked in · ${h.title}`);
   a.celebrate({
-    hat: milestone ? "crown" : HATS[h.hat].art,
+    hat: milestone ? "crown" : hatDef(h.hat).art,
     big: milestone || weekMet,
     title: milestone
       ? `${after.current}-${unit} streak!`
@@ -97,7 +97,7 @@ export function StreakStrip() {
             })}
           >
             <Row>
-              <Hat id={HATS[h.hat].art} size={30} tilt={-8} />
+              <Hat id={hatDef(h.hat).art} size={30} tilt={-8} />
               <T display size={26}>
                 {s.current}
               </T>
@@ -191,7 +191,7 @@ function finishTaskStep(a: Actions, taskId: string) {
   });
   a.say(lastStep ? `${task.title} · all done` : `${nextStep(task)} · done`);
   a.celebrate({
-    hat: HATS[task.hat].art,
+    hat: hatDef(task.hat).art,
     big: lastStep,
     title: lastStep ? "All the way done!" : undefined,
   });
@@ -444,7 +444,7 @@ export function Timeline({
                 paddingVertical: 4,
               }}
             >
-              {e.hat ? <Hat id={HATS[e.hat].art} size={16} /> : null}
+              {e.hat ? <Hat id={hatDef(e.hat).art} size={16} /> : null}
               <T size={12} bold>
                 All day · {e.title}
               </T>

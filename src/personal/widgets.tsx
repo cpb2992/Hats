@@ -9,7 +9,7 @@ import {
 } from "react-native-android-widget";
 import { nowMinutes, todayISO } from "../engine/dates";
 import { finishStep, nextStep, planDay, reschedule } from "./engine";
-import { HATS, type PersonalData } from "./model";
+import { type PersonalData, hatDef } from "./model";
 import { hatSvg } from "./hatArt";
 import { loadPersonal, savePersonal } from "./storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -50,7 +50,7 @@ export function PersonalWidget({
               : home
                 ? "cap"
                 : task
-                  ? HATS[task.hat].art
+                  ? hatDef(task.hat, data?.customHats).art
                   : "sunhat",
             64,
           )}
@@ -96,7 +96,7 @@ export function PersonalWidget({
           }}
         >
           <TextWidget
-            text={HATS[task.hat].name}
+            text={hatDef(task.hat, data?.customHats).name}
             style={{ fontSize: 12, color: "#566476" }}
           />
           <FlexWidget

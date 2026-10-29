@@ -1,8 +1,8 @@
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
-import { HATS, HAT_IDS } from "../personal/model";
+import { allHats, hatDef } from "../personal/model";
 import { usePersonal } from "../personal/Store";
-import { Header, Page, Panel, T, sticker } from "../personal/ui";
+import { Header, P, Page, Panel, T, sticker } from "../personal/ui";
 import { Hat } from "../personal/Hat";
 export default function Hats() {
   const { data } = usePersonal();
@@ -15,8 +15,8 @@ export default function Hats() {
         back
       />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14 }}>
-        {HAT_IDS.map((id, index) => {
-          const hat = HATS[id];
+        {allHats(data.customHats).map((id, index) => {
+          const hat = hatDef(id, data.customHats);
           const open = data.tasks.filter(
             (t) => t.hat === id && !t.doneAt,
           ).length;
@@ -61,6 +61,49 @@ export default function Hats() {
             </Pressable>
           );
         })}
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Add a hat"
+          onPress={() => router.push("/hat-new")}
+          style={({ pressed }) => ({
+            flexGrow: 1,
+            flexBasis: 145,
+            maxWidth: 340,
+            minHeight: 170,
+            backgroundColor: P.paper,
+            borderRadius: 26,
+            padding: 20,
+            gap: 8,
+            alignItems: "center",
+            justifyContent: "center",
+            borderWidth: 2.5,
+            borderStyle: "dashed",
+            borderColor: P.ink,
+            transform: [{ translateY: pressed ? 2 : 0 }],
+          })}
+        >
+          <View
+            style={{
+              width: 60,
+              height: 60,
+              borderRadius: 30,
+              backgroundColor: P.sun,
+              alignItems: "center",
+              justifyContent: "center",
+              ...sticker(4),
+            }}
+          >
+            <T display size={34} style={{ lineHeight: 38 }}>
+              +
+            </T>
+          </View>
+          <T size={20} display>
+            Add a hat
+          </T>
+          <T size={13} muted style={{ textAlign: "center" }}>
+            Name it and pick one from the library.
+          </T>
+        </Pressable>
       </View>
       <Panel tint="#FFF0C2">
         <Hat id="crown" size={52} tilt={-6} />

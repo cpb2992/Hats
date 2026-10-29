@@ -5,7 +5,7 @@ import { pickBackup } from "../personal/backup";
 import { usePersonal } from "../personal/Store";
 import { View } from "react-native";
 import { Hat } from "../personal/Hat";
-import { HATS, HAT_IDS } from "../personal/model";
+import { HAT_IDS, hatDef } from "../personal/model";
 import { Button, Field, Page, Panel, T } from "../personal/ui";
 export default function Welcome() {
   const { data, mutate, today, replace, say } = usePersonal();
@@ -15,7 +15,7 @@ export default function Welcome() {
     <Page tabs={false}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 2 }}>
         {HAT_IDS.map((h, i) => (
-          <Hat key={h} id={HATS[h].art} size={38} tilt={i % 2 ? 9 : -9} />
+          <Hat key={h} id={hatDef(h).art} size={38} tilt={i % 2 ? 9 : -9} />
         ))}
       </View>
       <View style={{ gap: 4 }}>
