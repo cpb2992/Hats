@@ -25,6 +25,8 @@ import { Hat } from "../personal/Hat";
 import { Intro } from "../personal/Intro";
 import { CelebrationLayer } from "../personal/Celebrate";
 import { Automations } from "../personal/Automate";
+import * as Updates from "expo-updates";
+import { UpdateReady } from "../personal/UpdateReady";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 // The hat-tower intro plays once per app launch, not on every remount.
@@ -129,6 +131,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
           ) : null}
         </View>
       ) : null}
+      {Updates.isEnabled && !__DEV__ ? <UpdateReady /> : null}
       <CelebrationLayer c={celebration} />
       {overlay}
     </View>

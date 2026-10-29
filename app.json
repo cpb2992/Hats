@@ -2,7 +2,13 @@
   "expo": {
     "name": "Hats",
     "slug": "hats-focus",
+    "owner": "cpb2992",
     "scheme": "hats",
+    "extra": {
+      "eas": {
+        "projectId": "677aeaf0-1d27-4a66-b255-2ab4e83ff64e"
+      }
+    },
     "version": "2.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
@@ -141,13 +147,12 @@
       "policy": "fingerprint"
     },
     "updates": {
-      "url": "https://u.expo.dev/00000000-0000-0000-0000-000000000000",
+      "url": "https://u.expo.dev/677aeaf0-1d27-4a66-b255-2ab4e83ff64e",
       "requestHeaders": {
         "expo-channel-name": "personal"
       },
       "checkAutomatically": "ON_LOAD",
-      "fallbackToCacheTimeout": 0,
-      "enabled": false
+      "fallbackToCacheTimeout": 0
     }
   }
 }
