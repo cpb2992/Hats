@@ -1,0 +1,23 @@
+installed
+A alive: RUNNING
+PASS: welcome screen shows on first launch
+tapped 'What should Hats call you'
+tapped 'Make room for what matters'
+PASS: Today screen after setup
+tapped '^\|?My hats|My hats$'
+tapped '^\|?Plan|Plan$'
+tapped '^\|?Capture|Capture$'
+tapped '^\|?Today|Today$'
+PASS: Settings opens by link
+B alive: RUNNING
+C alive after widget refresh (open): RUNNING
+C process after widget wake (closed): RUNNING
+PASS: warm share lands in Capture
+PASS: cold share lands in Capture
+tapped 'Kitchen reset'
+could not find 'Wash or load the dishes'
+could not find 'Wipe the counters'
+could not find 'Sweep what needs it'
+could not find 'Put the last things away'
+E alive: RUNNING
+crash buffer empty
