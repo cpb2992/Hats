@@ -67,8 +67,11 @@ tap_label "What Hats did|Hats did" 2 && sleep 3
 shot b-log
 seen "never sends, books, or pays" "What Hats did opens"
 adb shell input keyevent KEYCODE_BACK; sleep 2
-tap_label "Tell Hats" 2 && sleep 3
+tap_label "Talk to Hats" 2 && sleep 4
 shot b-capture
+seen "Allow|microphone|record audio|Listening" "mic button starts voice capture"
+# Dismiss the permission prompt or stop listening before moving on.
+adb shell input keyevent KEYCODE_BACK; sleep 2
 adb shell am start -W -a android.intent.action.VIEW -d "hats://settings" $PKG
 sleep 5
 shot b-settings

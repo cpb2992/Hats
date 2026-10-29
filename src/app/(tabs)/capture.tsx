@@ -1,5 +1,6 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
+import { voiceBus } from "../../personal/voiceBus";
 import { Image, Pressable, ScrollView, View } from "react-native";
 import { Hat } from "../../personal/Hat";
 import { Icon } from "../../ui/icons";
@@ -47,10 +48,11 @@ export default function Capture() {
     hat?: PersonalHat;
     kind?: Kind;
     text?: string;
+    listen?: string;
   }>();
   return (
     <CaptureForm
-      key={`${params.hat ?? ""}:${params.kind ?? ""}:${params.text ?? ""}`}
+      key={`${params.hat ?? ""}:${params.kind ?? ""}:${params.text ?? ""}:${params.listen ?? ""}`}
       params={params}
     />
   );
@@ -58,7 +60,7 @@ export default function Capture() {
 function CaptureForm({
   params,
 }: {
-  params: { hat?: PersonalHat; kind?: Kind; text?: string };
+  params: { hat?: PersonalHat; kind?: Kind; text?: string; listen?: string };
 }) {
   const { data, mutate, today, nowMin, say, celebrate } = usePersonal();
   const [flipped, setFlipped] = useState<Record<number, boolean>>({});
@@ -78,6 +80,54 @@ function CaptureForm({
   const [listening, setListening] = useState(false);
   const [photo, setPhoto] = useState("");
   useEffect(() => () => abortListening(), []);
+  const listeningRef = useRef(false);
+  useEffect(() => {
+    listeningRef.current = listening;
+  }, [listening]);
+  const begin = useCallback(async () => {
+    if (listeningRef.current) return;
+    if (!speechAvailable()) {
+      say(
+        "Speech recognition isn’t available here. Use your keyboard microphone or type.",
+      );
+      return;
+    }
+    const asked = Date.now();
+    try {
+      const ok = await startListening();
+      setListening(ok);
+      if (!ok) say("Microphone permission is off. Turn it on to talk to Hats.");
+      // Released the mic button before listening began: stop right away.
+      else if (voiceBus.stoppedAt > asked) {
+        stopListening();
+        setListening(false);
+      }
+    } catch {
+      say("Microphone unavailable. Check phone permissions.");
+    }
+  }, [say]);
+  const end = useCallback(() => {
+    stopListening();
+    setListening(false);
+  }, []);
+  // The mic button in the tab bar: tap to talk, or hold and speak.
+  useEffect(
+    () =>
+      voiceBus.on((c) => {
+        if (c === "stop") end();
+        else if (c === "start") begin();
+        else if (listeningRef.current) end();
+        else begin();
+      }),
+    [begin, end],
+  );
+  const autoStarted = useRef(false);
+  useEffect(() => {
+    if (params.listen && !autoStarted.current) {
+      autoStarted.current = true;
+      begin();
+    }
+  }, [params.listen, begin]);
   useSpeechRecognitionEvent("result", (event) => {
     const transcript = event.results[0]?.transcript;
     if (transcript) setText(transcript);
@@ -226,24 +276,7 @@ function CaptureForm({
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={listening ? "Stop listening" : "Tap to talk"}
-        onPress={async () => {
-          if (listening) {
-            stopListening();
-            setListening(false);
-            return;
-          }
-          if (!speechAvailable()) {
-            say(
-              "Speech recognition isn’t available here. Use your keyboard microphone or type.",
-            );
-            return;
-          }
-          try {
-            setListening(await startListening());
-          } catch {
-            say("Microphone unavailable. Check phone permissions.");
-          }
-        }}
+        onPress={() => (listening ? end() : begin())}
         style={({ pressed }) => ({
           flexDirection: "row",
           alignItems: "center",
