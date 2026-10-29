@@ -349,6 +349,8 @@ export interface PersonalData {
   habits?: Habit[];
   /** Hats you added yourself, in the order you added them. */
   customHats?: CustomHat[];
+  /** Library recipes you said aren't for your family. */
+  hiddenRecipes?: string[];
   /** Routine steps checked off, by day: { "2026-10-28": ["dinner", "bath"] }. */
   routineDone?: Record<string, string[]>;
   /** Routine steps that did NOT happen. Past steps count as done unless listed here. */
@@ -540,6 +542,11 @@ export function validData(value: unknown): value is PersonalData {
                     (b.note === undefined || text(b.note)),
                 ),
             ))))
+    )
+      return false;
+    if (
+      v.hiddenRecipes !== undefined &&
+      (!Array.isArray(v.hiddenRecipes) || !v.hiddenRecipes.every(text))
     )
       return false;
     if (

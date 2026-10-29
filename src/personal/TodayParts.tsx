@@ -352,13 +352,23 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
             }}
           />
         ) : null}
+        {now.key === "dinner" && meal ? (
+          <Button
+            title="Recipe"
+            small
+            quiet
+            hat="chef"
+            onPress={() =>
+              router.push({ pathname: "/recipe/[id]", params: { id: meal.id } })
+            }
+          />
+        ) : null}
         {now.key === "dinner" ? (
           <Button
             title={dinnerChosen ? "Meals" : "Something else"}
             small
             quiet
-            hat="chef"
-            onPress={() => router.push("/hat/home")}
+            onPress={() => router.push("/meals")}
           />
         ) : null}
         {task && !task.fixed ? (
@@ -574,7 +584,11 @@ export function Timeline({
                         params: { id: item.taskId },
                       })
                     : item.key === "dinner"
-                      ? router.push("/meals")
+                      ? (() => {
+                          const m = mealFor(a.data, date);
+                          if (m) router.push({ pathname: "/recipe/[id]", params: { id: m.id } });
+                          else router.push("/meals");
+                        })()
                       : removable
                         ? setOpen(open === item.id ? null : item.id)
                         : undefined

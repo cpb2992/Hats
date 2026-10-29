@@ -8,6 +8,8 @@ import {
   type UndoOp,
 } from "./model";
 import { shoppingFor } from "./engine";
+import { suggestRecipes } from "./meals";
+import { sameItem } from "./recipes";
 import { routineSteps } from "./timeline";
 
 /**
@@ -195,8 +197,11 @@ export function didToday(data: PersonalData, today: string, nowMin: number) {
  * one, rotating so nothing repeats too soon, favorites a little more often,
  * quicker meals on lighter days. Missing ingredients go on the grocery list.
  */
-export function planWeek(d: PersonalData, today: string): number {
-  if (!d.meals.length) return 0;
+export function planWeek(d: PersonalData, today: string, fromLibrary = false): number {
+  // On its own, Hats only plans from dinners you saved. When you ask it to plan the week and
+  // you have fewer than three, the recipe library fills in.
+  const library = fromLibrary && d.meals.length < 3;
+  if (!library && !d.meals.length) return 0;
   const dates: string[] = [];
   const added: string[] = [];
   const recent: string[] = [];
@@ -208,6 +213,19 @@ export function planWeek(d: PersonalData, today: string): number {
       continue;
     }
     if (i < 0 || declined(d, date, "dinner")) continue;
+    if (library) {
+      const pick = suggestRecipes(d, date, "all", 1)[0];
+      if (!pick) continue;
+      d.dinners[date] = pick.id;
+      recent.push(pick.id);
+      dates.push(date);
+      for (const item of shoppingFor(d, pick.id))
+        if (!d.groceries.some((g) => sameItem(g, item))) {
+          d.groceries.push(item);
+          added.push(item);
+        }
+      continue;
+    }
     const low = d.lowEnergyDays.includes(date);
     const pool = d.meals
       .map((m, n) => ({

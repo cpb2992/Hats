@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
 import { Animated, Easing, View, type ViewStyle } from "react-native";
 import Svg, { Circle, Ellipse, G, Path, Rect } from "react-native-svg";
+import { useReduceMotion } from "./a11y";
+import { foodShapes, type FoodArtId } from "./foodArt";
 import { hatShapes, type HatArtId, type Shape } from "./hatArt";
 
 function draw(s: Shape, key: number): React.ReactElement {
@@ -57,8 +59,9 @@ export function Hat({
   style?: ViewStyle;
 }) {
   const [t] = useState(() => new Animated.Value(0));
+  const reduce = useReduceMotion();
   useEffect(() => {
-    if (!wobble) return;
+    if (!wobble || reduce) return;
     const loop = Animated.loop(
       Animated.sequence([
         Animated.timing(t, {
@@ -79,7 +82,7 @@ export function Hat({
     );
     loop.start();
     return () => loop.stop();
-  }, [wobble, t]);
+  }, [wobble, reduce, t]);
   const rotate = t.interpolate({
     inputRange: [0, 1],
     outputRange: [`${tilt - 5}deg`, `${tilt + 5}deg`],
@@ -99,13 +102,38 @@ export function Hat({
       importantForAccessibility="no-hide-descendants"
       style={[{ width: size, height: size }, style]}
     >
-      {wobble ? (
+      {wobble && !reduce ? (
         <Animated.View style={{ transform: [{ rotate }, { translateY }] }}>
           {art}
         </Animated.View>
       ) : (
         <View style={{ transform: [{ rotate: `${tilt}deg` }] }}>{art}</View>
       )}
+    </View>
+  );
+}
+
+/** A food sticker, drawn like the hats. Decorative: pair it with a text label. */
+export function Food({
+  id,
+  size = 40,
+  tilt = 0,
+  style,
+}: {
+  id: FoodArtId;
+  size?: number;
+  tilt?: number;
+  style?: ViewStyle;
+}) {
+  return (
+    <View
+      accessibilityElementsHidden
+      importantForAccessibility="no-hide-descendants"
+      style={[{ width: size, height: size, transform: [{ rotate: `${tilt}deg` }] }, style]}
+    >
+      <Svg width={size} height={size} viewBox="0 0 64 64">
+        {foodShapes(id).map(draw)}
+      </Svg>
     </View>
   );
 }

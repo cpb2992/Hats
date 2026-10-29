@@ -1,4 +1,5 @@
 import { routineBlocks } from "./routine";
+import { dinnerFor, missingFor } from "./meals";
 import {
   addDays,
   daysBetween,
@@ -380,28 +381,13 @@ export function rotateActivity(data: PersonalData, date: string) {
   delete data.activities[date];
   data.activities[date] = activityFor(data, date)[0];
 }
+/** Tonight's (or any night's) dinner: the one you planned, else the best fit. */
 export function mealFor(data: PersonalData, date: string) {
-  const saved = data.meals.find((m) => m.id === data.dinners[date]);
-  if (saved) return saved;
-  return (
-    [...data.meals].sort((a, b) => {
-      const score = (m: typeof a) =>
-        m.ingredients.filter((i) =>
-          data.pantry.some((p) => p.toLowerCase() === i.toLowerCase()),
-        ).length *
-          4 +
-        (m.favorite ? 2 : 0) -
-        (data.lowEnergyDays.includes(date) ? m.minutes : 0);
-      return score(b) - score(a);
-    })[0] ?? null
-  );
+  return dinnerFor(data, date).meal;
 }
+/** What a dinner still needs from the store (staples and what's in the pantry don't count). */
 export function shoppingFor(data: PersonalData, mealId: string): string[] {
-  const meal = data.meals.find((m) => m.id === mealId);
-  if (!meal) return [];
-  return meal.ingredients.filter(
-    (i) => !data.pantry.some((p) => p.toLowerCase() === i.toLowerCase()),
-  );
+  return missingFor(data, mealId);
 }
 export function budgetSummary(
   data: PersonalData,

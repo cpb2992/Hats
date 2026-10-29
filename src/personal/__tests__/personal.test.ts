@@ -891,3 +891,88 @@ test("hats you add: saved, looked up, routed by name, and hung up without losing
   assert.equal(validData({ ...d, customHats: [twice, twice] } as never), false);
   assert.equal(validData({ ...d, tasks: [makeTask("x", "office" as never, today)] }), false);
 });
+
+test("recipe library: every card is complete, drawn, and shoppable", async () => {
+  const { RECIPES, AISLES, sameItem, isStaple, aisleFor, byAisle } = await import("../recipes");
+  const { FOOD_ART_IDS } = await import("../foodArt");
+  assert.ok(RECIPES.length >= 30);
+  assert.equal(new Set(RECIPES.map((r) => r.id)).size, RECIPES.length);
+  for (const r of RECIPES) {
+    assert.ok(FOOD_ART_IDS.includes(r.art), r.id);
+    assert.ok(r.ingredients.length >= 4 && r.steps.length >= 3 && r.kids.length > 5, r.id);
+    assert.ok(r.minutes > 0 && r.serves > 0, r.id);
+    for (const x of r.ingredients) assert.ok(AISLES.includes(x.aisle), `${r.id} ${x.item}`);
+    if (r.tags.includes("slow-cooker")) assert.ok(r.wait, r.id);
+  }
+  assert.ok(sameItem("Eggs", "egg"));
+  assert.ok(sameItem("baby spinach", "spinach"));
+  assert.ok(sameItem("shredded cheese", "Cheese"));
+  assert.ok(!sameItem("garlic", "garlic powder"));
+  assert.ok(!sameItem("rice", "spaghetti or rice noodles"));
+  assert.ok(isStaple("Salt") && isStaple("olive oil"));
+  assert.ok(!isStaple("bell peppers"));
+  assert.equal(aisleFor("milk"), "Dairy & eggs");
+  assert.equal(aisleFor("Bananas"), "Produce");
+  assert.equal(aisleFor("chicken breasts"), "Meat & fish");
+  assert.equal(aisleFor("paper towels"), "Other");
+  assert.deepEqual(
+    byAisle(["paper towels", "milk", "bananas", "rice"]).map((g) => g.aisle),
+    ["Produce", "Dairy & eggs", "Pantry", "Other"],
+  );
+});
+
+test("dinner ideas: ranked for the night, planned in a tap, and shopped for", async () => {
+  const { suggestRecipes, dinnerFor, findMeal, missingFor, planDinner, nextDinner, haveCount } = await import("../meals");
+  const { planWeek } = await import("../auto");
+  const { recipeById } = await import("../recipes");
+  const d = freshPersonal();
+  // With nothing saved, tonight still has an idea from the library, not a plan.
+  const idea = dinnerFor(d, today);
+  assert.equal(idea.planned, false);
+  assert.ok(idea.meal && recipeById(idea.meal.id));
+  // The deck changes with the filter and never shows hidden cards.
+  const quick = suggestRecipes(d, today, "quick");
+  assert.ok(quick.length && quick.every((r) => r.tags.includes("quick")));
+  d.hiddenRecipes = [quick[0].id];
+  assert.ok(!suggestRecipes(d, today, "quick", 40).some((r) => r.id === quick[0].id));
+  assert.equal(validData(d), true);
+  // What's in the kitchen moves a recipe up.
+  const tacos = recipeById("r-turkey-tacos")!;
+  d.pantry = tacos.ingredients.map((x) => x.item);
+  assert.equal(haveCount(d, tacos).have, haveCount(d, tacos).of);
+  assert.equal(suggestRecipes(d, today, "pantry")[0].id, "r-turkey-tacos");
+  // Planning a library recipe adds only what's missing (no staples, nothing already home).
+  d.pantry = ["Eggs", "milk"];
+  const added = planDinner(d, today, "r-frittata");
+  assert.ok(added.includes("shredded cheese") && !added.includes("eggs") && !added.includes("olive oil"));
+  assert.equal(dinnerFor(d, today).planned, true);
+  assert.equal(findMeal(d, "r-frittata")?.name, "Veggie frittata");
+  assert.deepEqual(missingFor(d, "r-frittata").sort(), [...added].sort());
+  assert.equal(validData(d), true);
+  // Nearby nights don't repeat, and swapping skips what's already planned this week.
+  assert.ok(!suggestRecipes(d, addDays(today, 1), "all", 5).some((r) => r.id === "r-frittata"));
+  assert.notEqual(nextDinner(d, today, ["r-frittata"])?.id, "r-frittata");
+  // Hats only fills the week from the library when asked.
+  const e = freshPersonal();
+  assert.equal(planWeek(e, today), 0);
+  assert.equal(planWeek(e, today, true), 7);
+  assert.equal(new Set(Object.values(e.dinners)).size, 7);
+  assert.ok(e.groceries.length > 10);
+  assert.equal(validData(e), true);
+  // A lighter day leans quick.
+  const f = freshPersonal();
+  f.lowEnergyDays = [today];
+  const easy = suggestRecipes(f, today, "all", 3);
+  assert.ok(easy.every((r) => r.minutes <= 30), easy.map((r) => `${r.id} ${r.minutes}`).join(", "));
+});
+
+test("a week of dinner ideas never repeats a night", async () => {
+  const { weekDinners } = await import("../meals");
+  const d = freshPersonal();
+  const dates = Array.from({ length: 7 }, (_, n) => addDays(today, n));
+  d.dinners[dates[2]] = "r-turkey-tacos";
+  const w = weekDinners(d, dates);
+  assert.equal(w[2].planned, true);
+  assert.equal(w.filter((x) => x.planned).length, 1);
+  assert.equal(new Set(w.map((x) => x.meal?.id)).size, 7);
+});
