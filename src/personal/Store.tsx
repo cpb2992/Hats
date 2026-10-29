@@ -40,6 +40,13 @@ interface State {
   syncStatus: string;
   conflict: Remote | null;
   mutate: (fn: (d: PersonalData) => void) => void;
+  /**
+   * A change that came from somewhere else (the family's phones). Return false from `fn` when
+   * nothing changed. It isn't an Undo step, and it clears Undo so Undo can't erase it.
+   */
+  absorb: (fn: (d: PersonalData) => boolean) => boolean;
+  /** The latest data right now (not the last render's). */
+  current: () => PersonalData;
   undo: () => void;
   say: (text: string) => void;
   sync: () => Promise<void>;
@@ -156,6 +163,26 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
     },
     [apply, error, persist],
   );
+  const absorb = useCallback(
+    (fn: (d: PersonalData) => boolean) => {
+      if (error) return false;
+      const next = clone(ref.current);
+      if (!fn(next)) return false;
+      generation.current++;
+      undoRef.current = null;
+      next.updatedAt = new Date().toISOString();
+      meta.current.dirty = true;
+      apply(next);
+      persist(next).catch(() =>
+        setError(
+          "The last change could not be saved. Keep Hats open and export a backup.",
+        ),
+      );
+      return true;
+    },
+    [apply, error, persist],
+  );
+  const current = useCallback(() => ref.current, []);
   const undo = useCallback(() => {
     const previous = undoRef.current;
     if (!previous) {
@@ -400,6 +427,8 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
         syncStatus,
         conflict,
         mutate,
+        absorb,
+        current,
         undo,
         say,
         sync,

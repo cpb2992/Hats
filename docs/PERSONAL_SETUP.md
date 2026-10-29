@@ -21,13 +21,21 @@ Public source and APKs do not embed the owner's household details. Use **Import 
 
 ## Sync backend
 
-1. Apply `supabase/migrations/202610280001_personal_state.sql` in a user-controlled Supabase project.
-2. Enable email OTP and include the email `{{ .Token }}` in the sign-in template. Configure the project's sign-up policy as appropriate for a personal deployment.
-3. In Hats Settings, enter the project's HTTPS URL and **public publishable/anon** key. Never enter a service-role secret.
+Hats connects to its own hosted Supabase project by default (`HOSTED` in `src/personal/cloud.ts`; the publishable key is public by design and row-level security keeps each account's data to itself). To use your own project instead:
+
+1. Apply the migrations in `supabase/migrations/` in a user-controlled Supabase project.
+2. Enable email OTP and include the email `{{ .Token }}` in the sign-in template (the code is how iPhone Home Screen web apps sign in, since email links open in Safari). Add `hats://auth-callback` and the web app's `https://<domain>/auth-callback` to the allowed redirect URLs. Configure the project's sign-up policy as appropriate.
+3. In Hats Settings, enter the project's HTTPS URL and **public publishable/anon** key, or build with `EXPO_PUBLIC_SUPABASE_URL` / `EXPO_PUBLIC_SUPABASE_ANON_KEY`. Never use a service-role secret.
 4. Sign in and sync. A conflicting cloud snapshot requires an explicit version choice; the local version is backed up first. Revision comparisons happen atomically in the database. Local changes are retained on network errors.
 5. Verify RLS with two separate test accounts before production: neither may read or update the other's row. Revoking a session must stop API access.
 
-Data is encrypted on the native device using Expo Crypto AES-GCM; the key is held in SecureStore. Cloud synchronization uses account authorization, RLS, TLS, and the provider's storage protection. It is **not end-to-end encryption**. The browser preview uses browser storage and session-scoped auth secrets. Exported JSON is readable, private data. Photo attachments currently remain local; their text notes can sync.
+Data is encrypted on the native device using Expo Crypto AES-GCM; the key is held in SecureStore. Cloud synchronization uses account authorization, RLS, TLS, and the provider's storage protection. It is **not end-to-end encryption**. The web app keeps its plan and sign-in in the browser's storage. Exported JSON is readable, private data. Photo attachments currently remain local; their text notes can sync.
+
+## Family sharing
+
+Settings → Family sharing: one person starts a household and sends the 8-character invite code; others join with it (Android app or the web app at `https://hats-family.expo.app`, which iPhones can add to the Home Screen). Shared: groceries, what's in the kitchen, the dinner plan, date nights (unless marked a surprise), events under the partner/parent/home/pets hats (or any event you put on the family calendar), and to-dos you choose to share, with an optional person whose job it is. Everything else stays private.
+
+Shared things live in `household_items`, one row per thing, readable and writable only by members (`supabase/migrations/202610300001_households.sql`). Each phone keeps a fingerprint of every shared thing as last synced: something changed on only one phone goes to the other; something changed on both keeps the version that's sent last. The merge rules are pure and tested in `src/personal/share.ts`. Leaving keeps everything already on the phone.
 
 ## Google Calendar
 

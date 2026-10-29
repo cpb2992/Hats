@@ -213,6 +213,12 @@ export interface PersonalTask {
   reason?: string;
   source?: string;
   note?: string;
+  /** Shared with the family (they see it, can check it off, and changes go both ways). */
+  shared?: boolean;
+  /** Who in the family added it, when it came from their phone. */
+  sharedBy?: string;
+  /** Whose job it is: a household member's id. */
+  assignee?: string;
 }
 export interface Person {
   id: string;
@@ -256,6 +262,10 @@ export interface PersonalEvent {
   repeat?: RepeatRule;
   /** Dates in the series that were skipped. */
   skip?: string[];
+  /** Family sharing: true/false to choose; unset means family hats share and others don't. */
+  shared?: boolean;
+  /** Who in the family added it, when it came from their phone. */
+  sharedBy?: string;
 }
 export interface DatePlan {
   id: string;
@@ -268,6 +278,10 @@ export interface DatePlan {
   transport: number;
   steps: Step[];
   note: string;
+  /** A surprise: not shared with the family. */
+  surprise?: boolean;
+  /** Who planned it, when it came from their phone. */
+  sharedBy?: string;
 }
 export interface Spending {
   id: string;
@@ -407,6 +421,17 @@ export interface PersonalData {
   log?: LogEntry[];
   /** Automations you undid for a day, so Hats doesn't redo them: { "2026-10-29": ["lighter"] }. */
   autoDeclined?: Record<string, string[]>;
+  /** The family you share with (set up in Settings → Family sharing). */
+  household?: Household;
+}
+export interface Household {
+  id: string;
+  name: string;
+  /** The invite code others join with. */
+  code: string;
+  /** Your member id (your Hats sign-in). */
+  me: string;
+  members: { id: string; name: string }[];
 }
 export type UndoOp =
   | { t: "removeTasks"; ids: string[] }
@@ -493,6 +518,21 @@ export function validData(value: unknown): value is PersonalData {
       Array.isArray(x) &&
       x.every((s) => s && text(s.title) && typeof s.done === "boolean");
     const strings = (x: unknown) => Array.isArray(x) && x.every(text);
+    const optional = (x: unknown, type: "string" | "boolean") =>
+      x === undefined || typeof x === type;
+    const h = v.household;
+    if (
+      h !== undefined &&
+      (!h ||
+        typeof h !== "object" ||
+        !text(h.id) ||
+        !text(h.name) ||
+        !text(h.code) ||
+        !text(h.me) ||
+        !Array.isArray(h.members) ||
+        !h.members.every((m) => m && text(m.id) && text(m.name)))
+    )
+      return false;
     if (
       v.version !== 2 ||
       !p ||
@@ -653,7 +693,10 @@ export function validData(value: unknown): value is PersonalData {
           ["none", "daily", "weekly", "fortnightly"].includes(t.repeat) &&
           (t.rule === undefined || validRule(t.rule)) &&
           typeof t.fixed === "boolean" &&
-          typeof t.essential === "boolean",
+          typeof t.essential === "boolean" &&
+          optional(t.shared, "boolean") &&
+          optional(t.sharedBy, "string") &&
+          optional(t.assignee, "string"),
       )
     )
       return false;
@@ -706,7 +749,9 @@ export function validData(value: unknown): value is PersonalData {
           typeof e.allDay === "boolean" &&
           ["hats", "google"].includes(e.source) &&
           (e.repeat === undefined || validRule(e.repeat)) &&
-          (e.skip === undefined || (Array.isArray(e.skip) && e.skip.every(validDate))),
+          (e.skip === undefined || (Array.isArray(e.skip) && e.skip.every(validDate))) &&
+          optional(e.shared, "boolean") &&
+          optional(e.sharedBy, "string"),
       )
     )
       return false;
@@ -722,7 +767,9 @@ export function validData(value: unknown): value is PersonalData {
           money(d.budget) &&
           money(d.childcare) &&
           money(d.transport) &&
-          steps(d.steps),
+          steps(d.steps) &&
+          optional(d.surprise, "boolean") &&
+          optional(d.sharedBy, "string"),
       )
     )
       return false;

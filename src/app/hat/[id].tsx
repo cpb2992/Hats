@@ -373,6 +373,28 @@ export default function HatPage() {
                   {(date.budget + date.childcare + date.transport).toFixed(2)}
                 </T>
                 {date.note ? <T muted>{date.note}</T> : null}
+                {data.household ? (
+                  date.sharedBy ? (
+                    <T size={13} muted>
+                      Planned by {date.sharedBy} · on both your phones
+                    </T>
+                  ) : (
+                    <Check
+                      title={
+                        date.surprise
+                          ? "A surprise · only on your phone"
+                          : "Keep it a surprise (only on your phone)"
+                      }
+                      done={!!date.surprise}
+                      onPress={() =>
+                        mutate((d) => {
+                          const p = d.dates.find((x) => x.id === date.id);
+                          if (p) p.surprise = !p.surprise || undefined;
+                        })
+                      }
+                    />
+                  )
+                ) : null}
                 {date.steps.map((step, index) => (
                   <Check
                     strike

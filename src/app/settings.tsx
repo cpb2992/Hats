@@ -7,11 +7,11 @@ import {
   googleCalendars,
   googleSignIn,
   readGoogleEvents,
-  sendCode,
   setConfig,
   signOut,
-  verifyCode,
 } from "../personal/cloud";
+import { FamilySettings } from "../personal/FamilyShare";
+import { SignIn } from "../personal/SignIn";
 import { WhoopSettings } from "../personal/WhoopCard";
 import { ThisCopy } from "../personal/UpdateReady";
 import { hatDef } from "../personal/model";
@@ -45,7 +45,6 @@ import {
   Button,
   Check,
   Chip,
-  Field,
   Group,
   Header,
   Page,
@@ -79,9 +78,6 @@ export default function Settings() {
     error,
   } = usePersonal();
   const editor = useEditor();
-  const [email, setEmail] = useState("");
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState(false);
   const [account, setAccount] = useState("");
   const [configured, setConfigured] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -244,6 +240,17 @@ export default function Settings() {
           />
         </Panel>
       ) : null}
+      <Group
+        hat="propeller"
+        title="Family sharing"
+        summary={
+          data.household
+            ? `${data.household.name} · ${data.household.members.map((m) => m.name).join(", ")}`
+            : "Share groceries, dinners and the family calendar"
+        }
+      >
+        <FamilySettings />
+      </Group>
       <Group
         hat="pompom"
         title="Personal setup"
@@ -722,51 +729,13 @@ export default function Settings() {
               />
             </>
           ) : !account ? (
-            <>
-              <Field
-                label="Email address"
-                value={email}
-                onChangeText={setEmail}
-                autoCapitalize="none"
-                keyboardType="email-address"
-              />
-              <Button
-                title={sent ? "Send a new link" : "Email me a sign-in link"}
-                disabled={busy}
-                onPress={() =>
-                  run(async () => {
-                    await sendCode(email.trim());
-                    setSent(true);
-                    say(
-                      "Check your email on this phone and tap the sign-in link.",
-                    );
-                  })
-                }
-              />
-              {sent ? (
-                <>
-                  <T muted size={13}>
-                    Open the email on this phone and tap the link to finish. If
-                    the email shows a 6-digit code instead, type it here.
-                  </T>
-                  <Field
-                    label="Code from the email · only if there is one"
-                    value={code}
-                    onChangeText={setCode}
-                  />
-                  <Button
-                    title="Verify and sign in"
-                    disabled={busy}
-                    onPress={() =>
-                      run(async () => {
-                        setAccount(await verifyCode(email.trim(), code.trim()));
-                        await sync();
-                      })
-                    }
-                  />
-                </>
-              ) : null}
-            </>
+            <SignIn
+              say={say}
+              onSignedIn={async (who) => {
+                setAccount(who);
+                await sync();
+              }}
+            />
           ) : (
             <Row>
               <Button

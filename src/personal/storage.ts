@@ -13,11 +13,19 @@ import { freshPersonal, validData, type PersonalData } from "./model";
 export const PERSONAL_KEY = "hats.personal.v2";
 const VAULT_KEY = "hats.personal.encryption-key";
 let keyPromise: Promise<AESEncryptionKey> | null = null;
+/**
+ * On the web there's no keychain; the browser's own storage keeps you signed in between visits
+ * (as any website does). Phones use the secure keychain.
+ */
+const webStore = () => {
+  try {
+    return typeof localStorage === "undefined" ? null : localStorage;
+  } catch {
+    return null;
+  }
+};
 export async function secretGet(name: string): Promise<string | null> {
-  if (Platform.OS === "web")
-    return typeof sessionStorage === "undefined"
-      ? null
-      : sessionStorage.getItem(name);
+  if (Platform.OS === "web") return webStore()?.getItem(name) ?? null;
   const count = Number((await SecureStore.getItemAsync(`${name}.count`)) ?? 0);
   if (!count) return null;
   let result = "";
@@ -27,10 +35,9 @@ export async function secretGet(name: string): Promise<string | null> {
 }
 export async function secretSet(name: string, value: string | null) {
   if (Platform.OS === "web") {
-    if (typeof sessionStorage !== "undefined") {
-      if (value == null) sessionStorage.removeItem(name);
-      else sessionStorage.setItem(name, value);
-    }
+    const store = webStore();
+    if (value == null) store?.removeItem(name);
+    else store?.setItem(name, value);
     return;
   }
   const previous = Number(

@@ -25,6 +25,7 @@ import { Hat } from "../personal/Hat";
 import { Intro } from "../personal/Intro";
 import { CelebrationLayer } from "../personal/Celebrate";
 import { Automations } from "../personal/Automate";
+import { FamilySync } from "../personal/FamilySync";
 import * as Updates from "expo-updates";
 import { UpdateReady } from "../personal/UpdateReady";
 
@@ -88,6 +89,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="meals" />
       </Stack>
       <Automations />
+      <FamilySync />
       {message ? (
         <View
           pointerEvents="box-none"

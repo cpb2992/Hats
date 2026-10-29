@@ -14,6 +14,7 @@ import { Hat } from "./Hat";
 import { type Habit, type PersonalData, hatDef } from "./model";
 import { recipeById } from "./recipes";
 import { usePersonal } from "./Store";
+import { eventShared } from "./share";
 import { streakFor } from "./streaks";
 import {
   isFaded,
@@ -223,8 +224,11 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
   const started = minutesOfDay(now.time) <= a.nowMin;
   const work = now.kind === "work";
   // School blocks: how much of this period is left.
-  const left = work && started ? minutesOfDay(now.end ?? now.time) - a.nowMin : 0;
-  const length = work ? minutesOfDay(now.end ?? now.time) - minutesOfDay(now.time) : 0;
+  const left =
+    work && started ? minutesOfDay(now.end ?? now.time) - a.nowMin : 0;
+  const length = work
+    ? minutesOfDay(now.end ?? now.time) - minutesOfDay(now.time)
+    : 0;
   const task = now.taskId
     ? a.data.tasks.find((t) => t.id === now.taskId)
     : null;
@@ -282,7 +286,12 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
       {work && started && length > 0 ? (
         <View
           accessibilityLabel={`${left} of ${length} minutes left`}
-          style={{ height: 8, borderRadius: 4, backgroundColor: "#2F4466", overflow: "hidden" }}
+          style={{
+            height: 8,
+            borderRadius: 4,
+            backgroundColor: "#2F4466",
+            overflow: "hidden",
+          }}
         >
           <View
             style={{
@@ -371,7 +380,10 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
             onPress={() =>
               router.push({
                 pathname: "/recipe/[id]",
-                params: dinnerChosen && recipeById(meal.id) ? { id: meal.id, cook: "1" } : { id: meal.id },
+                params:
+                  dinnerChosen && recipeById(meal.id)
+                    ? { id: meal.id, cook: "1" }
+                    : { id: meal.id },
               })
             }
           />
@@ -427,38 +439,88 @@ function EventOptions({
   const a = usePersonal();
   const e = a.data.events.find((x) => x.id === eventId);
   if (!e) return null;
+  const shared = !!a.data.household && eventShared(e);
   const remove = () => {
     a.mutate((d) => {
       d.events = d.events.filter((x) => x.id !== eventId);
     });
-    a.say(e.repeat ? `Removed every ${e.title}` : `Removed ${e.title}`);
+    a.say(
+      `${e.repeat ? `Removed every ${e.title}` : `Removed ${e.title}`}${shared ? " for everyone" : ""}`,
+    );
     onDone();
   };
+  // Family sharing: who added it, and whether the family sees it.
+  const sharing =
+    !a.data.household || e.source !== "hats" ? null : e.sharedBy ? (
+      <T size={13} muted>
+        Added by {e.sharedBy} · on the family calendar
+      </T>
+    ) : (
+      <Button
+        title={
+          shared ? "Take off the family calendar" : "Put on the family calendar"
+        }
+        small
+        quiet
+        onPress={() => {
+          a.mutate((d) => {
+            const x = d.events.find((y) => y.id === eventId);
+            if (x) x.shared = !shared;
+          });
+          a.say(
+            shared
+              ? `${e.title} is just yours now.`
+              : `${e.title} is on the family calendar.`,
+          );
+          onDone();
+        }}
+      />
+    );
   if (!e.repeat) {
-    const dayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][
-      fromISO(e.date).getDay()
-    ];
+    const dayName = [
+      "Sunday",
+      "Monday",
+      "Tuesday",
+      "Wednesday",
+      "Thursday",
+      "Friday",
+      "Saturday",
+    ][fromISO(e.date).getDay()];
     return (
-      <Row>
-        <Button
-          title={`Repeat every ${dayName}`}
-          small
-          icon="calendar"
-          onPress={() => {
-            a.mutate((d) => {
-              const x = d.events.find((y) => y.id === eventId);
-              if (x) x.repeat = { freq: "week", every: 1, days: [fromISO(x.date).getDay()] };
-            });
-            a.say(`${e.title} now repeats every ${dayName}.`);
-            onDone();
-          }}
-        />
-        <Button title="Remove event" small quiet onPress={remove} />
-      </Row>
+      <View style={{ gap: 6, flexBasis: "100%" }}>
+        {sharing}
+        <Row>
+          <Button
+            title={`Repeat every ${dayName}`}
+            small
+            icon="calendar"
+            onPress={() => {
+              a.mutate((d) => {
+                const x = d.events.find((y) => y.id === eventId);
+                if (x)
+                  x.repeat = {
+                    freq: "week",
+                    every: 1,
+                    days: [fromISO(x.date).getDay()],
+                  };
+              });
+              a.say(`${e.title} now repeats every ${dayName}.`);
+              onDone();
+            }}
+          />
+          <Button
+            title={shared ? "Remove for everyone" : "Remove event"}
+            small
+            quiet
+            onPress={remove}
+          />
+        </Row>
+      </View>
     );
   }
   return (
     <View style={{ gap: 6, flexBasis: "100%" }}>
+      {sharing}
       <Row>
         <Button
           title="Skip just this one"
@@ -474,14 +536,21 @@ function EventOptions({
           }}
         />
         <Button
-          title={date === e.date ? "Remove all" : "Stop from here on"}
+          title={
+            date === e.date
+              ? shared
+                ? "Remove for everyone"
+                : "Remove all"
+              : "Stop from here on"
+          }
           small
           quiet
           onPress={() => {
             if (date === e.date) return remove();
             a.mutate((d) => {
               const x = d.events.find((y) => y.id === eventId);
-              if (x?.repeat) x.repeat = { ...x.repeat, until: addDays(date, -1) };
+              if (x?.repeat)
+                x.repeat = { ...x.repeat, until: addDays(date, -1) };
             });
             a.say(`${e.title} won’t repeat after this.`);
             onDone();
@@ -534,36 +603,50 @@ export function Timeline({
           }}
         >
           {allDay.map((e) => {
-            const mine = a.data.events.some((x) => x.id === e.id && x.source === "hats");
+            const mine = a.data.events.some(
+              (x) => x.id === e.id && x.source === "hats",
+            );
             return (
-            <Pressable
-              key={e.id}
-              accessibilityRole={mine || e.hat ? "button" : undefined}
-              accessibilityLabel={`All day: ${e.title}`}
-              accessibilityHint={mine ? "Shows options" : e.hat ? `Opens ${hatDef(e.hat).name}` : undefined}
-              disabled={!mine && !e.hat}
-              onPress={() =>
-                mine
-                  ? setOpen(open === `allday:${e.id}` ? null : `allday:${e.id}`)
-                  : e.hat && router.push({ pathname: "/hat/[id]", params: { id: e.hat } })
-              }
-              style={{
-                flexDirection: "row",
-                alignItems: "center",
-                gap: 4,
-                backgroundColor: P.sky,
-                borderRadius: 14,
-                borderWidth: 1.5,
-                borderColor: P.ink,
-                paddingHorizontal: 10,
-                paddingVertical: 4,
-              }}
-            >
-              {e.hat ? <Hat id={hatDef(e.hat).art} size={16} /> : null}
-              <T size={12} bold>
-                All day · {e.title}
-              </T>
-            </Pressable>
+              <Pressable
+                key={e.id}
+                accessibilityRole={mine || e.hat ? "button" : undefined}
+                accessibilityLabel={`All day: ${e.title}`}
+                accessibilityHint={
+                  mine
+                    ? "Shows options"
+                    : e.hat
+                      ? `Opens ${hatDef(e.hat).name}`
+                      : undefined
+                }
+                disabled={!mine && !e.hat}
+                onPress={() =>
+                  mine
+                    ? setOpen(
+                        open === `allday:${e.id}` ? null : `allday:${e.id}`,
+                      )
+                    : e.hat &&
+                      router.push({
+                        pathname: "/hat/[id]",
+                        params: { id: e.hat },
+                      })
+                }
+                style={{
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 4,
+                  backgroundColor: P.sky,
+                  borderRadius: 14,
+                  borderWidth: 1.5,
+                  borderColor: P.ink,
+                  paddingHorizontal: 10,
+                  paddingVertical: 4,
+                }}
+              >
+                {e.hat ? <Hat id={hatDef(e.hat).art} size={16} /> : null}
+                <T size={12} bold>
+                  All day · {e.title}
+                </T>
+              </Pressable>
             );
           })}
           {open?.startsWith("allday:") ? (
@@ -703,16 +786,27 @@ export function Timeline({
                 }
                 onPress={() => {
                   if (item.taskId)
-                    return router.push({ pathname: "/task/[id]", params: { id: item.taskId } });
+                    return router.push({
+                      pathname: "/task/[id]",
+                      params: { id: item.taskId },
+                    });
                   if (item.key === "dinner" || item.key === "slowcook") {
                     const m = mealFor(a.data, date);
                     return m
-                      ? router.push({ pathname: "/recipe/[id]", params: { id: m.id } })
+                      ? router.push({
+                          pathname: "/recipe/[id]",
+                          params: { id: m.id },
+                        })
                       : router.push("/meals");
                   }
-                  if (removable) return setOpen(open === item.id ? null : item.id);
+                  if (removable)
+                    return setOpen(open === item.id ? null : item.id);
                   // Everything else opens its hat: a class opens the Teacher hat, stories open Dad.
-                  if (item.tag) router.push({ pathname: "/hat/[id]", params: { id: item.tag } });
+                  if (item.tag)
+                    router.push({
+                      pathname: "/hat/[id]",
+                      params: { id: item.tag },
+                    });
                 }}
                 style={{
                   flex: 1,

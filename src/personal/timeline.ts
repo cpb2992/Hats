@@ -3,7 +3,7 @@ import { mealFor, planDay } from "./engine";
 import { recipeById } from "./recipes";
 import { eventOn, eventsOn, repeatLabel, taskRule } from "./repeat";
 import type { HatArtId } from "./hatArt";
-import { HATS, type PersonalData, type PersonalHat, hatDef } from "./model";
+import { HATS, type PersonalData, type PersonalHat, type PersonalTask, hatDef } from "./model";
 import { isBathNight, isWorkday, routinePrefs } from "./routine";
 import { isFree, periodLabel, schoolBlocks } from "./school";
 
@@ -53,6 +53,14 @@ const hhmm = (n: number) =>
  * Routines run themselves: once a step's time has passed it counts as done,
  * unless you said it was skipped. Pass `clock` to apply that.
  */
+/** "Jess’s job" / "Your job" for a shared to-do with someone on it. */
+export function whoseJob(data: PersonalData, t: PersonalTask): string {
+  const home = data.household;
+  if (!home || !t.shared || !t.assignee) return "";
+  if (t.assignee === home.me) return "Your job";
+  const name = home.members.find((m) => m.id === t.assignee)?.name;
+  return name ? `${name}’s job` : "";
+}
 export function routineSteps(
   data: PersonalData,
   date: string,
@@ -270,6 +278,7 @@ export function dayTimeline(
         [
           e.repeat ? repeatLabel(e.repeat, e.date) : "",
           e.location || (e.source === "google" ? "Google Calendar" : ""),
+          e.sharedBy ? `Added by ${e.sharedBy}` : "",
         ]
           .filter(Boolean)
           .join(" · ") || undefined,
@@ -291,9 +300,14 @@ export function dayTimeline(
       time,
       end,
       title: /\bdate\b/i.test(plan.title) ? plan.title : `Date night · ${plan.title}`,
-      detail: left.length
-        ? `Still to do: ${left[0].title.charAt(0).toLowerCase()}${left[0].title.slice(1)}`
-        : "All set · enjoy it",
+      detail: [
+        plan.sharedBy ? `Planned by ${plan.sharedBy}` : "",
+        left.length
+          ? `Still to do: ${left[0].title.charAt(0).toLowerCase()}${left[0].title.slice(1)}`
+          : "All set · enjoy it",
+      ]
+        .filter(Boolean)
+        .join(" · "),
       hat: "fedora",
       tag: "husband",
       done: isToday && mins(end) <= nowMin,
@@ -307,11 +321,16 @@ export function dayTimeline(
       time: x.time,
       end: hhmm(mins(x.time) + x.task.minutes),
       title: x.task.title,
-      detail: x.task.steps.length
-        ? `${x.task.steps.filter((s) => s.done).length}/${x.task.steps.length} · next: ${x.task.steps.find((s) => !s.done)?.title ?? ""}`
-        : taskRule(x.task)
-          ? repeatLabel(taskRule(x.task)!, x.task.date)
-          : hatDef(x.task.hat, data.customHats).name,
+      detail: [
+        whoseJob(data, x.task),
+        x.task.steps.length
+          ? `${x.task.steps.filter((s) => s.done).length}/${x.task.steps.length} · next: ${x.task.steps.find((s) => !s.done)?.title ?? ""}`
+          : taskRule(x.task)
+            ? repeatLabel(taskRule(x.task)!, x.task.date)
+            : hatDef(x.task.hat, data.customHats).name,
+      ]
+        .filter(Boolean)
+        .join(" · "),
       hat: hatDef(x.task.hat, data.customHats).art,
       tag: x.task.hat,
       done: false,

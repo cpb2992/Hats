@@ -1,6 +1,8 @@
 import { useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
+  Alert,
+  Platform,
   Pressable,
   ScrollView,
   Text,
@@ -57,6 +59,7 @@ export function T({
   style,
   numberOfLines,
   header = false,
+  selectable,
 }: {
   children: ReactNode;
   size?: number;
@@ -68,10 +71,13 @@ export function T({
   numberOfLines?: number;
   /** Announced as a heading by screen readers. */
   header?: boolean;
+  /** Can be long-pressed to copy (codes, addresses). */
+  selectable?: boolean;
 }) {
   return (
     <Text
       numberOfLines={numberOfLines}
+      selectable={selectable}
       accessibilityRole={header ? "header" : undefined}
       maxFontSizeMultiplier={MAX_TEXT_SCALE}
       style={[
@@ -744,4 +750,19 @@ export function HatTag({
       </T>
     </View>
   );
+}
+
+/**
+ * "Are you sure?" that works on phones and in the browser (where Alert does nothing).
+ * The action button is shown as destructive.
+ */
+export function ask(title: string, message: string, ok: string, onConfirm: () => void) {
+  if (Platform.OS === "web") {
+    if (typeof window !== "undefined" && window.confirm(`${title}\n\n${message}`)) onConfirm();
+    return;
+  }
+  Alert.alert(title, message, [
+    { text: "Cancel", style: "cancel" },
+    { text: ok, style: "destructive", onPress: onConfirm },
+  ]);
 }

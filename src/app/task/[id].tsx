@@ -1,6 +1,5 @@
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { Alert } from "react-native";
 import { usePersonal } from "../../personal/Store";
 import { allHats, type PersonalHat, type RepeatRule, hatDef } from "../../personal/model";
 import { repeatLabel, settle, taskRule } from "../../personal/repeat";
@@ -14,6 +13,7 @@ import {
   Page,
   Row,
   T,
+  ask,
 } from "../../personal/ui";
 
 export default function Task() {
@@ -30,6 +30,9 @@ export default function Task() {
   // The repeat as a rule: kept as said ("Mondays and Wednesdays"), or one of the simple choices.
   const [rule, setRule] = useState<RepeatRule | null>(task ? taskRule(task) : null);
   const [note, setNote] = useState(task?.note ?? "");
+  const [shared, setShared] = useState(task?.shared ?? false);
+  const [assignee, setAssignee] = useState<string | undefined>(task?.assignee);
+  const home = data.household;
   if (!task)
     return (
       <Page tabs={false}>
@@ -77,6 +80,8 @@ export default function Task() {
           repeat: "none" as const,
           rule: rule ? settle(rule, date) : undefined,
           note,
+          shared: home ? shared || undefined : t.shared,
+          assignee: home && shared ? assignee : undefined,
         });
     });
     say("Task updated.");
@@ -118,6 +123,37 @@ export default function Task() {
         done={essential}
         onPress={() => setEssential(!essential)}
       />
+      {home ? (
+        <>
+          {task.sharedBy ? (
+            <T size={13} muted>
+              Added by {task.sharedBy}. Changes and check-offs go to everyone.
+            </T>
+          ) : (
+            <Check
+              title="Share with the family · they see it and can check it off"
+              done={shared}
+              onPress={() => setShared(!shared)}
+            />
+          )}
+          {shared ? (
+            <>
+              <T bold>Whose job?</T>
+              <Row>
+                <Chip title="Anyone" selected={!assignee} onPress={() => setAssignee(undefined)} />
+                {home.members.map((m) => (
+                  <Chip
+                    key={m.id}
+                    title={m.id === home.me ? `${m.name} (me)` : m.name}
+                    selected={assignee === m.id}
+                    onPress={() => setAssignee(m.id)}
+                  />
+                ))}
+              </Row>
+            </>
+          ) : null}
+        </>
+      ) : null}
       <T bold>Repeats</T>
       <Row>
         {(
@@ -187,22 +223,16 @@ export default function Task() {
         title="Delete task"
         quiet
         onPress={() =>
-          Alert.alert(
+          ask(
             "Delete this task?",
-            "Undo is available after deleting.",
-            [
-              { text: "Cancel", style: "cancel" },
-              {
-                text: "Delete",
-                style: "destructive",
-                onPress: () => {
-                  mutate((d) => {
-                    d.tasks = d.tasks.filter((t) => t.id !== id);
-                  });
-                  router.back();
-                },
-              },
-            ],
+            task.shared && home ? "It’s shared, so it goes for everyone. Undo is available after." : "Undo is available after deleting.",
+            "Delete",
+            () => {
+              mutate((d) => {
+                d.tasks = d.tasks.filter((t) => t.id !== id);
+              });
+              router.back();
+            },
           )
         }
       />

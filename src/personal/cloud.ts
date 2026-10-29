@@ -22,12 +22,21 @@ export interface Remote {
   revision: number;
   payload: PersonalData;
 }
+/**
+ * Hats' own sync server. Public by design: the publishable key only lets people sign in, and
+ * row-level security keeps every account's data to itself. A private server set up in
+ * Settings, or EXPO_PUBLIC_ values at build time, take its place.
+ */
+export const HOSTED: CloudConfig = {
+  url: "https://iyneflhujuemucfgsgwb.supabase.co",
+  key: "sb_publishable_M8om7imNFNqdo-xM4lkWGQ_9Ia8HvoX",
+};
 export async function getConfig(): Promise<CloudConfig | null> {
   const raw = await secretGet("hats.cloud.config");
   if (raw) return JSON.parse(raw);
   const url = process.env.EXPO_PUBLIC_SUPABASE_URL;
   const key = process.env.EXPO_PUBLIC_SUPABASE_ANON_KEY;
-  return url && key ? { url, key } : null;
+  return url && key ? { url, key } : HOSTED;
 }
 export async function setConfig(config: CloudConfig) {
   const url = new URL(config.url);
@@ -56,7 +65,7 @@ export async function setConfig(config: CloudConfig) {
     }),
   );
 }
-async function request(
+export async function request(
   path: string,
   options: RequestInit = {},
   token?: string,
