@@ -2,7 +2,8 @@ import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Alert } from "react-native";
 import { usePersonal } from "../../personal/Store";
-import { allHats, type PersonalHat, hatDef } from "../../personal/model";
+import { allHats, type PersonalHat, type RepeatRule, hatDef } from "../../personal/model";
+import { repeatLabel, settle, taskRule } from "../../personal/repeat";
 import {
   Button,
   Check,
@@ -26,7 +27,8 @@ export default function Task() {
   const [hat, setHat] = useState<PersonalHat>(task?.hat ?? "home");
   const [fixed, setFixed] = useState(task?.fixed ?? false);
   const [essential, setEssential] = useState(task?.essential ?? false);
-  const [repeat, setRepeat] = useState(task?.repeat ?? "none");
+  // The repeat as a rule: kept as said ("Mondays and Wednesdays"), or one of the simple choices.
+  const [rule, setRule] = useState<RepeatRule | null>(task ? taskRule(task) : null);
   const [note, setNote] = useState(task?.note ?? "");
   if (!task)
     return (
@@ -72,7 +74,8 @@ export default function Task() {
           hat,
           fixed,
           essential,
-          repeat,
+          repeat: "none" as const,
+          rule: rule ? settle(rule, date) : undefined,
           note,
         });
     });
@@ -115,17 +118,30 @@ export default function Task() {
         done={essential}
         onPress={() => setEssential(!essential)}
       />
-      <T bold>Repeat after completion</T>
+      <T bold>Repeats</T>
       <Row>
-        {(["none", "daily", "weekly", "fortnightly"] as const).map((r) => (
-          <Chip
-            key={r}
-            title={r}
-            selected={repeat === r}
-            onPress={() => setRepeat(r)}
-          />
-        ))}
+        {(
+          [
+            ["Doesn’t repeat", null],
+            ["Every day", { freq: "day", every: 1 }],
+            ["Weekdays", { freq: "week", every: 1, days: [1, 2, 3, 4, 5] }],
+            ["Every week", { freq: "week", every: 1 }],
+            ["Every other week", { freq: "week", every: 2 }],
+            ["Every month", { freq: "month", every: 1 }],
+          ] as [string, RepeatRule | null][]
+        ).map(([label, r]) => {
+          const same = (x: RepeatRule | null, y: RepeatRule | null) =>
+            JSON.stringify(x && settle(x, date)) === JSON.stringify(y && settle(y, date));
+          return (
+            <Chip key={label} title={label} selected={same(rule, r)} onPress={() => setRule(r)} />
+          );
+        })}
       </Row>
+      {rule ? (
+        <T size={13} muted>
+          {repeatLabel(settle(rule, date), date)}. The next one shows up when this one’s done.
+        </T>
+      ) : null}
       <Field
         label="Useful details"
         value={note}

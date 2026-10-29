@@ -1,5 +1,6 @@
 import { daysBetween, weekday } from "../engine/dates";
 import { ROUTINE_DEFAULTS, type PersonalData } from "./model";
+import { eventsOn } from "./repeat";
 
 const mins = (t: string) => {
   const [h, m] = t.split(":").map(Number);
@@ -27,7 +28,7 @@ export function isBathNight(data: PersonalData, date: string) {
 }
 
 export function isWorkday(data: PersonalData, date: string) {
-  const closure = data.events.some((e) => e.date === date && e.closure);
+  const closure = eventsOn(data, date).some((e) => e.closure);
   return data.preferences.unavailableDays.includes(weekday(date)) && !closure;
 }
 

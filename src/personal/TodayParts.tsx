@@ -1,7 +1,7 @@
 import { router } from "expo-router";
 import { useState } from "react";
 import { Linking, Pressable, ScrollView, View } from "react-native";
-import { addDays, fmtTime } from "../engine/dates";
+import { addDays, fmtRelative, fmtTime, fromISO } from "../engine/dates";
 import { haptic } from "./haptics";
 import {
   finishStep,
@@ -402,6 +402,87 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
  * A day as a vertical timeline. Hats are tags. Routines check themselves off
  * as their time passes; tap the circle if one was skipped.
  */
+/**
+ * What you can do with one of your own events from Today. A repeating one can skip just this
+ * day, end the series here, or go entirely.
+ */
+function EventOptions({
+  eventId,
+  date,
+  onDone,
+}: {
+  eventId: string;
+  date: string;
+  onDone: () => void;
+}) {
+  const a = usePersonal();
+  const e = a.data.events.find((x) => x.id === eventId);
+  if (!e) return null;
+  const remove = () => {
+    a.mutate((d) => {
+      d.events = d.events.filter((x) => x.id !== eventId);
+    });
+    a.say(e.repeat ? `Removed every ${e.title}` : `Removed ${e.title}`);
+    onDone();
+  };
+  if (!e.repeat) {
+    const dayName = ["Sunday", "Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday"][
+      fromISO(e.date).getDay()
+    ];
+    return (
+      <Row>
+        <Button
+          title={`Repeat every ${dayName}`}
+          small
+          icon="calendar"
+          onPress={() => {
+            a.mutate((d) => {
+              const x = d.events.find((y) => y.id === eventId);
+              if (x) x.repeat = { freq: "week", every: 1, days: [fromISO(x.date).getDay()] };
+            });
+            a.say(`${e.title} now repeats every ${dayName}.`);
+            onDone();
+          }}
+        />
+        <Button title="Remove event" small quiet onPress={remove} />
+      </Row>
+    );
+  }
+  return (
+    <View style={{ gap: 6, flexBasis: "100%" }}>
+      <Row>
+        <Button
+          title="Skip just this one"
+          small
+          quiet
+          onPress={() => {
+            a.mutate((d) => {
+              const x = d.events.find((y) => y.id === eventId);
+              if (x) x.skip = [...(x.skip ?? []), date];
+            });
+            a.say(`Skipped ${e.title} on ${fmtRelative(date, a.today)}.`);
+            onDone();
+          }}
+        />
+        <Button
+          title={date === e.date ? "Remove all" : "Stop from here on"}
+          small
+          quiet
+          onPress={() => {
+            if (date === e.date) return remove();
+            a.mutate((d) => {
+              const x = d.events.find((y) => y.id === eventId);
+              if (x?.repeat) x.repeat = { ...x.repeat, until: addDays(date, -1) };
+            });
+            a.say(`${e.title} won’t repeat after this.`);
+            onDone();
+          }}
+        />
+      </Row>
+    </View>
+  );
+}
+
 export function Timeline({
   items,
   allDay,
@@ -443,15 +524,19 @@ export function Timeline({
             marginBottom: 6,
           }}
         >
-          {allDay.map((e) => (
+          {allDay.map((e) => {
+            const mine = a.data.events.some((x) => x.id === e.id && x.source === "hats");
+            return (
             <Pressable
               key={e.id}
-              accessibilityRole={e.hat ? "button" : undefined}
+              accessibilityRole={mine || e.hat ? "button" : undefined}
               accessibilityLabel={`All day: ${e.title}`}
-              accessibilityHint={e.hat ? `Opens ${hatDef(e.hat).name}` : undefined}
-              disabled={!e.hat}
+              accessibilityHint={mine ? "Shows options" : e.hat ? `Opens ${hatDef(e.hat).name}` : undefined}
+              disabled={!mine && !e.hat}
               onPress={() =>
-                e.hat && router.push({ pathname: "/hat/[id]", params: { id: e.hat } })
+                mine
+                  ? setOpen(open === `allday:${e.id}` ? null : `allday:${e.id}`)
+                  : e.hat && router.push({ pathname: "/hat/[id]", params: { id: e.hat } })
               }
               style={{
                 flexDirection: "row",
@@ -470,7 +555,15 @@ export function Timeline({
                 All day · {e.title}
               </T>
             </Pressable>
-          ))}
+            );
+          })}
+          {open?.startsWith("allday:") ? (
+            <EventOptions
+              eventId={open.slice(7)}
+              date={date}
+              onDone={() => setOpen(null)}
+            />
+          ) : null}
         </View>
       ) : null}
       {earlier.length ? (
@@ -688,26 +781,12 @@ export function Timeline({
                 )}
               </Pressable>
             </View>
-            {open === item.id && removable ? (
-              <View
-                style={{
-                  flexDirection: "row",
-                  gap: 8,
-                  paddingLeft: 78,
-                  paddingBottom: 8,
-                }}
-              >
-                <Button
-                  title="Remove event"
-                  small
-                  quiet
-                  onPress={() => {
-                    a.mutate((d) => {
-                      d.events = d.events.filter((e) => e.id !== item.eventId);
-                    });
-                    a.say(`Removed ${item.title}`);
-                    setOpen(null);
-                  }}
+            {open === item.id && removable && item.eventId ? (
+              <View style={{ paddingLeft: 78, paddingBottom: 8 }}>
+                <EventOptions
+                  eventId={item.eventId}
+                  date={date}
+                  onDone={() => setOpen(null)}
                 />
               </View>
             ) : null}

@@ -1,6 +1,7 @@
 import { addDays, weekday } from "../engine/dates";
 import { mealFor, planDay } from "./engine";
 import { recipeById } from "./recipes";
+import { eventOn, eventsOn, repeatLabel, taskRule } from "./repeat";
 import type { HatArtId } from "./hatArt";
 import { HATS, type PersonalData, type PersonalHat, hatDef } from "./model";
 import { isBathNight, isWorkday, routinePrefs } from "./routine";
@@ -204,7 +205,7 @@ export function dayTimeline(
     const meeting = isFree(b)
       ? data.events.find(
           (e) =>
-            e.date === date &&
+            eventOn(e, date) &&
             !e.allDay &&
             mins(e.start) >= mins(b.start) - 10 &&
             mins(e.start) < mins(b.end) - 10 &&
@@ -235,10 +236,14 @@ export function dayTimeline(
         (isToday && mins(meeting ? meeting.end : b.end) <= nowMin),
     });
   }
-  for (const e of data.events.filter((e) => e.date === date)) {
+  for (const e of eventsOn(data, date)) {
     if (merged.has(e.id)) continue;
     if (e.allDay) {
-      allDay.push({ id: e.id, title: e.title, hat: e.hat });
+      allDay.push({
+        id: e.id,
+        title: e.repeat ? `${e.title} (${repeatLabel(e.repeat, e.date).toLowerCase()})` : e.title,
+        hat: e.hat,
+      });
       continue;
     }
     items.push({
@@ -248,7 +253,12 @@ export function dayTimeline(
       end: e.end,
       title: e.title,
       detail:
-        e.location || (e.source === "google" ? "Google Calendar" : undefined),
+        [
+          e.repeat ? repeatLabel(e.repeat, e.date) : "",
+          e.location || (e.source === "google" ? "Google Calendar" : ""),
+        ]
+          .filter(Boolean)
+          .join(" · ") || undefined,
       hat: e.hat ? hatDef(e.hat, data.customHats).art : "safari",
       tag: e.hat,
       source: e.source,
@@ -266,7 +276,9 @@ export function dayTimeline(
       title: x.task.title,
       detail: x.task.steps.length
         ? `${x.task.steps.filter((s) => s.done).length}/${x.task.steps.length} · next: ${x.task.steps.find((s) => !s.done)?.title ?? ""}`
-        : hatDef(x.task.hat, data.customHats).name,
+        : taskRule(x.task)
+          ? repeatLabel(taskRule(x.task)!, x.task.date)
+          : hatDef(x.task.hat, data.customHats).name,
       hat: hatDef(x.task.hat, data.customHats).art,
       tag: x.task.hat,
       done: false,

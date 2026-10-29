@@ -14,6 +14,7 @@ import {
 import { fmtLong, fmtRelative, fmtTime } from "../../engine/dates";
 import { allHats, id, isHatId, type PersonalHat, hatDef } from "../../personal/model";
 import { groceryItems, sameItem } from "../../personal/recipes";
+import { repeatLabel } from "../../personal/repeat";
 import { usePersonal } from "../../personal/Store";
 import {
   Button,
@@ -215,7 +216,9 @@ function CaptureForm({
     setFlipped({});
     if (kind === "task" && understood.length) {
       const first = understood[0];
-      const when = `${fmtRelative(first.date, today)}${first.time ? ` · ${fmtTime(first.time, true)}` : ""}`;
+      const when = first.repeat
+        ? `${repeatLabel(first.repeat, first.date).toLowerCase()}${first.time ? ` at ${fmtTime(first.time, true)}` : ""}`
+        : `${fmtRelative(first.date, today)}${first.time ? ` · ${fmtTime(first.time, true)}` : ""}`;
       say(
         understood.length > 1
           ? `Added ${understood.length} things · first: ${when}`
@@ -500,8 +503,10 @@ function CaptureForm({
                   title={u.kind === "event" ? "📅 Event ⇄" : "☑ To-do ⇄"}
                   onPress={() => setFlipped({ ...flipped, [i]: !flipped[i] })}
                 />
-                <T size={13}>
-                  {fmtLong(u.date)}
+                <T size={13} style={{ flexShrink: 1 }}>
+                  {u.repeat
+                    ? `🔁 ${repeatLabel(u.repeat, u.date)} · starts ${fmtRelative(u.date, today)}`
+                    : fmtLong(u.date)}
                   {u.time
                     ? ` · ${fmtTime(u.time, true)}${u.kind === "event" ? `–${fmtTime(endOf(u.time, u.minutes), true)}` : ""}`
                     : u.kind === "event"
@@ -513,7 +518,8 @@ function CaptureForm({
           ))}
           <T size={12} muted>
             Tap Event / To-do to switch. Say a day (“Thursday”, “Nov 3”) and a
-            time (“at 5pm”) and it lands right there.
+            time (“at 5pm”) and it lands right there. Say “every Thursday”,
+            “weekdays”, or “the first Monday of the month” and it repeats.
           </T>
         </Panel>
       ) : null}

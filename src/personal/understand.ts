@@ -16,7 +16,9 @@ import {
   type PersonalEvent,
   type PersonalHat,
   type PersonalTask,
+  type RepeatRule,
 } from "./model";
+import { firstFrom, hearRepeat, settle } from "./repeat";
 
 export interface Understood {
   kind: "event" | "task";
@@ -26,9 +28,15 @@ export interface Understood {
   /** "HH:MM" or null (all-day event / flexible task) */
   time: string | null;
   minutes: number;
+  /** How it repeats, if it does ("every Thursday"); `date` is the first time. */
+  repeat?: RepeatRule;
   /** What Hats heard, for the preview chips. */
-  heard: { date?: string; time?: string; minutes?: string };
+  heard: { date?: string; time?: string; minutes?: string; repeat?: string };
 }
+
+/** Kids' activities and standing commitments: these go on the calendar, not the to-do list. */
+const ACTIVITY =
+  /\b(violin|viola|cello|piano|guitar lessons?|drum lessons?|swim(?:ming)?|soccer|basketball|baseball|softball|football|hockey|lacrosse|volleyball|tennis|dance|ballet|tap|jazz class|gymnastics|karate|taekwondo|jiu[- ]?jitsu|martial arts|scouts|brownies|tutoring|therapy|church|mass|choir|band|orchestra|rehearsal|club|camp|cheer|chess|art class|religious school|hebrew school|cub scouts)\b/i;
 
 const EVENT_WORDS =
   /\b(event|appointment|appt|dentist|doctor|pediatrician|checkup|check-up|class|lesson|practice|game|match|recital|concert|show|party|meeting|conference|visit|playdate|play date|sleepover|reservation|flight|haircut|vet appointment|school event|open house|field trip|movie|dinner with|lunch with|brunch|birthday party|wedding|funeral|game night|date night|tickets?)\b/i;
@@ -98,7 +106,9 @@ export function understand(
 ): Understood[] {
   if (!raw.trim()) return [];
   const items = splitCapture(raw).map((piece) => {
-    const p = parseCapture(piece, today);
+    // "every Thursday", "on Mondays", "monthly": take the repeat out, then read the rest.
+    const rep = hearRepeat(piece);
+    const p = parseCapture(rep ? rep.rest : piece, today);
     // Home life: a bare "at 7" for dinner, a date, a show, or tonight means evening.
     if (
       p.time &&
@@ -109,23 +119,33 @@ export function understand(
       EVENING.test(piece)
     )
       p.time = `${String(Number(p.time.slice(0, 2)) + 12).padStart(2, "0")}${p.time.slice(2)}`;
-    const eventish = EVENT_WORDS.test(piece);
     const chore = TASK_VERBS.test(piece.trim());
+    const eventish =
+      EVENT_WORDS.test(piece) ||
+      (!chore && ACTIVITY.test(piece)) ||
+      // "Ami has violin every Thursday": someone has a standing thing.
+      (!!rep && !chore && /\b(has|have|got)\b(?!\s+to\b)/i.test(piece));
     const kind: Understood["kind"] =
       eventish || (p.time && !chore) ? "event" : "task";
+    // A repeat starts on its first matching day, from the day said (or today).
+    const start = rep ? firstFrom(rep.rule, p.date ?? today) : null;
     return {
       kind,
       title: tidy(p.title),
       hat: hatFor(piece, data, fallbackHat),
       // A time that already passed today, with no day said, means tomorrow.
       date:
-        p.date ?? (p.time && mins(p.time) < nowMin ? addDays(today, 1) : today),
+        start ??
+        p.date ??
+        (p.time && mins(p.time) < nowMin ? addDays(today, 1) : today),
       time: p.time,
       minutes: p.minutes ?? (kind === "event" ? 60 : 20),
+      ...(rep && start ? { repeat: settle(rep.rule, start) } : {}),
       heard: {
         date: p.heard.date,
         time: p.heard.time,
         minutes: p.heard.minutes,
+        ...(rep ? { repeat: rep.said } : {}),
       },
       piece,
     };
@@ -133,6 +153,7 @@ export function understand(
   // Said on a Wednesday, "Wednesday" means next week ("today" means today).
   for (const u of items)
     if (
+      !u.repeat &&
       u.date === today &&
       u.heard.date &&
       /\b(mon|tue|wed|thu|fri|sat|sun)[a-z]*\b/i.test(u.heard.date)
@@ -184,10 +205,12 @@ export function addUnderstood(d: PersonalData, items: Understood[]) {
         allDay: !u.time,
         source: "hats",
         hat: u.hat,
+        ...(u.repeat ? { repeat: u.repeat } : {}),
       };
       d.events.push(ev);
     } else {
       const t: PersonalTask = makeTask(u.title, u.hat, u.date, {
+        ...(u.repeat ? { rule: u.repeat } : {}),
         time: u.time,
         minutes: Math.max(5, Math.min(240, u.minutes)),
         steps: /\blaundry\b/i.test(u.title)

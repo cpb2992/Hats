@@ -1,5 +1,6 @@
 import { HAT_ART_IDS, type HatArtId } from "./hatArt";
 import { libraryHat } from "./hatLibrary";
+import { validRule } from "./repeat";
 export type BuiltInHat =
   "husband" | "dad" | "pets" | "home" | "friends" | "myself" | "work";
 /** A hat you added yourself: "my-" and a short slug. */
@@ -160,6 +161,19 @@ export function customHatId(name: string, list: CustomHat[] = custom): CustomHat
   for (let n = 2; list.some((h) => h.id === id); n++) id = `my-${base}-${n}`;
   return id;
 }
+/**
+ * How something repeats. `every` is the interval (every other week = 2). Weekly rules list
+ * weekdays (0 = Sunday); monthly rules use a day of the month or the nth weekday (-1 = last).
+ */
+export interface RepeatRule {
+  freq: "day" | "week" | "month" | "year";
+  every: number;
+  days?: number[];
+  monthDay?: number;
+  nth?: { n: number; day: number };
+  /** Last date it happens, if it stops. */
+  until?: string;
+}
 export interface Step {
   title: string;
   done: boolean;
@@ -176,6 +190,8 @@ export interface PersonalTask {
   doneAt: string | null;
   steps: Step[];
   repeat: "none" | "daily" | "weekly" | "fortnightly";
+  /** How it repeats, when it does (newer to-dos; older ones use `repeat`). */
+  rule?: RepeatRule;
   createdAt: string;
   deferred: number;
   reason?: string;
@@ -220,6 +236,10 @@ export interface PersonalEvent {
   closure?: boolean;
   /** Which hat this belongs to (shown as a tag). */
   hat?: PersonalHat;
+  /** Repeats from `date` on (violin every Thursday). */
+  repeat?: RepeatRule;
+  /** Dates in the series that were skipped. */
+  skip?: string[];
 }
 export interface DatePlan {
   id: string;
@@ -603,6 +623,7 @@ export function validData(value: unknown): value is PersonalData {
           t.minutes <= 240 &&
           steps(t.steps) &&
           ["none", "daily", "weekly", "fortnightly"].includes(t.repeat) &&
+          (t.rule === undefined || validRule(t.rule)) &&
           typeof t.fixed === "boolean" &&
           typeof t.essential === "boolean",
       )
@@ -655,7 +676,9 @@ export function validData(value: unknown): value is PersonalData {
           time(e.start) &&
           time(e.end) &&
           typeof e.allDay === "boolean" &&
-          ["hats", "google"].includes(e.source),
+          ["hats", "google"].includes(e.source) &&
+          (e.repeat === undefined || validRule(e.repeat)) &&
+          (e.skip === undefined || (Array.isArray(e.skip) && e.skip.every(validDate))),
       )
     )
       return false;

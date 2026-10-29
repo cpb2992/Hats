@@ -1011,3 +1011,115 @@ test("birthdays show on the day and a week ahead, under the right hat", async ()
   assert.equal(soon[0]?.title, "Ava’s birthday is in a week");
   assert.equal(dayTimeline(d, "2026-10-30", 600, "2026-10-30").allDay.length, 0);
 });
+
+test("repeats: heard the way people say them, labeled plainly, and on the right days", async () => {
+  const { hearRepeat, occursOn, repeatLabel, firstFrom, settle } = await import("../repeat");
+  const h = (t: string) => hearRepeat(t)?.rule;
+  assert.deepEqual(h("Ami has violin every Thursday"), { freq: "week", every: 1, days: [4] });
+  assert.equal(hearRepeat("Ami has violin every Thursday at 4")?.rest, "Ami has violin at 4");
+  assert.deepEqual(h("piano on Mondays and Wednesdays"), { freq: "week", every: 1, days: [1, 3] });
+  assert.deepEqual(h("swim every other Saturday"), { freq: "week", every: 2, days: [6] });
+  assert.deepEqual(h("pack lunches every weekday"), { freq: "week", every: 1, days: [1, 2, 3, 4, 5] });
+  assert.deepEqual(h("book club the first Tuesday of every month"), { freq: "month", every: 1, nth: { n: 1, day: 2 } });
+  assert.deepEqual(h("pay rent on the 1st of every month"), { freq: "month", every: 1, monthDay: 1 });
+  assert.deepEqual(h("haircut every 6th")?.monthDay, 6);
+  assert.deepEqual(h("change the furnace filter monthly"), { freq: "month", every: 1 });
+  assert.deepEqual(h("water plants every other day"), { freq: "day", every: 2 });
+  assert.deepEqual(h("vitamins daily"), { freq: "day", every: 1 });
+  assert.deepEqual(h("date night every 2 weeks"), { freq: "week", every: 2 });
+  assert.deepEqual(h("anniversary dinner every year"), { freq: "year", every: 1 });
+  assert.equal(h("violin Thursday"), undefined);
+  assert.equal(h("dentist Tuesday at 4"), undefined);
+
+  // Every other Saturday counts weeks from the first one.
+  const sat = settle({ freq: "week", every: 2, days: [6] }, "2026-10-31");
+  assert.ok(occursOn(sat, "2026-10-31", "2026-11-14"));
+  assert.ok(!occursOn(sat, "2026-10-31", "2026-11-07"));
+  // The 31st in a short month lands on its last day; the last Friday is the last Friday.
+  assert.ok(occursOn({ freq: "month", every: 1, monthDay: 31 }, "2026-10-31", "2026-11-30"));
+  assert.ok(occursOn({ freq: "month", every: 1, nth: { n: -1, day: 5 } }, "2026-10-30", "2026-11-27"));
+  assert.ok(!occursOn({ freq: "month", every: 1, nth: { n: -1, day: 5 } }, "2026-10-30", "2026-11-20"));
+  // It stops when it's told to.
+  assert.ok(!occursOn({ freq: "week", every: 1, days: [4], until: "2026-11-10" }, "2026-10-29", "2026-11-12"));
+  assert.equal(firstFrom({ freq: "week", every: 1, days: [2] }, "2026-10-29"), "2026-11-03");
+
+  assert.equal(repeatLabel({ freq: "week", every: 1, days: [4] }, "2026-10-29"), "Every Thursday");
+  assert.equal(repeatLabel({ freq: "week", every: 2, days: [6] }, "2026-10-31"), "Every other Saturday");
+  assert.equal(repeatLabel({ freq: "week", every: 1, days: [1, 3] }, "2026-11-02"), "Every Monday and Wednesday");
+  assert.equal(repeatLabel({ freq: "week", every: 1, days: [1, 2, 3, 4, 5] }, "2026-11-02"), "Every weekday");
+  assert.equal(repeatLabel({ freq: "month", every: 1, nth: { n: 1, day: 2 } }, "2026-11-03"), "Monthly on the first Tuesday");
+  assert.equal(repeatLabel({ freq: "month", every: 1, monthDay: 1 }, "2026-11-01"), "Monthly on the 1st");
+});
+
+test("“Ami has violin every Thursday” shows up every Thursday", async () => {
+  const { understand, addUnderstood } = await import("../understand");
+  const { dayTimeline } = await import("../timeline");
+  const { eventsOn } = await import("../repeat");
+  const thu = "2026-10-29";
+  const d = freshPersonal();
+  d.people.push({ id: "ami", name: "Ami", role: "child", interests: "", detail: "" });
+
+  const [u] = understand("Ami has violin every Thursday at 4:30", d, thu, "home");
+  assert.equal(u.kind, "event");
+  assert.equal(u.title, "Ami has violin");
+  assert.equal(u.hat, "dad");
+  assert.equal(u.date, thu);
+  assert.equal(u.time, "16:30");
+  assert.deepEqual(u.repeat, { freq: "week", every: 1, days: [4] });
+  addUnderstood(d, [u]);
+  assert.equal(validData(d), true);
+  for (const day of ["2026-10-29", "2026-11-05", "2026-11-12", "2026-12-31"])
+    assert.equal(eventsOn(d, day).length, 1, day);
+  assert.equal(eventsOn(d, "2026-11-06").length, 0);
+  const row = dayTimeline(d, "2026-11-05", 600, thu).items.find((i) => i.kind === "event");
+  assert.equal(row?.title, "Ami has violin");
+  assert.equal(row?.detail, "Every Thursday");
+
+  // Said without a time: still every Thursday, as an all-day item.
+  const [v] = understand("Ami has violin every Thursday", d, "2026-10-30", "home");
+  assert.equal(v.kind, "event");
+  assert.equal(v.date, "2026-11-05");
+
+  // Skipping one week and stopping later both stick.
+  d.events[0].skip = ["2026-11-12"];
+  assert.equal(eventsOn(d, "2026-11-12").length, 0);
+  d.events[0].repeat = { ...d.events[0].repeat!, until: "2026-11-25" };
+  assert.equal(eventsOn(d, "2026-11-26").length, 0);
+  assert.equal(validData(d), true);
+
+  // Monthly and multi-day repeats, events and to-dos.
+  const [club] = understand("Book club the first Tuesday of every month at 7pm", d, thu, "friends");
+  assert.equal(club.date, "2026-11-03");
+  assert.equal(club.time, "19:00");
+  const [rent] = understand("pay rent on the 1st of every month", d, thu, "home");
+  assert.equal(rent.kind, "task");
+  assert.equal(rent.date, "2026-11-01");
+  assert.deepEqual(rent.repeat, { freq: "month", every: 1, monthDay: 1 });
+  const [piano] = understand("piano on Mondays and Wednesdays at 5", d, thu, "dad");
+  assert.equal(piano.kind, "event");
+  assert.equal(piano.date, "2026-11-02");
+  // A one-time thing stays one time.
+  const [once] = understand("dentist Thursday at 4", d, "2026-10-28", "home");
+  assert.equal(once.repeat, undefined);
+  assert.equal(once.date, thu);
+});
+
+test("repeating to-dos come back on their days, even ones Hats wasn't opened on", () => {
+  const d = freshPersonal();
+  const trash = makeTask("Take out the trash", "home", "2026-11-03", {
+    rule: { freq: "week", every: 1, days: [2] },
+  });
+  d.tasks.push(trash);
+  assert.equal(validData(d), true);
+  assert.equal(materialize(d, "2026-11-09"), false); // the first one is still open
+  trash.doneAt = "2026-11-03T20:00:00.000Z";
+  assert.equal(materialize(d, "2026-11-09"), false); // Monday: not due yet
+  assert.equal(materialize(d, "2026-11-10"), true); // Tuesday
+  assert.equal(d.tasks.at(-1)?.date, "2026-11-10");
+  assert.equal(materialize(d, "2026-11-10"), false); // one open copy at a time
+  d.tasks.at(-1)!.doneAt = "2026-11-10T20:00:00.000Z";
+  // Missed Tuesday the 17th; opening Hats on Thursday still brings it back.
+  assert.equal(materialize(d, "2026-11-19"), true);
+  assert.equal(d.tasks.at(-1)?.date, "2026-11-19");
+  assert.equal(validData({ ...d, tasks: [{ ...trash, rule: { freq: "week", every: 0 } as never }] }), false);
+});

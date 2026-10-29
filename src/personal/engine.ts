@@ -1,5 +1,6 @@
 import { routineBlocks } from "./routine";
 import { dinnerFor, missingFor } from "./meals";
+import { eventsOn, lastBetween, taskRule } from "./repeat";
 import {
   addDays,
   daysBetween,
@@ -51,30 +52,34 @@ export function finishStep(task: PersonalTask, now = new Date().toISOString()) {
 export const nextStep = (t: PersonalTask) =>
   t.steps.find((s) => !s.done)?.title ?? t.title;
 
+/**
+ * Repeating to-dos: when a series comes due (the trash every Tuesday, a check-in on the first
+ * of the month), add today's copy. One open copy per series, so a missed one stays visible
+ * instead of piling up a backlog.
+ */
 export function materialize(data: PersonalData, today: string): boolean {
   let changed = false;
-  const originals = [...data.tasks];
-  for (const task of originals) {
-    if (task.repeat === "none" || task.date >= today) continue;
-    const period =
-      task.repeat === "daily" ? 1 : task.repeat === "fortnightly" ? 14 : 7;
-    if (task.repeat !== "daily" && daysBetween(task.date, today) % period !== 0)
-      continue;
-    // One current instance per series; unfinished steps stay visible instead of creating a backlog.
-    const source = task.source ?? task.id;
-    if (data.tasks.some((t) => !t.doneAt && (t.source ?? t.id) === source))
-      continue;
-    if (data.tasks.some((t) => t.date === today && t.source === source))
-      continue;
-    if (daysBetween(task.date, today) < period) continue;
+  const series = new Map<string, PersonalTask[]>();
+  for (const t of data.tasks) {
+    if (!taskRule(t)) continue;
+    const key = t.source ?? t.id;
+    series.set(key, [...(series.get(key) ?? []), t]);
+  }
+  for (const [source, copies] of series) {
+    const first = copies.reduce((a, b) => (b.date < a.date ? b : a));
+    const latest = copies.reduce((a, b) => (b.date > a.date ? b : a));
+    const rule = taskRule(latest)!;
+    if (latest.date >= today) continue;
+    if (copies.some((t) => !t.doneAt)) continue;
+    // Due if it happened since the last copy, even on a day Hats wasn't opened.
+    if (!lastBetween(rule, first.date, latest.date, today)) continue;
     data.tasks.push({
-      ...task,
+      ...latest,
       id: id(),
       source,
       date: today,
-      time: task.time,
       doneAt: null,
-      steps: task.steps.map((s) => ({ title: s.title, done: false })),
+      steps: latest.steps.map((s) => ({ title: s.title, done: false })),
       deferred: 0,
       createdAt: new Date().toISOString(),
     });
@@ -94,13 +99,13 @@ export function dayWindows(
   date: string,
 ): { start: number; end: number }[] {
   const p = data.preferences;
-  const dayOff = data.events.some((e) => e.date === date && e.closure);
+  const dayOff = eventsOn(data, date).some((e) => e.closure);
   const weekdayBusy = p.unavailableDays.includes(weekday(date)) && !dayOff;
   const start = minutesOf(weekdayBusy ? p.homeTime : p.weekendStart);
   const end = minutesOf(weekdayBusy ? p.endTime : p.weekendEnd);
   let windows = end > start ? [{ start, end }] : [];
-  const blocked = data.events
-    .filter((e) => e.date === date && !e.allDay)
+  const blocked = eventsOn(data, date)
+    .filter((e) => !e.allDay)
     .map((e) => ({ start: minutesOf(e.start), end: minutesOf(e.end) }));
   // Keep the family's evening rhythm free (dinner, bath night, stories, bedtime).
   blocked.push(...routineBlocks(data, date));
