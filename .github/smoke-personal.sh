@@ -51,13 +51,24 @@ tap_label "What should Hats call you" 3 && sleep 1 && adb shell input text "Sam"
 adb shell input keyevent KEYCODE_BACK; sleep 1
 tap_label "Make room for what matters" 6 && sleep 5
 shot b-today
-seen "Today|Kitchen reset" "Today screen after setup"
+seen "TODAY|Kitchen reset" "Home day card after setup"
 TAP_MAXY=$H
-for tab in "My hats" "Plan" "Capture" "Today"; do
-  tap_label "^\|?$tab|$tab$" 2 && sleep 3
+for tab in "Meals" "Family" "Me" "Home"; do
+  tap_label "^$tab\|?$|^\|$tab$" 2 && sleep 3
   shot "b-tab-${tab// /-}"
 done
 unset TAP_MAXY
+# Day cards: swipe to tomorrow and back; open the log of what Hats did.
+adb shell input swipe $((W * 85 / 100)) $((H / 2)) $((W * 15 / 100)) $((H / 2)) 250; sleep 2
+shot b-day-next
+seen "TOMORROW|Tomorrow" "swiping shows tomorrow's card"
+adb shell input swipe $((W * 15 / 100)) $((H / 2)) $((W * 85 / 100)) $((H / 2)) 250; sleep 2
+tap_label "What Hats did|Hats did" 2 && sleep 3
+shot b-log
+seen "never sends, books, or pays" "What Hats did opens"
+adb shell input keyevent KEYCODE_BACK; sleep 2
+tap_label "Tell Hats" 2 && sleep 3
+shot b-capture
 adb shell am start -W -a android.intent.action.VIEW -d "hats://settings" $PKG
 sleep 5
 shot b-settings
