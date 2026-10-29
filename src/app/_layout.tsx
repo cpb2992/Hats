@@ -24,6 +24,7 @@ import { Loading, P, T } from "../personal/ui";
 import { Hat } from "../personal/Hat";
 import { Intro } from "../personal/Intro";
 import { CelebrationLayer } from "../personal/Celebrate";
+import { Automations } from "../personal/Automate";
 
 SplashScreen.preventAutoHideAsync().catch(() => {});
 // The hat-tower intro plays once per app launch, not on every remount.
@@ -79,7 +80,10 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="task/[id]" options={{ presentation: "modal" }} />
         <Stack.Screen name="hat/[id]" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="log" />
+        <Stack.Screen name="hats" />
       </Stack>
+      <Automations />
       {message ? (
         <View
           pointerEvents="box-none"

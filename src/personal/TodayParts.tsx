@@ -20,7 +20,8 @@ import {
   nowAndNext,
   type TimelineItem,
 } from "./timeline";
-import { Button, P, Row, T, sticker } from "./ui";
+import { setSkipped } from "./auto";
+import { Button, HatTag, P, Row, T, sticker } from "./ui";
 
 const MILESTONES = [3, 7, 14, 21, 30, 50, 100];
 
@@ -139,25 +140,44 @@ export function StreakStrip() {
   );
 }
 
-function toggleRoutine(a: Actions, item: TimelineItem) {
-  const was = item.done;
+/**
+ * Routines run themselves. Tapping a step that counts as done means it was
+ * skipped; tapping a skipped one puts it back; tapping an upcoming one marks
+ * it done early.
+ */
+export function toggleRoutine(a: Actions, item: TimelineItem, date = a.today) {
+  const passed =
+    date < a.today ||
+    (date === a.today && minutesOfDay(item.end ?? item.time) <= a.nowMin);
+  const key = item.key!;
   a.mutate((d) => {
     d.routineDone ??= {};
-    const list = d.routineDone[a.today] ?? [];
-    d.routineDone[a.today] = was
-      ? list.filter((k) => k !== item.key)
-      : [...list, item.key!];
-    // Keep a short history only.
+    const list = d.routineDone[date] ?? [];
+    if (item.skipped) {
+      setSkipped(d, date, key, false);
+      if (!passed) d.routineDone[date] = [...list, key];
+    } else if (item.done) {
+      if (passed) setSkipped(d, date, key, true);
+      else d.routineDone[date] = list.filter((k) => k !== key);
+    } else d.routineDone[date] = [...list, key];
     for (const day of Object.keys(d.routineDone))
       if (day < addDays(a.today, -21)) delete d.routineDone[day];
   });
-  if (was) haptic("tap");
-  a.say(was ? `${item.title} · not done` : `${item.title} · done`);
-  if (!was)
+  if (item.done) {
+    haptic("tap");
+    a.say(
+      passed ? `${item.title} · marked skipped` : `${item.title} · not done`,
+    );
+    return;
+  }
+  a.say(
+    item.skipped ? `${item.title} · done after all` : `${item.title} · done`,
+  );
+  if (!item.skipped)
     a.celebrate({
       hat: item.hat,
-      big: item.key === "bedtime",
-      title: item.key === "bedtime" ? "Kids down. Nice work." : undefined,
+      big: key === "bedtime",
+      title: key === "bedtime" ? "Kids down. Nice work." : undefined,
     });
 }
 
@@ -327,22 +347,29 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
   );
 }
 
-/** A day as a gentle vertical timeline. Tap the circle to check things off. */
+/**
+ * A day as a vertical timeline. Hats are tags. Routines check themselves off
+ * as their time passes; tap the circle if one was skipped.
+ */
 export function Timeline({
   items,
   allDay,
-  isToday,
+  date,
 }: {
   items: TimelineItem[];
-  allDay: { id: string; title: string }[];
-  isToday: boolean;
+  allDay: { id: string; title: string; hat?: Habit["hat"] }[];
+  date: string;
 }) {
   const a = usePersonal();
+  const isToday = date === a.today;
+  const past = date < a.today;
   const [showEarlier, setShowEarlier] = useState(false);
+  const [open, setOpen] = useState<string | null>(null);
   const earlier = isToday
     ? items.filter(
         (i) =>
-          (i.done || isFaded(i, a.nowMin)) && minutesOfDay(i.time) < a.nowMin,
+          (i.done || isFaded(i, a.nowMin)) &&
+          minutesOfDay(i.end ?? i.time) <= a.nowMin,
       )
     : [];
   const hidden = showEarlier
@@ -355,25 +382,38 @@ export function Timeline({
   const rows: (TimelineItem | "now")[] = [...shown];
   if (isToday) rows.splice(nowIndex === -1 ? rows.length : nowIndex, 0, "now");
   return (
-    <View style={{ gap: 0 }}>
+    <View>
       {allDay.length ? (
-        <Row>
+        <View
+          style={{
+            flexDirection: "row",
+            flexWrap: "wrap",
+            gap: 6,
+            marginBottom: 6,
+          }}
+        >
           {allDay.map((e) => (
             <View
               key={e.id}
               style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 4,
                 backgroundColor: P.sky,
                 borderRadius: 14,
+                borderWidth: 1.5,
+                borderColor: P.ink,
                 paddingHorizontal: 10,
-                paddingVertical: 5,
+                paddingVertical: 4,
               }}
             >
+              {e.hat ? <Hat id={HATS[e.hat].art} size={16} /> : null}
               <T size={12} bold>
                 All day · {e.title}
               </T>
             </View>
           ))}
-        </Row>
+        </View>
       ) : null}
       {earlier.length ? (
         <Pressable
@@ -384,19 +424,17 @@ export function Timeline({
             flexDirection: "row",
             alignItems: "center",
             gap: 8,
-            minHeight: 36,
+            minHeight: 40,
           }}
         >
-          <T size={12} muted style={{ width: 62, textAlign: "right" }}>
-            Earlier
-          </T>
-          <View style={{ width: 10, alignItems: "center" }}>
-            <View style={{ width: 2, height: 16, backgroundColor: P.line }} />
+          <View style={{ width: 58 }} />
+          <View style={{ width: 12, alignItems: "center" }}>
+            <View style={{ width: 2, height: 18, backgroundColor: P.line }} />
           </View>
           <T size={13} bold muted>
             {showEarlier
               ? "Hide earlier"
-              : `${earlier.length} earlier ${earlier.length === 1 ? "step" : "steps"} · show`}
+              : `✓ ${earlier.length} earlier · show`}
           </T>
         </Pressable>
       ) : null}
@@ -410,145 +448,207 @@ export function Timeline({
                 flexDirection: "row",
                 alignItems: "center",
                 gap: 8,
-                marginVertical: 2,
+                marginVertical: 3,
               }}
             >
               <T
                 size={11}
                 bold
                 color={P.orange}
-                style={{ width: 62, textAlign: "right" }}
+                style={{ width: 58, textAlign: "right" }}
               >
                 NOW
               </T>
-              <View
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 5,
-                  backgroundColor: P.orange,
-                }}
-              />
+              <View style={{ width: 12, alignItems: "center" }}>
+                <View
+                  style={{
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: P.orange,
+                  }}
+                />
+              </View>
               <View style={{ flex: 1, height: 2, backgroundColor: P.orange }} />
             </View>
           );
         const item = row;
         const checkable =
-          isToday && (item.kind === "routine" || item.kind === "task");
+          (item.kind === "routine" && !(date > a.today)) ||
+          (item.kind === "task" && isToday);
+        const faded =
+          item.done || item.skipped || (isToday && isFaded(item, a.nowMin));
+        const detail = item.skipped
+          ? "Skipped · tap the circle if it happened"
+          : item.auto
+            ? "Done automatically · tap if skipped"
+            : item.detail;
+        const removable = item.kind === "event" && item.source === "hats";
         return (
-          <View
-            key={item.id}
-            style={{
-              flexDirection: "row",
-              gap: 8,
-              opacity:
-                item.done || (isToday && isFaded(item, a.nowMin)) ? 0.5 : 1,
-            }}
-          >
-            <T
-              size={12}
-              muted
-              style={{ width: 62, textAlign: "right", paddingTop: 12 }}
-            >
-              {fmtTime(item.time, true)}
-            </T>
-            <View style={{ alignItems: "center", width: 10 }}>
-              <View
-                style={{
-                  width: 2,
-                  flex: 1,
-                  backgroundColor: i === 0 ? "transparent" : P.line,
-                }}
-              />
-              <View
-                style={{
-                  width: 10,
-                  height: 10,
-                  borderRadius: 5,
-                  backgroundColor: item.done ? P.ink : P.paper,
-                  borderWidth: 2,
-                  borderColor: P.ink,
-                }}
-              />
-              <View
-                style={{
-                  width: 2,
-                  flex: 1,
-                  backgroundColor:
-                    i === rows.length - 1 ? "transparent" : P.line,
-                }}
-              />
-            </View>
-            <Pressable
-              accessibilityRole="button"
-              accessibilityLabel={`${item.title}${item.done ? ", done" : ""}`}
-              onPress={() =>
-                item.taskId
-                  ? router.push({
-                      pathname: "/task/[id]",
-                      params: { id: item.taskId },
-                    })
-                  : item.key === "dinner"
-                    ? router.push("/hat/home")
-                    : undefined
-              }
+          <View key={item.id}>
+            <View
               style={{
-                flex: 1,
                 flexDirection: "row",
-                alignItems: "center",
-                gap: 10,
-                paddingVertical: 7,
-                minHeight: 48,
+                gap: 8,
+                opacity: faded ? 0.55 : 1,
               }}
             >
-              <Hat id={item.hat} size={30} tilt={-6} />
-              <View style={{ flex: 1 }}>
-                <T
-                  bold
-                  size={15}
+              <T
+                size={12}
+                muted
+                style={{ width: 58, textAlign: "right", paddingTop: 14 }}
+              >
+                {fmtTime(item.time, true)}
+              </T>
+              <View style={{ alignItems: "center", width: 12 }}>
+                <View
                   style={{
-                    textDecorationLine: item.done ? "line-through" : "none",
+                    width: 2,
+                    height: 16,
+                    backgroundColor: i === 0 ? "transparent" : P.line,
                   }}
-                >
-                  {item.title}
-                </T>
-                {item.detail ? (
-                  <T size={12} muted numberOfLines={1}>
-                    {item.detail}
-                  </T>
-                ) : null}
-              </View>
-              {checkable ? (
-                <Pressable
-                  accessibilityRole="checkbox"
-                  accessibilityState={{ checked: item.done }}
-                  accessibilityLabel={`Mark ${item.title} ${item.done ? "not done" : "done"}`}
-                  hitSlop={8}
-                  onPress={() =>
-                    item.kind === "routine"
-                      ? toggleRoutine(a, item)
-                      : item.taskId && finishTaskStep(a, item.taskId)
-                  }
+                />
+                <View
                   style={{
-                    width: 28,
-                    height: 28,
-                    borderRadius: 14,
+                    width: 10,
+                    height: 10,
+                    borderRadius: 5,
+                    backgroundColor: item.done ? P.ink : P.paper,
                     borderWidth: 2,
-                    borderColor: item.done ? P.ink : "#9AA5B5",
-                    backgroundColor: item.done ? P.sun : P.paper,
-                    alignItems: "center",
-                    justifyContent: "center",
+                    borderColor: P.ink,
                   }}
-                >
-                  <T bold size={15}>
-                    {item.done ? "✓" : ""}
+                />
+                <View
+                  style={{
+                    width: 2,
+                    flex: 1,
+                    backgroundColor:
+                      i === rows.length - 1 ? "transparent" : P.line,
+                  }}
+                />
+              </View>
+              <Pressable
+                accessibilityRole="button"
+                accessibilityLabel={`${item.title}${item.done ? ", done" : item.skipped ? ", skipped" : ""}`}
+                onPress={() =>
+                  item.taskId
+                    ? router.push({
+                        pathname: "/task/[id]",
+                        params: { id: item.taskId },
+                      })
+                    : item.key === "dinner"
+                      ? router.push("/meals")
+                      : removable
+                        ? setOpen(open === item.id ? null : item.id)
+                        : undefined
+                }
+                style={{
+                  flex: 1,
+                  flexDirection: "row",
+                  alignItems: "center",
+                  gap: 10,
+                  paddingVertical: 8,
+                  minHeight: 54,
+                }}
+              >
+                <View style={{ flex: 1, gap: 3 }}>
+                  <T
+                    bold
+                    size={15}
+                    style={{
+                      textDecorationLine: item.done ? "line-through" : "none",
+                    }}
+                  >
+                    {item.title}
                   </T>
-                </Pressable>
-              ) : null}
-            </Pressable>
+                  <View
+                    style={{
+                      flexDirection: "row",
+                      alignItems: "center",
+                      gap: 6,
+                    }}
+                  >
+                    {item.tag ? <HatTag hat={item.tag} /> : null}
+                    {detail ? (
+                      <T
+                        size={12}
+                        muted
+                        numberOfLines={1}
+                        style={{ flexShrink: 1 }}
+                      >
+                        {detail}
+                      </T>
+                    ) : null}
+                  </View>
+                </View>
+                {checkable ? (
+                  <Pressable
+                    accessibilityRole="checkbox"
+                    accessibilityState={{ checked: item.done }}
+                    accessibilityLabel={
+                      item.kind === "routine" &&
+                      item.done &&
+                      (past || item.auto)
+                        ? `${item.title} was skipped`
+                        : `Mark ${item.title} ${item.done ? "not done" : "done"}`
+                    }
+                    hitSlop={10}
+                    onPress={() =>
+                      item.kind === "routine"
+                        ? toggleRoutine(a, item, date)
+                        : item.taskId && finishTaskStep(a, item.taskId)
+                    }
+                    style={{
+                      width: 30,
+                      height: 30,
+                      borderRadius: 15,
+                      borderWidth: 2,
+                      borderColor: item.done ? P.ink : "#9AA5B5",
+                      backgroundColor: item.done ? P.sun : P.paper,
+                      alignItems: "center",
+                      justifyContent: "center",
+                    }}
+                  >
+                    <T bold size={15}>
+                      {item.done ? "✓" : item.skipped ? "–" : ""}
+                    </T>
+                  </Pressable>
+                ) : (
+                  <View style={{ width: 30 }} />
+                )}
+              </Pressable>
+            </View>
+            {open === item.id && removable ? (
+              <View
+                style={{
+                  flexDirection: "row",
+                  gap: 8,
+                  paddingLeft: 78,
+                  paddingBottom: 8,
+                }}
+              >
+                <Button
+                  title="Remove event"
+                  small
+                  quiet
+                  onPress={() => {
+                    a.mutate((d) => {
+                      d.events = d.events.filter((e) => e.id !== item.eventId);
+                    });
+                    a.say(`Removed ${item.title}`);
+                    setOpen(null);
+                  }}
+                />
+              </View>
+            ) : null}
           </View>
         );
       })}
+      {!items.length && !allDay.length ? (
+        <T muted style={{ paddingVertical: 12, textAlign: "center" }}>
+          Wide open. Tap the mic to add something.
+        </T>
+      ) : null}
     </View>
   );
 }

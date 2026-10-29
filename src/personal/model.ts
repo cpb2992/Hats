@@ -110,6 +110,8 @@ export interface PersonalEvent {
   externalId?: string;
   location?: string;
   closure?: boolean;
+  /** Which hat this belongs to (shown as a tag). */
+  hat?: PersonalHat;
 }
 export interface DatePlan {
   id: string;
@@ -219,6 +221,27 @@ export interface PersonalData {
   habits?: Habit[];
   /** Routine steps checked off, by day: { "2026-10-28": ["dinner", "bath"] }. */
   routineDone?: Record<string, string[]>;
+  /** Routine steps that did NOT happen. Past steps count as done unless listed here. */
+  routineSkipped?: Record<string, string[]>;
+  /** "What Hats did": automatic changes, newest last, each undoable. */
+  log?: LogEntry[];
+  /** Automations you undid for a day, so Hats doesn't redo them: { "2026-10-29": ["lighter"] }. */
+  autoDeclined?: Record<string, string[]>;
+}
+export type UndoOp =
+  | { t: "removeTasks"; ids: string[] }
+  | { t: "removeEvents"; ids: string[] }
+  | { t: "notLighter"; date: string }
+  | { t: "clearDinners"; dates: string[]; groceries: string[] };
+export interface LogEntry {
+  id: string;
+  at: string;
+  date: string;
+  hat: PersonalHat;
+  title: string;
+  detail?: string;
+  undo?: UndoOp;
+  undone?: boolean;
 }
 export const id = () =>
   `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
@@ -367,11 +390,26 @@ export function validData(value: unknown): value is PersonalData {
       (p.bathAnchor !== undefined && !validDate(p.bathAnchor))
     )
       return false;
+    for (const map of [v.routineDone, v.routineSkipped, v.autoDeclined])
+      if (
+        map !== undefined &&
+        (typeof map !== "object" ||
+          map === null ||
+          !Object.entries(map).every(
+            ([day, keys]) => validDate(day) && strings(keys),
+          ))
+      )
+        return false;
     if (
-      v.routineDone !== undefined &&
-      (typeof v.routineDone !== "object" ||
-        !Object.entries(v.routineDone).every(
-          ([day, keys]) => validDate(day) && strings(keys),
+      v.log !== undefined &&
+      (!Array.isArray(v.log) ||
+        !v.log.every(
+          (e) =>
+            e &&
+            text(e.id) &&
+            text(e.title) &&
+            validDate(e.date) &&
+            HAT_IDS.includes(e.hat),
         ))
     )
       return false;

@@ -1,27 +1,58 @@
 import { Redirect } from "expo-router";
 import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
 import { Pressable, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { usePersonal } from "../../personal/Store";
+import { haptic } from "../../personal/haptics";
 import { P, T, sticker } from "../../personal/ui";
 import { Hat } from "../../personal/Hat";
 import type { HatArtId } from "../../personal/hatArt";
 
 const tabs: Record<string, { title: string; hat: HatArtId }> = {
-  index: { title: "Today", hat: "sunhat" },
-  hats: { title: "My hats", hat: "stack" },
-  plan: { title: "Plan", hat: "safari" },
-  capture: { title: "Capture", hat: "wizard" },
+  index: { title: "Home", hat: "sunhat" },
+  meals: { title: "Meals", hat: "chef" },
+  family: { title: "Family", hat: "propeller" },
+  me: { title: "Me", hat: "pompom" },
 };
+const ORDER = ["index", "meals", "capture", "family", "me"];
+
+function Mic() {
+  return (
+    <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 5a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0zM19 10v1a7 7 0 0 1-14 0v-1M12 18v4"
+        stroke={P.sun}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
+    </Svg>
+  );
+}
+
 function Bar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const inset = useSafeAreaInsets();
+  const press = (key: string) => {
+    haptic("tap");
+    const e = emitter.emit({
+      type: "tabPress",
+      target: key,
+      canPreventDefault: true,
+    });
+    if (!e.defaultPrevented) navigateToTab(key);
+  };
+  const routes = ORDER.map((name) =>
+    state.routes.find((r) => r.name === name),
+  ).filter((r): r is (typeof state.routes)[number] => !!r);
+  const current = state.routes[state.index]?.name;
   return (
     <View
       style={{
         position: "absolute",
-        left: 16,
-        right: 16,
-        bottom: inset.bottom + 12,
+        left: 12,
+        right: 12,
+        bottom: inset.bottom + 10,
         alignItems: "center",
       }}
     >
@@ -29,38 +60,57 @@ function Bar({ state, emitter, navigateToTab }: BottomTabBarProps) {
         style={{
           maxWidth: 560,
           width: "100%",
+          height: 70,
           flexDirection: "row",
+          alignItems: "center",
           backgroundColor: P.paper,
-          borderRadius: 28,
-          padding: 6,
+          borderRadius: 26,
+          paddingHorizontal: 4,
           ...sticker(5),
         }}
       >
-        {state.routes.map((route, i) => {
+        {routes.map((route) => {
+          if (route.name === "capture")
+            return (
+              <View key={route.key} style={{ flex: 1, alignItems: "center" }}>
+                <Pressable
+                  accessibilityRole="button"
+                  accessibilityLabel="Tell Hats: talk, type, or snap a flyer"
+                  onPress={() => press(route.key)}
+                  style={({ pressed }) => ({
+                    width: 64,
+                    height: 64,
+                    marginTop: -34,
+                    borderRadius: 32,
+                    backgroundColor: P.ink,
+                    borderWidth: 3,
+                    borderColor: P.bg,
+                    alignItems: "center",
+                    justifyContent: "center",
+                    transform: [{ scale: pressed ? 0.94 : 1 }],
+                  })}
+                >
+                  <Mic />
+                </Pressable>
+              </View>
+            );
           const meta = tabs[route.name];
           if (!meta) return null;
-          const selected = i === state.index;
+          const selected = current === route.name;
           return (
             <Pressable
               key={route.key}
               accessibilityRole="tab"
               accessibilityState={{ selected }}
               accessibilityLabel={meta.title}
-              onPress={() => {
-                const e = emitter.emit({
-                  type: "tabPress",
-                  target: route.key,
-                  canPreventDefault: true,
-                });
-                if (!e.defaultPrevented) navigateToTab(route.key);
-              }}
+              onPress={() => press(route.key)}
               style={{
                 flex: 1,
-                minHeight: 64,
+                height: 58,
+                marginHorizontal: 2,
                 alignItems: "center",
                 justifyContent: "center",
-                gap: 1,
-                borderRadius: 22,
+                borderRadius: 20,
                 backgroundColor: selected ? P.sun : "transparent",
                 borderWidth: 2,
                 borderColor: selected ? P.ink : "transparent",
@@ -68,7 +118,7 @@ function Bar({ state, emitter, navigateToTab }: BottomTabBarProps) {
             >
               <Hat
                 id={meta.hat}
-                size={selected ? 38 : 32}
+                size={selected ? 32 : 28}
                 tilt={selected ? -8 : 0}
               />
               <T size={11} bold color={P.ink}>
@@ -94,9 +144,10 @@ export default function Layout() {
       }}
     >
       <Tabs.Screen name="index" />
-      <Tabs.Screen name="hats" />
-      <Tabs.Screen name="plan" />
+      <Tabs.Screen name="meals" />
       <Tabs.Screen name="capture" />
+      <Tabs.Screen name="family" />
+      <Tabs.Screen name="me" />
     </Tabs>
   );
 }

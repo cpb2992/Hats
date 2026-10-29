@@ -1,17 +1,18 @@
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
-import { HATS, HAT_IDS } from "../../personal/model";
-import { usePersonal } from "../../personal/Store";
-import { Header, Page, Panel, T, sticker } from "../../personal/ui";
-import { Hat } from "../../personal/Hat";
+import { HATS, HAT_IDS } from "../personal/model";
+import { usePersonal } from "../personal/Store";
+import { Header, Page, Panel, T, sticker } from "../personal/ui";
+import { Hat } from "../personal/Hat";
 export default function Hats() {
   const { data } = usePersonal();
   return (
-    <Page>
+    <Page tabs={false}>
       <Header
         title="All the hats you wear."
         subtitle="Separate spaces. One personal life."
         hat="stack"
+        back
       />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 14 }}>
         {HAT_IDS.map((id, index) => {

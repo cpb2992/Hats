@@ -147,6 +147,7 @@ export function addUnderstood(d: PersonalData, items: Understood[]) {
         end: u.time ? hhmm(mins(u.time) + u.minutes) : "23:59",
         allDay: !u.time,
         source: "hats",
+        hat: u.hat,
       };
       d.events.push(ev);
     } else {

@@ -13,7 +13,7 @@ import { whoopLine, whoopToday, type WhoopSummary } from "./whoop";
 
 const STALE_MS = 30 * 60_000;
 
-function useWhoop() {
+export function useWhoop() {
   const [summary, setSummary] = useState<WhoopSummary | null>(null);
   const [busy, setBusy] = useState(false);
   const [problem, setProblem] = useState("");

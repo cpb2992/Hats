@@ -443,7 +443,7 @@ test("timeline: evening rhythm, alternating bath nights, and what's 'now'", asyn
   assert.equal(isBathNight(d, wed), false);
   d.preferences.bathAnchor = wed;
 
-  const { items } = dayTimeline(d, wed, 17 * 60, true);
+  const { items } = dayTimeline(d, wed, 17 * 60, wed);
   const keys = items.filter((i) => i.kind === "routine").map((i) => i.key);
   assert.deepEqual(keys, [
     "home",
@@ -456,18 +456,16 @@ test("timeline: evening rhythm, alternating bath nights, and what's 'now'", asyn
   assert.ok(items.find((i) => i.key === "partner")!.title.includes("Alex"));
 
   // At 7:20 PM stories (7:15) is "now", not the earlier bath; bedtime is next.
-  const later = dayTimeline(d, wed, 19 * 60 + 20, true).items;
+  const later = dayTimeline(d, wed, 19 * 60 + 20, wed).items;
   const { now, next } = nowAndNext(later, 19 * 60 + 20);
   assert.equal(now?.key, "stories");
   assert.equal(next?.key, "bedtime");
-  // Steps long past without a check fade instead of nagging.
-  assert.equal(
-    isFaded(
-      later.find((i) => i.key === "home")!,
-      19 * 60 + 20,
-    ),
-    true,
-  );
+  // Routines run themselves: steps whose time has passed count as done.
+  const home = later.find((i) => i.key === "home")!;
+  assert.equal(home.done, true);
+  assert.equal(home.auto, true);
+  assert.equal(home.tag, "home");
+  assert.equal(isFaded(home, 19 * 60 + 20), false);
   assert.equal(
     isFaded(
       later.find((i) => i.key === "stories")!,
@@ -479,13 +477,12 @@ test("timeline: evening rhythm, alternating bath nights, and what's 'now'", asyn
   // Checked-off steps are done; tomorrow's timeline starts fresh.
   d.routineDone = { [wed]: ["dinner"] };
   assert.equal(
-    dayTimeline(d, wed, 0, true).items.find((i) => i.key === "dinner")!.done,
+    dayTimeline(d, wed, 0, wed).items.find((i) => i.key === "dinner")!.done,
     true,
   );
   assert.equal(
-    dayTimeline(d, "2026-10-29", 0, false).items.find(
-      (i) => i.key === "dinner",
-    )!.done,
+    dayTimeline(d, "2026-10-29", 0, wed).items.find((i) => i.key === "dinner")!
+      .done,
     false,
   );
   assert.ok(validData(d));
@@ -624,10 +621,107 @@ test("capture: what you say lands on the right day and time", async () => {
     one("event on Thursday at 5pm"),
     one("Robin birthday party Saturday"),
   ]);
-  const thu = dayTimeline(d, "2026-10-29", 0, false);
+  const thu = dayTimeline(d, "2026-10-29", 0, wed);
   const ev = thu.items.find((i) => i.kind === "event");
   assert.equal(ev?.time, "17:00");
   assert.equal(ev?.end, "18:00");
-  assert.equal(dayTimeline(d, "2026-10-31", 0, false).allDay.length, 1);
+  assert.equal(dayTimeline(d, "2026-10-31", 0, wed).allDay.length, 1);
+  assert.ok(validData(d));
+});
+
+test("automation: skipped routines, the log, undo, energy, dinners, Google", async () => {
+  const { routineSteps } = await import("../timeline");
+  const {
+    applyEnergy,
+    didToday,
+    logView,
+    mergeGoogle,
+    planWeek,
+    setSkipped,
+    undoEntry,
+  } = await import("../auto");
+  const d = freshPersonal();
+  d.preferences.onboarded = true;
+  d.preferences.partner = "Alex";
+  d.preferences.gymDays = [3];
+  d.people.push({
+    id: "k",
+    name: "Robin",
+    role: "child",
+    interests: "",
+    detail: "",
+  });
+  const wed = "2026-10-28";
+  const night = 21 * 60;
+  // Yesterday's routine all counted; skipping one sticks and is not "done".
+  let steps = routineSteps(d, "2026-10-27", { today: wed, nowMin: night });
+  assert.ok(steps.every((s) => s.done && s.auto));
+  setSkipped(d, "2026-10-27", "bath", true);
+  steps = routineSteps(d, "2026-10-27", { today: wed, nowMin: night });
+  const bath = steps.find((s) => s.key === "bath");
+  if (bath) {
+    assert.equal(bath.done, false);
+    assert.equal(bath.skipped, true);
+  }
+  // Upcoming steps aren't assumed.
+  assert.ok(
+    routineSteps(d, wed, { today: wed, nowMin: 12 * 60 }).every((s) => !s.done),
+  );
+  // The log folds in routine auto-checks, counted in "Hats did N".
+  assert.ok(didToday(d, wed, night) > 0);
+  assert.ok(logView(d, wed, night).some((e) => e.id === `routines:${wed}`));
+
+  // Low recovery lightens the day once; undo sticks for that day.
+  assert.equal(applyEnergy(d, wed, 70), false);
+  assert.equal(applyEnergy(d, wed, 22), true);
+  assert.ok(d.lowEnergyDays.includes(wed));
+  assert.equal(applyEnergy(d, wed, 22), false);
+  // Gym becomes rest on a lighter day.
+  const keys = routineSteps(d, wed).map((s) => s.key);
+  assert.ok(keys.includes("rest") && !keys.includes("gym"));
+  const entry = d.log!.find((e) => e.undo?.t === "notLighter")!;
+  assert.equal(undoEntry(d, entry.id), true);
+  assert.equal(d.lowEnergyDays.includes(wed), false);
+  assert.equal(undoEntry(d, entry.id), false);
+  assert.equal(applyEnergy(d, wed, 10), false);
+
+  // Dinners: the week fills itself, rotating, and adds groceries; undo clears.
+  d.meals = ["Tacos", "Pasta", "Chicken & rice", "Breakfast for dinner"].map(
+    (name, i) => ({
+      id: `m${i}`,
+      name,
+      ingredients: [`${name} stuff`],
+      minutes: 20 + i * 5,
+      prep: "",
+      favorite: i === 0,
+    }),
+  );
+  assert.equal(planWeek(d, wed), 7);
+  const week = Array.from({ length: 7 }, (_, i) => d.dinners[addDays(wed, i)]);
+  assert.ok(week.every(Boolean));
+  assert.ok(new Set(week.slice(0, 4)).size === 4, "no repeats in a row");
+  assert.ok(d.groceries.length > 0);
+  assert.equal(planWeek(d, wed), 0);
+  const dinners = d.log!.find((e) => e.undo?.t === "clearDinners")!;
+  undoEntry(d, dinners.id);
+  assert.equal(Object.keys(d.dinners).length, 0);
+  assert.equal(d.groceries.length, 0);
+  assert.equal(planWeek(d, wed), 0, "an undone week isn't re-planned");
+
+  // Google: only new events are logged; a repeat read stays quiet.
+  const ev = {
+    id: "google:c:e1:2026-10-29",
+    title: "Dance class",
+    date: "2026-10-29",
+    start: "16:30",
+    end: "17:15",
+    allDay: false,
+    source: "google" as const,
+  };
+  const before = d.log!.length;
+  assert.equal(mergeGoogle(d, wed, [ev]), 1);
+  assert.equal(d.log!.length, before + 1);
+  assert.equal(mergeGoogle(d, wed, [ev]), 0);
+  assert.equal(d.log!.length, before + 1);
   assert.ok(validData(d));
 });

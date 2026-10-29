@@ -757,7 +757,7 @@ export default function Settings() {
           <T bold>School breaks and seasonal plans</T>
           <T muted>
             Check the official BPS calendar, then add confirmed closures in
-            Plan. Your children’s school and daycare may have different
+            Capture. Your children’s school and daycare may have different
             schedules.
           </T>
           <Button
@@ -770,9 +770,9 @@ export default function Settings() {
             }
           />
           <Button
-            title="Add a confirmed day off"
+            title="Tell Hats about a confirmed day off"
             quiet
-            onPress={() => router.push("/plan")}
+            onPress={() => router.push("/capture")}
           />
         </Panel>
         <WhoopSettings signedIn={!!account} />

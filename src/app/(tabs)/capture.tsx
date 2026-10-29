@@ -152,11 +152,7 @@ function CaptureForm({
       celebrate({
         hat: first.kind === "event" ? "safari" : HATS[first.hat].art,
       });
-      router.push(
-        first.date === today
-          ? "/"
-          : { pathname: "/plan", params: { date: first.date } },
-      );
+      router.push({ pathname: "/", params: { date: first.date } });
       return;
     }
     say(

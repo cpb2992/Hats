@@ -1,302 +1,520 @@
-import { router } from "expo-router";
-import { Linking, Pressable, View } from "react-native";
+import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FlatList,
+  Pressable,
+  ScrollView,
+  View,
+  useWindowDimensions,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
 import {
   addDays,
   daysBetween,
+  dayShort,
   fmtLong,
-  fmtRelative,
-  weekday,
+  fromISO,
 } from "../../engine/dates";
-import { activityFor, planDay, rotateActivity } from "../../personal/engine";
-import { HATS } from "../../personal/model";
-import { useFocusEnabled } from "../../personal/focus";
-import { dayTimeline } from "../../personal/timeline";
-import { NowCard, StreakStrip, Timeline } from "../../personal/TodayParts";
+import { didToday, undoEntry } from "../../personal/auto";
+import { planDay } from "../../personal/engine";
 import { Hat } from "../../personal/Hat";
-import { WhoopToday } from "../../personal/WhoopCard";
+import { HATS, type PersonalHat } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
 import {
-  Button,
-  Chip,
-  Empty,
-  Header,
-  P,
-  Page,
-  Panel,
-  Row,
-  Section,
-  T,
-  sticker,
-} from "../../personal/ui";
+  dayTimeline,
+  nowAndNext,
+  type TimelineItem,
+} from "../../personal/timeline";
+import { NowCard, Timeline } from "../../personal/TodayParts";
+import { Button, Empty, P, T, sticker } from "../../personal/ui";
+import { useWhoop } from "../../personal/WhoopCard";
+import { band, whoopToday } from "../../personal/whoop";
 
-export default function Today() {
-  const { data, mutate, today, nowMin, nowMs, error, say, celebrate } =
-    usePersonal();
-  const focusEnabled = useFocusEnabled() && data.preferences.focusConsent;
-  const low = data.lowEnergyDays.includes(today);
-  const plan = planDay(data, today, nowMin);
-  const waiting = plan.filter((x) => !x.time).length;
-  const activity = activityFor(data, today);
-  const timeline = dayTimeline(data, today, nowMin, true);
-  const evening = nowMin >= 15 * 60;
-  const lastDate = [...data.dates]
-    .filter((d) => d.date <= today)
-    .sort((a, b) => b.date.localeCompare(a.date))[0];
-  const upcomingDate = data.dates.some(
-    (d) => d.date > today && d.date <= addDays(today, 14),
-  );
-  const daysSince = lastDate ? daysBetween(lastDate.date, today) : 0;
-  const dateDue = !upcomingDate && (!lastDate || daysSince >= 12);
-  const protectedNow =
-    data.protectedUntil && new Date(data.protectedUntil).getTime() > nowMs;
-  const startSession = (label: string) => {
-    mutate((d) => {
-      d.protectedLabel = label;
-      d.protectedUntil = new Date(Date.now() + 30 * 60000).toISOString();
-    });
-    say(
-      focusEnabled
-        ? "30 minutes set aside. Selected distracting apps will return you to the home screen."
-        : "30 minutes set aside. Configure distraction protection in Settings to limit selected apps.",
-    );
+const BACK = 7;
+const AHEAD = 42;
+const GUTTER = 22;
+const GAP = 8;
+
+/** A short sentence for the day: "Pickups, then dance." */
+function headline(
+  items: TimelineItem[],
+  isToday: boolean,
+  nowMin: number,
+  names: string[],
+) {
+  const name = (i: TimelineItem, first: boolean) => {
+    const t = i.title.replace(/^Dinner · /, "");
+    // Reads as a sentence ("then dinner"); people's names stay capitalized.
+    const proper =
+      i.key === "partner" ||
+      names.some((n) => n && t.toLowerCase().startsWith(n.toLowerCase())) ||
+      /^[A-Z]{2}/.test(t);
+    return first || proper ? t : t[0].toLowerCase() + t.slice(1);
   };
+  const say = (list: TimelineItem[]) =>
+    list.length >= 2
+      ? `${name(list[0], true)}, then ${name(list[1], false)}.`
+      : `${name(list[0], true)}.`;
+  if (isToday) {
+    const { now, next } = nowAndNext(items, nowMin);
+    const list = [now, next].filter((x): x is TimelineItem => !!x);
+    return list.length ? say(list) : "That’s the day. Rest counts.";
+  }
+  // Events say more about a day than recurring chores do.
+  const special = [
+    ...items.filter((i) => i.kind === "event"),
+    ...items.filter((i) => i.kind === "task"),
+  ];
+  if (special.length >= 2) return say(special);
+  if (special.length === 1) return `${name(special[0], true)}, plus the usual.`;
+  return items.length ? "The usual rhythm." : "Wide open.";
+}
+
+/** Hats that show up on this day, for the card header. */
+function hatsOn(items: TimelineItem[]) {
+  const counts = new Map<PersonalHat, number>();
+  for (const i of items)
+    if (i.tag && i.kind !== "routine")
+      counts.set(i.tag, (counts.get(i.tag) ?? 0) + 1);
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+}
+
+export default function Home() {
+  const a = usePersonal();
+  const { data, today, nowMin, error } = a;
+  const params = useLocalSearchParams<{ date?: string }>();
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const cardW = Math.min(width, 620) - GUTTER * 2;
+  const step = cardW + GAP;
+  const days = useMemo(
+    () =>
+      Array.from({ length: BACK + AHEAD + 1 }, (_, i) =>
+        addDays(today, i - BACK),
+      ),
+    [today],
+  );
+  const [index, setIndex] = useState(BACK);
+  const list = useRef<FlatList<string>>(null);
+  const date = days[index] ?? today;
+  const go = useCallback(
+    (i: number, animated = true) => {
+      const n = Math.max(0, Math.min(days.length - 1, i));
+      setIndex(n);
+      list.current?.scrollToOffset({ offset: n * step, animated });
+    },
+    [days.length, step],
+  );
+  // Arriving with ?date= (from Capture) jumps to that day.
+  useEffect(() => {
+    if (!params.date || !/^\d{4}-\d{2}-\d{2}$/.test(params.date)) return;
+    const i = days.indexOf(params.date);
+    if (i >= 0) setTimeout(() => go(i), 60);
+  }, [params.date, days, go]);
+  const onEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const i = Math.round(e.nativeEvent.contentOffset.x / step);
+    if (i !== index) setIndex(Math.max(0, Math.min(days.length - 1, i)));
+  };
+  const { summary } = useWhoop();
+  const whoop = whoopToday(summary, today);
+  const did = didToday(data, today, nowMin);
+  const selected = dayTimeline(data, date, nowMin, today);
+  const offset = daysBetween(today, date);
+
   if (error)
     return (
-      <Page>
-        <Header title="Your plan is protected." />
+      <View style={{ flex: 1, padding: 20, paddingTop: insets.top + 20 }}>
         <Empty
           title="We couldn’t open your saved plan"
           detail={error}
           action="Recovery and settings"
           onPress={() => router.push("/settings")}
         />
-      </Page>
+      </View>
     );
+
   return (
-    <Page>
-      <Header
-        title={`${nowMin < 720 ? "Good morning" : nowMin < 1020 ? "A little room for life" : "Home. Be here"}${data.preferences.name ? `, ${data.preferences.name}.` : "."}`}
-        subtitle={fmtLong(today)}
-        hat={nowMin < 1020 ? "sunhat" : "nightcap"}
-      />
-      <Row>
-        <Chip
-          title={low ? "Low-energy day" : "Keep today lighter"}
-          selected={low}
-          onPress={() =>
-            mutate((d) => {
-              d.lowEnergyDays = low
-                ? d.lowEnergyDays.filter((x) => x !== today)
-                : [...d.lowEnergyDays, today];
-            })
-          }
-        />
-      </Row>
-      {protectedNow ? (
-        <Panel dark>
-          <Hat id="nightcap" size={56} wobble />
-          <T size={12} bold color="#C8D7EA">
-            TIME SET ASIDE
-          </T>
-          <T size={20} display color={P.paper}>
-            {data.protectedLabel}
-          </T>
-          <T color="#D5DDE8">
-            Until{" "}
-            {new Date(data.protectedUntil!).toLocaleTimeString([], {
-              hour: "numeric",
-              minute: "2-digit",
-            })}
-            . Keep the phone down; Hats will be here later.
-          </T>
-          <T size={12} color="#D5DDE8">
-            {focusEnabled
-              ? "Protection enabled for your selected apps."
-              : "Timer only · distraction protection is not enabled."}
-          </T>
-          <Button
-            title="End this session"
-            quiet
-            onPress={() =>
-              mutate((d) => {
-                d.protectedUntil = null;
-              })
-            }
-          />
-        </Panel>
-      ) : null}
-      <NowCard items={timeline.items} />
-      {(data.habits ?? []).length ? (
-        <View style={{ gap: 8 }}>
-          <Section
-            hat="crown"
-            title="Your streaks"
-            action="Manage"
-            onPress={() => router.push("/hats")}
-          />
-          <StreakStrip />
-        </View>
-      ) : null}
-      <WhoopToday />
-      <Section
-        hat={evening ? "nightcap" : "sunhat"}
-        title={evening ? "Tonight" : "Today"}
-        action="Add"
-        onPress={() => router.push("/capture")}
-      />
-      <Timeline items={timeline.items} allDay={timeline.allDay} isToday />
-      {waiting ? (
-        <Pressable
-          onPress={() => router.push("/hats")}
-          accessibilityRole="link"
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: P.bg,
+        paddingTop: insets.top + 8,
+        paddingBottom: insets.bottom + 96,
+      }}
+    >
+      {/* Top bar */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: GUTTER - 4,
+          gap: 8,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            flex: 1,
+          }}
         >
-          <T size={13} muted>
-            {waiting} flexible {waiting === 1 ? "task is" : "tasks are"} waiting
-            for room, not piled onto today. See them in My hats ›
+          <Hat id="cap" size={28} tilt={-10} />
+          <T display size={22}>
+            hats.
           </T>
-        </Pressable>
-      ) : null}
-      <Row>
-        <Chip
-          title="🛡 30 min with the kids"
-          onPress={() => startSession("Time with the kids")}
-        />
-        <Chip
-          title={`🛡 30 min with ${data.preferences.partner || "your partner"}`}
-          onPress={() => startSession("Time together")}
-        />
-      </Row>
-      <Panel tint="#FFF0C2">
-        <Row>
-          <Hat id="propeller" size={34} tilt={-8} />
-          <T size={12} bold>
-            {low ? "EASY WITH THE KIDS" : "SOMETHING FOR THE KIDS"}
-          </T>
-        </Row>
-        <T size={19} display>
-          {low ? "A short favorite story" : activity[1]}
-        </T>
-        <T muted size={14}>
-          {low
-            ? "Let them choose a familiar book. That’s plenty."
-            : activity[2]}
-        </T>
-        <Row>
-          <Button
-            title="We’re doing this"
-            small
-            onPress={() => {
-              mutate((d) => {
-                d.activities[today] = activity[0];
-                d.finishedActivities.push(activity[0]);
-              });
-              celebrate({ hat: "propeller" });
-            }}
-          />
-          <Button
-            title="Another idea"
-            quiet
-            small
-            onPress={() =>
-              mutate((d) => {
-                rotateActivity(d, today);
-              })
-            }
-          />
-        </Row>
-      </Panel>
-      {dateDue ? (
-        <Panel tint="#FCE1D8">
-          <Row>
-            <Hat id="fedora" size={34} tilt={-8} />
-            <T size={12} bold>
-              THE TWO OF YOU
-            </T>
-          </Row>
-          <T size={19} display>
-            {lastDate
-              ? `${daysSince} days since your last date.`
-              : "Time to plan a date."}
-          </T>
-          <T muted size={14}>
-            A new restaurant or a movie · ${data.preferences.dateBudget} for the
-            date, childcare and travel separate.
-          </T>
-          <Button
-            title="Plan it now"
-            small
-            hat="fedora"
-            onPress={() => router.push("/hat/husband")}
-          />
-        </Panel>
-      ) : null}
-      {data.groceries.length ? (
+        </View>
         <Pressable
           accessibilityRole="button"
-          onPress={() => router.push("/hat/home")}
+          accessibilityLabel={`What Hats did: ${did} things today`}
+          onPress={() => router.push("/log")}
           style={({ pressed }) => ({
             flexDirection: "row",
             alignItems: "center",
-            gap: 10,
-            padding: 12,
-            borderRadius: 18,
+            gap: 4,
+            height: 38,
+            paddingLeft: 4,
+            paddingRight: 12,
+            borderRadius: 19,
             backgroundColor: P.paper,
+            borderWidth: 2,
+            borderColor: P.ink,
+            transform: [{ translateY: pressed ? 1 : 0 }],
+          })}
+        >
+          <Hat id="stack" size={28} />
+          <T size={13} bold>
+            {did
+              ? `Hats did ${did} ${did === 1 ? "thing" : "things"}`
+              : "What Hats did"}
+          </T>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Settings and connections"
+          onPress={() => router.push("/settings")}
+          style={({ pressed }) => ({
+            width: 42,
+            height: 42,
+            borderRadius: 21,
+            backgroundColor: P.sun,
+            alignItems: "center",
+            justifyContent: "center",
             ...sticker(pressed ? 2 : 4),
           })}
         >
-          <Hat id="chef" size={30} />
-          <T bold style={{ flex: 1 }}>
-            {data.groceries.length} on the grocery list
-          </T>
-          <T muted>›</T>
+          <Hat id="hardhat" size={30} />
         </Pressable>
-      ) : null}
-      {today.slice(5) === "10-31" ? (
-        <Panel tint="#EDE0FA">
-          <Hat id="wizard" size={52} wobble />
-          <T bold>Make room for Halloween</T>
-          <T muted>
-            Costumes, weather, and the time you’ll need to get ready. Nothing
-            has been assumed or booked.
+      </View>
+
+      {/* Day heading */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-end",
+          gap: 10,
+          paddingHorizontal: GUTTER,
+          paddingTop: 10,
+          paddingBottom: 10,
+        }}
+      >
+        <View style={{ flex: 1, gap: 2 }}>
+          <T size={13} bold muted>
+            {offset === 0
+              ? fmtLong(date)
+              : offset === 1
+                ? `Tomorrow · ${fmtLong(date)}`
+                : offset === -1
+                  ? `Yesterday · ${fmtLong(date)}`
+                  : fmtLong(date)}
           </T>
-        </Panel>
-      ) : null}
-      {[0, 6].includes(weekday(today)) ? (
-        <Button
-          title="Explore family outings nearby"
-          quiet
-          hat="safari"
-          onPress={() =>
-            Linking.openURL(
-              `https://www.google.com/maps/search/${encodeURIComponent(`family activities near ${data.preferences.city || "me"}`)}`,
-            )
-          }
-        />
-      ) : null}
-      {(data.moments ?? []).length ? (
-        <Panel>
-          <Row>
-            <Hat id="crown" size={30} tilt={-8} />
-            <T size={12} bold>
-              MOMENTS YOU MADE ROOM FOR
+          <T display size={26} numberOfLines={2}>
+            {headline(selected.items, date === today, nowMin, [
+              data.preferences.partner,
+              data.preferences.name,
+              ...data.people.map((x) => x.name),
+            ])}
+          </T>
+        </View>
+        {offset !== 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to today"
+            onPress={() => go(BACK)}
+            style={{
+              paddingHorizontal: 12,
+              height: 38,
+              justifyContent: "center",
+              borderRadius: 19,
+              backgroundColor: P.sun,
+              borderWidth: 2,
+              borderColor: P.ink,
+            }}
+          >
+            <T size={13} bold>
+              {offset > 0 ? "‹ Today" : "Today ›"}
             </T>
-          </Row>
-          {(data.moments ?? [])
-            .slice(-3)
-            .reverse()
-            .map((m) => (
-              <Row key={m.id}>
-                <Hat id={HATS[m.hat].art} size={24} />
-                <T size={14} style={{ flex: 1 }}>
-                  {m.title}
-                </T>
-                <T size={12} muted>
-                  {fmtRelative(m.date, today).replace("Today", "today")}
-                </T>
-              </Row>
-            ))}
-        </Panel>
-      ) : null}
-    </Page>
+          </Pressable>
+        ) : whoop?.recovery != null ? (
+          <View
+            accessibilityLabel={`Recovery ${Math.round(whoop.recovery)} percent`}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              paddingVertical: 5,
+              paddingLeft: 6,
+              paddingRight: 10,
+              borderRadius: 16,
+              backgroundColor: P.mint,
+              borderWidth: 1.5,
+              borderColor: P.ink,
+            }}
+          >
+            <Hat id="pompom" size={26} />
+            <View>
+              <T size={13} bold>
+                {Math.round(whoop.recovery)}%
+              </T>
+              <T size={10} bold>
+                {band(whoop.recovery) === "low"
+                  ? "low"
+                  : band(whoop.recovery) === "steady"
+                    ? "steady"
+                    : "strong"}
+              </T>
+            </View>
+          </View>
+        ) : null}
+      </View>
+
+      {/* Day cards */}
+      <FlatList
+        ref={list}
+        data={days}
+        horizontal
+        keyExtractor={(d) => d}
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={step}
+        decelerationRate="fast"
+        disableIntervalMomentum
+        initialScrollIndex={BACK}
+        getItemLayout={(_, i) => ({ length: step, offset: step * i, index: i })}
+        onMomentumScrollEnd={onEnd}
+        onScrollEndDrag={(e) => {
+          // Web has no momentum events.
+          if (process.env.EXPO_OS === "web") onEnd(e);
+        }}
+        windowSize={3}
+        initialNumToRender={2}
+        maxToRenderPerBatch={2}
+        contentContainerStyle={{ paddingHorizontal: GUTTER }}
+        style={{ flex: 1 }}
+        renderItem={({ item: d, index: i }) => (
+          <View style={{ width: cardW, marginRight: GAP }}>
+            <DayCard date={d} active={i === index} />
+          </View>
+        )}
+      />
+
+      {/* Where you are in the week */}
+      <View
+        accessibilityLabel={`Day ${offset >= 0 ? "+" : ""}${offset} from today`}
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 6,
+          paddingTop: 10,
+        }}
+      >
+        {[-2, -1, 0, 1, 2].map((k) => {
+          const d = days[index + k];
+          if (!d) return <View key={k} style={{ width: 30 }} />;
+          return (
+            <Pressable
+              key={k}
+              accessibilityRole="button"
+              accessibilityLabel={fmtLong(d)}
+              onPress={() => go(index + k)}
+              style={{
+                minWidth: 30,
+                height: 30,
+                paddingHorizontal: 6,
+                borderRadius: 15,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: k === 0 ? P.ink : "transparent",
+              }}
+            >
+              <T size={11} bold color={k === 0 ? P.paper : P.muted}>
+                {d === today
+                  ? "Today"
+                  : `${dayShort(d)} ${fromISO(d).getDate()}`}
+              </T>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+
+function DayCard({ date, active }: { date: string; active: boolean }) {
+  const a = usePersonal();
+  const { data, today, nowMin, mutate, say } = a;
+  const isToday = date === today;
+  const { items, allDay } = dayTimeline(data, date, nowMin, today);
+  const low = data.lowEnergyDays.includes(date);
+  const lighterEntry = (data.log ?? [])
+    .slice()
+    .reverse()
+    .find(
+      (e) => e.undo?.t === "notLighter" && e.undo.date === date && !e.undone,
+    );
+  const waiting = isToday
+    ? planDay(data, date, nowMin).filter((x) => !x.time).length
+    : 0;
+  const tags = hatsOn(items);
+  const label =
+    date === today
+      ? "TODAY"
+      : date === addDays(today, 1)
+        ? "TOMORROW"
+        : date === addDays(today, -1)
+          ? "YESTERDAY"
+          : "";
+  return (
+    <View
+      style={{
+        flex: 1,
+        borderRadius: 28,
+        backgroundColor: P.paper,
+        overflow: "hidden",
+        ...(active ? sticker(5) : { borderWidth: 2, borderColor: P.line }),
+      }}
+    >
+      <ScrollView
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: 12, paddingBottom: 24, gap: 10 }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <T size={12} bold style={{ letterSpacing: 0.6, flex: 1 }}>
+            {label ? `${label} · ` : ""}
+            {dayShort(date).toUpperCase()} {fromISO(date).getDate()}
+          </T>
+          {tags.map(([hat, n]) => (
+            <View
+              key={hat}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 2,
+                paddingLeft: 2,
+                paddingRight: 7,
+                paddingVertical: 1,
+                borderRadius: 10,
+                backgroundColor: HATS[hat].tint,
+                borderWidth: 1.5,
+                borderColor: P.ink,
+              }}
+            >
+              <Hat id={HATS[hat].art} size={16} />
+              <T size={11} bold>
+                {n}
+              </T>
+            </View>
+          ))}
+        </View>
+
+        {low ? (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              padding: 10,
+              borderRadius: 18,
+              backgroundColor: "#FFF0C2",
+              borderWidth: 2,
+              borderColor: P.ink,
+            }}
+          >
+            <Hat id="nightcap" size={34} tilt={-8} />
+            <View style={{ flex: 1 }}>
+              <T size={14} bold>
+                {lighterEntry ? "Hats made this day lighter" : "A lighter day"}
+              </T>
+              <T size={12} muted>
+                Fewer to-dos · easier dinner · rest instead of gym
+              </T>
+            </View>
+            <Button
+              title={lighterEntry ? "Undo" : "Normal"}
+              small
+              quiet
+              onPress={() => {
+                mutate((d) => {
+                  if (lighterEntry) undoEntry(d, lighterEntry.id);
+                  else
+                    d.lowEnergyDays = d.lowEnergyDays.filter((x) => x !== date);
+                });
+                say("Back to a normal day.");
+              }}
+            />
+          </View>
+        ) : null}
+
+        {isToday ? <NowCard items={items} /> : null}
+
+        <Timeline items={items} allDay={allDay} date={date} />
+
+        {waiting ? (
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => router.push("/hats")}
+          >
+            <T size={13} muted>
+              {waiting} flexible {waiting === 1 ? "to-do is" : "to-dos are"}{" "}
+              waiting for room instead of piling onto today ›
+            </T>
+          </Pressable>
+        ) : null}
+
+        {!low && date >= today ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              mutate((d) => {
+                if (!d.lowEnergyDays.includes(date)) d.lowEnergyDays.push(date);
+              });
+              say(
+                "Made lighter: fewer to-dos, easier dinner, rest instead of gym.",
+              );
+            }}
+            style={{
+              alignSelf: "center",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              paddingHorizontal: 12,
+              minHeight: 40,
+              borderRadius: 20,
+              borderWidth: 2,
+              borderStyle: "dashed",
+              borderColor: P.muted,
+            }}
+          >
+            <Hat id="nightcap" size={22} />
+            <T size={13} bold muted>
+              Low on energy? Make this day lighter
+            </T>
+          </Pressable>
+        ) : null}
+      </ScrollView>
+    </View>
   );
 }

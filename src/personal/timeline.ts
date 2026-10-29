@@ -1,7 +1,7 @@
 import { weekday } from "../engine/dates";
 import { mealFor, planDay } from "./engine";
 import type { HatArtId } from "./hatArt";
-import { HATS, type PersonalData } from "./model";
+import { HATS, type PersonalData, type PersonalHat } from "./model";
 import { isBathNight, isWorkday, routinePrefs } from "./routine";
 
 export { isBathNight, isWorkday, routinePrefs };
@@ -20,6 +20,14 @@ export interface TimelineItem {
   key?: string;
   taskId?: string;
   fixed?: boolean;
+  /** The hat this belongs to, shown as a tag. */
+  tag?: PersonalHat;
+  /** Counted as done because its time passed (tap "Skipped?" if it didn't happen). */
+  auto?: boolean;
+  skipped?: boolean;
+  /** For events: where it came from. */
+  source?: "hats" | "google";
+  eventId?: string;
 }
 
 const mins = (t: string) => {
@@ -29,15 +37,35 @@ const mins = (t: string) => {
 const hhmm = (n: number) =>
   `${String(Math.floor(n / 60) % 24).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 
-/** The family's evening rhythm for a date (no tasks, no events). */
-export function routineSteps(data: PersonalData, date: string) {
+/**
+ * The family's evening rhythm for a date (no tasks, no events).
+ * Routines run themselves: once a step's time has passed it counts as done,
+ * unless you said it was skipped. Pass `clock` to apply that.
+ */
+export function routineSteps(
+  data: PersonalData,
+  date: string,
+  clock?: { today: string; nowMin: number },
+) {
   const p = data.preferences;
   const r = routinePrefs(data);
   const done = new Set(data.routineDone?.[date] ?? []);
+  const skipped = new Set(data.routineSkipped?.[date] ?? []);
+  const low = data.lowEnergyDays.includes(date);
   const kids = data.people.filter((x) => x.role === "child");
   const meal = mealFor(data, date);
   const chosen = !!data.dinners[date];
   const steps: Omit<TimelineItem, "kind">[] = [];
+  const TAGS: Record<string, PersonalHat> = {
+    home: "home",
+    partner: "husband",
+    dinner: "home",
+    bath: "dad",
+    stories: "dad",
+    bedtime: "dad",
+    gym: "myself",
+    rest: "myself",
+  };
   const add = (
     key: string,
     time: string,
@@ -45,17 +73,28 @@ export function routineSteps(data: PersonalData, date: string) {
     hat: HatArtId,
     detail?: string,
     minutes = 30,
-  ) =>
+  ) => {
+    const end = hhmm(mins(time) + minutes);
+    const passed =
+      !!clock &&
+      (date < clock.today ||
+        (date === clock.today && mins(end) <= clock.nowMin));
+    const isSkipped = skipped.has(key);
+    const auto = passed && !done.has(key) && !isSkipped;
     steps.push({
       id: `routine:${key}`,
       key,
       time,
-      end: hhmm(mins(time) + minutes),
+      end,
       title,
       hat,
       detail,
-      done: done.has(key),
+      done: !isSkipped && (done.has(key) || auto),
+      auto,
+      skipped: isSkipped,
+      tag: TAGS[key],
     });
+  };
   if (isWorkday(data, date))
     add(
       "home",
@@ -105,7 +144,16 @@ export function routineSteps(data: PersonalData, date: string) {
   );
   add("bedtime", r.bedtime, "Bedtime", "nightcap", undefined, 15);
   if (p.gymDays.includes(weekday(date)))
-    add("gym", p.gymStart, "Gym", "pompom", "Your time", p.gymMinutes);
+    if (low)
+      add(
+        "rest",
+        p.gymStart,
+        "Rest instead of gym",
+        "nightcap",
+        "Lighter day · gym waits for a stronger one",
+        30,
+      );
+    else add("gym", p.gymStart, "Gym", "pompom", "Your time", p.gymMinutes);
   return steps;
 }
 
@@ -114,16 +162,23 @@ export function dayTimeline(
   data: PersonalData,
   date: string,
   nowMin: number,
-  isToday: boolean,
-): { items: TimelineItem[]; allDay: { id: string; title: string }[] } {
-  const items: TimelineItem[] = routineSteps(data, date).map((s) => ({
+  today: string,
+): {
+  items: TimelineItem[];
+  allDay: { id: string; title: string; hat?: PersonalHat }[];
+} {
+  const isToday = date === today;
+  const items: TimelineItem[] = routineSteps(data, date, {
+    today,
+    nowMin,
+  }).map((s) => ({
     ...s,
     kind: "routine" as const,
   }));
-  const allDay: { id: string; title: string }[] = [];
+  const allDay: { id: string; title: string; hat?: PersonalHat }[] = [];
   for (const e of data.events.filter((e) => e.date === date)) {
     if (e.allDay) {
-      allDay.push({ id: e.id, title: e.title });
+      allDay.push({ id: e.id, title: e.title, hat: e.hat });
       continue;
     }
     items.push({
@@ -134,7 +189,10 @@ export function dayTimeline(
       title: e.title,
       detail:
         e.location || (e.source === "google" ? "Google Calendar" : undefined),
-      hat: "safari",
+      hat: e.hat ? HATS[e.hat].art : "safari",
+      tag: e.hat,
+      source: e.source,
+      eventId: e.id,
       done: isToday && mins(e.end) <= nowMin,
     });
   }
@@ -150,6 +208,7 @@ export function dayTimeline(
         ? `${x.task.steps.filter((s) => s.done).length}/${x.task.steps.length} · next: ${x.task.steps.find((s) => !s.done)?.title ?? ""}`
         : HATS[x.task.hat].name,
       hat: HATS[x.task.hat].art,
+      tag: x.task.hat,
       done: false,
       taskId: x.task.id,
       fixed: x.task.fixed,

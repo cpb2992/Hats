@@ -705,3 +705,36 @@ export function Group({
     </View>
   );
 }
+
+/** A hat used as a tag: icon + name, so meaning never rides on color alone. */
+export function HatTag({
+  hat,
+  label,
+}: {
+  hat: keyof typeof HATS;
+  label?: string;
+}) {
+  const h = HATS[hat];
+  return (
+    <View
+      style={{
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 3,
+        alignSelf: "flex-start",
+        paddingLeft: 2,
+        paddingRight: 8,
+        paddingVertical: 1,
+        borderRadius: 10,
+        backgroundColor: h.tint,
+        borderWidth: 1.5,
+        borderColor: P.ink,
+      }}
+    >
+      <Hat id={h.art} size={16} />
+      <T size={11} bold>
+        {label ?? (hat === "friends" ? "Friends" : h.name)}
+      </T>
+    </View>
+  );
+}
