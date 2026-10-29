@@ -1,78 +1,215 @@
-import { Redirect, router } from 'expo-router';
-import { Tabs, type BottomTabBarProps } from 'expo-router/js-tabs';
-import { Pressable, Text, View } from 'react-native';
-import { useSafeAreaInsets } from 'react-native-safe-area-context';
-import Svg, { Path } from 'react-native-svg';
-import { useApp } from '../../store/AppStore';
-import { Icon, type IconName } from '../../ui/icons';
-import { CAP_PATH, CAP_SEAMS, tap, useWide } from '../../ui/kit';
-import { C, F, shadow } from '../../ui/theme';
+import { Redirect, router } from "expo-router";
+import { useRef, useState } from "react";
+import { Tabs, type BottomTabBarProps } from "expo-router/js-tabs";
+import { Pressable, View } from "react-native";
+import Svg, { Path } from "react-native-svg";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import { usePersonal } from "../../personal/Store";
+import { haptic } from "../../personal/haptics";
+import { voiceBus } from "../../personal/voiceBus";
+import { P, T, sticker } from "../../personal/ui";
+import { Hat } from "../../personal/Hat";
+import type { HatArtId } from "../../personal/hatArt";
 
-const TABS: Record<string, { label: string; icon: IconName | 'cap' }> = {
-  index: { label: 'Hats', icon: 'cap' },
-  caseload: { label: 'Caseload', icon: 'people' },
-  pulse: { label: 'Pulse', icon: 'pulse' },
-  home: { label: 'Home', icon: 'home' },
+const tabs: Record<string, { title: string; hat: HatArtId }> = {
+  index: { title: "Today", hat: "sunhat" },
+  week: { title: "Week", hat: "safari" },
+  family: { title: "Family", hat: "propeller" },
+  hats: { title: "Hats", hat: "stack" },
 };
+const ORDER = ["index", "week", "capture", "family", "hats"];
 
-function CapLine({ color }: { color: string }) {
+function Mic() {
   return (
-    <Svg width={22} height={22} viewBox="0 0 24 24">
-      <Path d={`${CAP_PATH}`} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
-      <Path d={CAP_SEAMS} fill="none" stroke={color} strokeWidth={1.8} strokeLinecap="round" strokeLinejoin="round" />
+    <Svg width={28} height={28} viewBox="0 0 24 24" fill="none">
+      <Path
+        d="M9 5a3 3 0 0 1 6 0v6a3 3 0 0 1-6 0zM19 10v1a7 7 0 0 1-14 0v-1M12 18v4"
+        stroke={P.sun}
+        strokeWidth={2.2}
+        strokeLinecap="round"
+        strokeLinejoin="round"
+      />
     </Svg>
   );
 }
 
-/** The floating bar: four tabs in a dark pill, with the gold Say anything button beside it. */
-function FloatingBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
-  const insets = useSafeAreaInsets();
-  const wide = useWide();
-  const { demo, endDemo } = useApp();
+/**
+ * The mic really is a mic: tap to start talking (tap again to stop), or hold
+ * it, speak, and let go. Either way the words land in Capture.
+ */
+function TalkButton({ onCapture }: { onCapture: boolean }) {
+  const [holding, setHolding] = useState(false);
+  const held = useRef(false);
+  const open = () =>
+    router.navigate({
+      pathname: "/capture",
+      params: { listen: String(Date.now()) },
+    });
   return (
-    <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 16, alignItems: 'center', paddingHorizontal: 16 }}>
-      {demo ? (
-        <Pressable accessibilityRole="button" onPress={() => { tap(); endDemo(); }} style={[{ marginBottom: 10, paddingHorizontal: 14, height: 32, borderRadius: 16, backgroundColor: '#2A2614', justifyContent: 'center' }, shadow]}>
-          <Text style={{ fontFamily: F.semi, fontSize: 12.5, color: C.gold }}>Sample data · tap to leave</Text>
-        </Pressable>
-      ) : null}
-      <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center', width: '100%', maxWidth: wide ? 560 : 520 }}>
-        <View accessibilityRole="tablist" style={[{ flex: 1, height: 64, borderRadius: 32, backgroundColor: C.glass, flexDirection: 'row', padding: 6, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }, shadow]}>
-          {state.routes.map((route, index) => {
-            const meta = TABS[route.name];
-            if (!meta) return null;
-            const focused = state.index === index;
-            const color = focused ? C.gold : C.ink2;
-            const onPress = () => {
-              tap();
-              const event = emitter.emit({ type: 'tabPress', target: route.key, canPreventDefault: true });
-              if (!focused && !event.defaultPrevented) navigateToTab(route.key);
-            };
-            return (
-              <Pressable key={route.key} accessibilityRole="tab" accessibilityState={{ selected: focused }} accessibilityLabel={meta.label} onPress={onPress} style={{ flex: 1, borderRadius: 26, backgroundColor: focused ? C.goldTab : 'transparent', alignItems: 'center', justifyContent: 'center', gap: 2 }}>
-                {meta.icon === 'cap' ? <CapLine color={color} /> : <Icon name={meta.icon} size={22} color={color} width={1.8} />}
-                <Text style={{ fontFamily: F.semi, fontSize: 11, color }}>{meta.label}</Text>
-              </Pressable>
-            );
-          })}
+    <View style={{ alignItems: "center" }}>
+      {holding ? (
+        <View
+          pointerEvents="none"
+          style={{
+            position: "absolute",
+            bottom: 52,
+            width: 190,
+            alignItems: "center",
+            paddingVertical: 8,
+            borderRadius: 16,
+            backgroundColor: P.dark,
+          }}
+        >
+          <T size={13} bold color={P.onDark}>
+            Listening… let go when done
+          </T>
         </View>
-        <Pressable accessibilityRole="button" accessibilityLabel="Say anything" onPress={() => { tap(); router.push('/capture'); }} style={({ pressed }) => [{ width: 64, height: 64, borderRadius: 32, backgroundColor: C.gold, alignItems: 'center', justifyContent: 'center' }, shadow, pressed && { transform: [{ scale: 0.94 }] }]}>
-          <Icon name="mic" size={24} color={C.onGold} width={2} />
-        </Pressable>
-      </View>
+      ) : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel="Talk to Hats"
+        accessibilityHint="Tap to start talking, or hold, speak, and let go"
+        delayLongPress={280}
+        onPress={() => {
+          if (held.current) return;
+          haptic("tap");
+          if (onCapture) voiceBus.emit("toggle");
+          else open();
+        }}
+        onLongPress={() => {
+          held.current = true;
+          setHolding(true);
+          haptic("success");
+          if (onCapture) voiceBus.emit("start");
+          else open();
+        }}
+        onPressOut={() => {
+          if (!held.current) return;
+          // Let the screen open and start before asking it to stop.
+          setTimeout(() => {
+            held.current = false;
+            voiceBus.emit("stop");
+          }, 250);
+          setHolding(false);
+        }}
+        style={({ pressed }) => ({
+          width: 64,
+          height: 64,
+          marginTop: -34,
+          borderRadius: 32,
+          backgroundColor: holding ? P.orange : P.dark,
+          borderWidth: 3,
+          borderColor: holding ? P.sun : P.bg,
+          alignItems: "center",
+          justifyContent: "center",
+          transform: [{ scale: holding ? 1.15 : pressed ? 0.94 : 1 }],
+        })}
+      >
+        <Mic />
+      </Pressable>
     </View>
   );
 }
 
-export default function TabLayout() {
-  const { data } = useApp();
-  if (!data.settings.onboarded) return <Redirect href="/welcome" />;
+function Bar({ state, emitter, navigateToTab }: BottomTabBarProps) {
+  const inset = useSafeAreaInsets();
+  const press = (key: string) => {
+    haptic("tap");
+    const e = emitter.emit({
+      type: "tabPress",
+      target: key,
+      canPreventDefault: true,
+    });
+    if (!e.defaultPrevented) navigateToTab(key);
+  };
+  const routes = ORDER.map((name) =>
+    state.routes.find((r) => r.name === name),
+  ).filter((r): r is (typeof state.routes)[number] => !!r);
+  const current = state.routes[state.index]?.name;
   return (
-    <Tabs tabBar={props => <FloatingBar {...props} />} screenOptions={{ headerShown: false, sceneStyle: { backgroundColor: C.bg } }}>
-      <Tabs.Screen name="index" options={{ title: 'Hats' }} />
-      <Tabs.Screen name="caseload" options={{ title: 'Caseload' }} />
-      <Tabs.Screen name="pulse" options={{ title: 'Pulse' }} />
-      <Tabs.Screen name="home" options={{ title: 'Home' }} />
+    <View
+      style={{
+        position: "absolute",
+        left: 12,
+        right: 12,
+        bottom: inset.bottom + 10,
+        alignItems: "center",
+      }}
+    >
+      <View
+        style={{
+          maxWidth: 560,
+          width: "100%",
+          height: 70,
+          flexDirection: "row",
+          alignItems: "center",
+          backgroundColor: P.paper,
+          borderRadius: 26,
+          paddingHorizontal: 4,
+          ...sticker(5),
+        }}
+      >
+        {routes.map((route) => {
+          if (route.name === "capture")
+            return (
+              <View key={route.key} style={{ flex: 1, alignItems: "center" }}>
+                <TalkButton onCapture={current === "capture"} />
+              </View>
+            );
+          const meta = tabs[route.name];
+          if (!meta) return null;
+          const selected = current === route.name;
+          return (
+            <Pressable
+              key={route.key}
+              accessibilityRole="tab"
+              accessibilityState={{ selected }}
+              accessibilityLabel={meta.title}
+              onPress={() => press(route.key)}
+              style={{
+                flex: 1,
+                height: 58,
+                marginHorizontal: 2,
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 20,
+                backgroundColor: selected ? P.sun : "transparent",
+                borderWidth: 2,
+                borderColor: selected ? P.edge : "transparent",
+              }}
+            >
+              <Hat
+                id={meta.hat}
+                size={selected ? 32 : 28}
+                tilt={selected ? -8 : 0}
+              />
+              <T size={11} bold color={selected ? P.onSun : P.ink}>
+                {meta.title}
+              </T>
+            </Pressable>
+          );
+        })}
+      </View>
+    </View>
+  );
+}
+export default function Layout() {
+  const { data, error } = usePersonal();
+  if (!data.preferences.onboarded && !error)
+    return <Redirect href="/welcome" />;
+  return (
+    <Tabs
+      tabBar={(props) => <Bar {...props} />}
+      screenOptions={{
+        headerShown: false,
+        sceneStyle: { backgroundColor: P.bg },
+      }}
+    >
+      <Tabs.Screen name="index" />
+      <Tabs.Screen name="week" />
+      <Tabs.Screen name="capture" />
+      <Tabs.Screen name="family" />
+      <Tabs.Screen name="hats" />
     </Tabs>
   );
 }

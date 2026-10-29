@@ -1,255 +1,567 @@
-import { router } from 'expo-router';
-import { useState } from 'react';
-import { Pressable, Text, View } from 'react-native';
-import { completeTask, logPoint, notNow, reopenTask, undoPoint } from '../../engine/actions';
-import { fmtTime, greeting, minutesOf, weekday } from '../../engine/dates';
-import { HATS } from '../../engine/hats';
-import { dayLog, dayTimeline, queue, winsOn } from '../../engine/plan';
-import { currentBlock, isTeaching, minutesLeft, nextFree } from '../../engine/schedule';
-import type { Block, Student } from '../../engine/types';
-import { useApp } from '../../store/AppStore';
-import { Icon } from '../../ui/icons';
-import { Btn, Cap, Card, CircleBtn, InitialsPatch, Label, Patch, Ring, Screen, success, tap, thud, Txt, useWide } from '../../ui/kit';
-import { AllClearSpot } from '../../ui/spots';
-import { DayRow } from '../../ui/DayRow';
-import { TaskRow } from '../../ui/TaskRow';
-import { C, F, recoveryColor } from '../../ui/theme';
+import { router, useLocalSearchParams } from "expo-router";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import {
+  FlatList,
+  Pressable,
+  ScrollView,
+  View,
+  useWindowDimensions,
+  type NativeScrollEvent,
+  type NativeSyntheticEvent,
+} from "react-native";
+import { useSafeAreaInsets } from "react-native-safe-area-context";
+import {
+  addDays,
+  daysBetween,
+  dayShort,
+  fmtLong,
+  fromISO,
+} from "../../engine/dates";
+import { didToday, undoEntry } from "../../personal/auto";
+import { planDay } from "../../personal/engine";
+import { Hat } from "../../personal/Hat";
+import { type PersonalData, type PersonalHat, hatDef } from "../../personal/model";
+import { usePersonal } from "../../personal/Store";
+import {
+  dayTimeline,
+  nowAndNext,
+  type TimelineItem,
+} from "../../personal/timeline";
+import { NowCard, Timeline } from "../../personal/TodayParts";
+import { Button, Empty, P, T, sticker , tone } from "../../personal/ui";
+import { useWhoop } from "../../personal/WhoopCard";
+import { band, whoopToday } from "../../personal/whoop";
 
-const DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const BACK = 7;
+const AHEAD = 42;
+const GUTTER = 22;
+const GAP = 8;
 
-function BlockBar({ block, nowMin }: { block: Block; nowMin: number }) {
-  const total = minutesOf(block.end) - minutesOf(block.start);
-  const pct = total > 0 ? (nowMin - minutesOf(block.start)) / total : 0;
+/** A short sentence for the day: "Pickups, then dance." */
+function headline(
+  items: TimelineItem[],
+  isToday: boolean,
+  nowMin: number,
+  names: string[],
+) {
+  const name = (i: TimelineItem, first: boolean) => {
+    const t = i.title.replace(/^Dinner · /, "");
+    // Reads as a sentence ("then dinner"); people's names stay capitalized.
+    const proper =
+      i.key === "partner" ||
+      names.some((n) => n && t.toLowerCase().startsWith(n.toLowerCase())) ||
+      /^[A-Z]{2}/.test(t);
+    return first || proper ? t : t[0].toLowerCase() + t.slice(1);
+  };
+  const say = (list: TimelineItem[]) =>
+    list.length >= 2
+      ? `${name(list[0], true)}, then ${name(list[1], false)}.`
+      : `${name(list[0], true)}.`;
+  if (isToday) {
+    const { now, next } = nowAndNext(items, nowMin);
+    const list = [now, next].filter((x): x is TimelineItem => !!x);
+    return list.length ? say(list) : "That’s the day. Rest counts.";
+  }
+  // Events say more about a day than recurring chores do.
+  const special = [
+    ...items.filter((i) => i.kind === "event"),
+    ...items.filter((i) => i.kind === "task"),
+  ];
+  if (special.length >= 2) return say(special);
+  if (special.length === 1) return `${name(special[0], true)}, plus the usual.`;
+  return items.length ? "The usual rhythm." : "Wide open.";
+}
+
+/** Hats that show up on this day, for the card header. */
+function hatsOn(items: TimelineItem[]) {
+  const counts = new Map<PersonalHat, number>();
+  for (const i of items)
+    if (i.tag && i.kind !== "routine" && i.kind !== "work")
+      counts.set(i.tag, (counts.get(i.tag) ?? 0) + 1);
+  return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+}
+
+/** Weekend (or a bare Monday): fewer than three of the next seven dinners are planned. */
+function weekNeedsDinners(data: PersonalData, today: string) {
+  const day = new Date(`${today}T12:00:00`).getDay();
+  if (![0, 1, 6].includes(day)) return false;
+  let planned = 0;
+  for (let i = 0; i < 7; i++) if (data.dinners[addDays(today, i)]) planned++;
+  return planned < 3;
+}
+
+export default function Home() {
+  const a = usePersonal();
+  const { data, today, nowMin, error } = a;
+  const params = useLocalSearchParams<{ date?: string }>();
+  const { width } = useWindowDimensions();
+  const insets = useSafeAreaInsets();
+  const cardW = Math.min(width, 620) - GUTTER * 2;
+  const step = cardW + GAP;
+  const days = useMemo(
+    () =>
+      Array.from({ length: BACK + AHEAD + 1 }, (_, i) =>
+        addDays(today, i - BACK),
+      ),
+    [today],
+  );
+  const [index, setIndex] = useState(BACK);
+  const list = useRef<FlatList<string>>(null);
+  const date = days[index] ?? today;
+  const go = useCallback(
+    (i: number, animated = true) => {
+      const n = Math.max(0, Math.min(days.length - 1, i));
+      setIndex(n);
+      list.current?.scrollToOffset({ offset: n * step, animated });
+    },
+    [days.length, step],
+  );
+  // Arriving with ?date= (from Capture) jumps to that day.
+  useEffect(() => {
+    if (!params.date || !/^\d{4}-\d{2}-\d{2}$/.test(params.date)) return;
+    const i = days.indexOf(params.date);
+    if (i >= 0) setTimeout(() => go(i), 60);
+  }, [params.date, days, go]);
+  const onEnd = (e: NativeSyntheticEvent<NativeScrollEvent>) => {
+    const i = Math.round(e.nativeEvent.contentOffset.x / step);
+    if (i !== index) setIndex(Math.max(0, Math.min(days.length - 1, i)));
+  };
+  const { summary } = useWhoop();
+  const whoop = whoopToday(summary, today);
+  const did = didToday(data, today, nowMin);
+  const selected = dayTimeline(data, date, nowMin, today);
+  const offset = daysBetween(today, date);
+
+  if (error)
+    return (
+      <View style={{ flex: 1, padding: 20, paddingTop: insets.top + 20 }}>
+        <Empty
+          title="We couldn’t open your saved plan"
+          detail={error}
+          action="Recovery and settings"
+          onPress={() => router.push("/settings")}
+        />
+      </View>
+    );
+
   return (
-    <View style={{ height: 4, borderRadius: 2, backgroundColor: 'rgba(255,255,255,0.08)', overflow: 'hidden' }}>
-      <View style={{ height: 4, borderRadius: 2, width: `${Math.round(Math.max(0, Math.min(1, pct)) * 100)}%`, backgroundColor: C.gold }} />
+    <View
+      style={{
+        flex: 1,
+        backgroundColor: P.bg,
+        paddingTop: insets.top + 8,
+        paddingBottom: insets.bottom + 96,
+      }}
+    >
+      {/* Top bar */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "center",
+          paddingHorizontal: GUTTER - 4,
+          gap: 8,
+        }}
+      >
+        <View
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 6,
+            flex: 1,
+          }}
+        >
+          <Hat id="cap" size={28} tilt={-10} />
+          <T display size={22}>
+            hats.
+          </T>
+        </View>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel={`What Hats did: ${did} things today`}
+          onPress={() => router.push("/log")}
+          style={({ pressed }) => ({
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 4,
+            height: 38,
+            paddingLeft: 4,
+            paddingRight: 12,
+            borderRadius: 19,
+            backgroundColor: P.paper,
+            borderWidth: 2,
+            borderColor: P.edge,
+            transform: [{ translateY: pressed ? 1 : 0 }],
+          })}
+        >
+          <Hat id="stack" size={28} />
+          <T size={13} bold>
+            {did
+              ? `Hats did ${did} ${did === 1 ? "thing" : "things"}`
+              : "What Hats did"}
+          </T>
+        </Pressable>
+        <Pressable
+          accessibilityRole="button"
+          accessibilityLabel="Settings and connections"
+          onPress={() => router.push("/settings")}
+          style={({ pressed }) => ({
+            width: 42,
+            height: 42,
+            borderRadius: 21,
+            backgroundColor: P.sun,
+            alignItems: "center",
+            justifyContent: "center",
+            ...sticker(pressed ? 2 : 4),
+          })}
+        >
+          <Hat id="hardhat" size={30} />
+        </Pressable>
+      </View>
+
+      {/* Day heading */}
+      <View
+        style={{
+          flexDirection: "row",
+          alignItems: "flex-end",
+          gap: 10,
+          paddingHorizontal: GUTTER,
+          paddingTop: 10,
+          paddingBottom: 10,
+        }}
+      >
+        <View style={{ flex: 1, gap: 2 }}>
+          <T size={13} bold muted>
+            {offset === 0
+              ? fmtLong(date)
+              : offset === 1
+                ? `Tomorrow · ${fmtLong(date)}`
+                : offset === -1
+                  ? `Yesterday · ${fmtLong(date)}`
+                  : fmtLong(date)}
+          </T>
+          <T display size={26} numberOfLines={2}>
+            {headline(selected.items, date === today, nowMin, [
+              data.preferences.partner,
+              data.preferences.name,
+              ...data.people.map((x) => x.name),
+            ])}
+          </T>
+        </View>
+        {offset !== 0 ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Back to today"
+            onPress={() => go(BACK)}
+            style={{
+              paddingHorizontal: 12,
+              height: 38,
+              justifyContent: "center",
+              borderRadius: 19,
+              backgroundColor: P.sun,
+              borderWidth: 2,
+              borderColor: P.edge,
+            }}
+          >
+            <T size={13} bold color={P.onSun}>
+              {offset > 0 ? "‹ Today" : "Today ›"}
+            </T>
+          </Pressable>
+        ) : whoop?.recovery != null ? (
+          <View
+            accessibilityLabel={`Recovery ${Math.round(whoop.recovery)} percent`}
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              paddingVertical: 5,
+              paddingLeft: 6,
+              paddingRight: 10,
+              borderRadius: 16,
+              backgroundColor: P.mint,
+              borderWidth: 1.5,
+              borderColor: P.edge,
+            }}
+          >
+            <Hat id="pompom" size={26} />
+            <View>
+              <T size={13} bold>
+                {Math.round(whoop.recovery)}%
+              </T>
+              <T size={10} bold>
+                {band(whoop.recovery) === "low"
+                  ? "low"
+                  : band(whoop.recovery) === "steady"
+                    ? "steady"
+                    : "strong"}
+              </T>
+            </View>
+          </View>
+        ) : null}
+      </View>
+
+      {/* Day cards */}
+      <FlatList
+        ref={list}
+        data={days}
+        horizontal
+        keyExtractor={(d) => d}
+        showsHorizontalScrollIndicator={false}
+        snapToInterval={step}
+        decelerationRate="fast"
+        disableIntervalMomentum
+        initialScrollIndex={BACK}
+        getItemLayout={(_, i) => ({ length: step, offset: step * i, index: i })}
+        onMomentumScrollEnd={onEnd}
+        onScrollEndDrag={(e) => {
+          // Web has no momentum events.
+          if (process.env.EXPO_OS === "web") onEnd(e);
+        }}
+        windowSize={3}
+        initialNumToRender={2}
+        maxToRenderPerBatch={2}
+        contentContainerStyle={{ paddingHorizontal: GUTTER }}
+        style={{ flex: 1 }}
+        renderItem={({ item: d, index: i }) => (
+          <View style={{ width: cardW, marginRight: GAP }}>
+            <DayCard date={d} active={i === index} />
+          </View>
+        )}
+      />
+
+      {/* Where you are in the week */}
+      <View
+        accessibilityLabel={`Day ${offset >= 0 ? "+" : ""}${offset} from today`}
+        style={{
+          flexDirection: "row",
+          justifyContent: "center",
+          alignItems: "center",
+          gap: 6,
+          paddingTop: 10,
+        }}
+      >
+        {[-2, -1, 0, 1, 2].map((k) => {
+          const d = days[index + k];
+          if (!d) return <View key={k} style={{ width: 30 }} />;
+          return (
+            <Pressable
+              key={k}
+              accessibilityRole="button"
+              accessibilityLabel={fmtLong(d)}
+              onPress={() => go(index + k)}
+              style={{
+                minWidth: 30,
+                height: 30,
+                paddingHorizontal: 6,
+                borderRadius: 15,
+                alignItems: "center",
+                justifyContent: "center",
+                backgroundColor: k === 0 ? P.ink : "transparent",
+              }}
+            >
+              <T size={11} bold color={k === 0 ? P.paper : P.muted}>
+                {d === today
+                  ? "Today"
+                  : `${dayShort(d)} ${fromISO(d).getDate()}`}
+              </T>
+            </Pressable>
+          );
+        })}
+      </View>
     </View>
   );
 }
 
-export default function NowScreen() {
-  const { data, today, nowMin, mutate, showToast } = useApp();
-  const wide = useWide();
-  const [showEarlier, setShowEarlier] = useState(false);
-  const [allAcc, setAllAcc] = useState(false);
-  const s = data.settings;
-  const q = queue(data, today, nowMin);
-  const now = q[0] ?? null;
-  const next = q.slice(1, 5);
-  const more = Math.max(0, q.length - 5);
-  const log = dayLog(data, today);
-  const wins = winsOn(data, today);
-  const block = currentBlock(s, today, nowMin);
-  const teaching = isTeaching(block);
-  const free = block?.kind === 'free' ? block : null;
-  const upcomingFree = nextFree(s, today, nowMin);
-  const timeline = dayTimeline(data, today, nowMin, now?.id);
-  const earlier = timeline.filter(i => i.past && !(i.kind === 'block' && i.current));
-  const visible = showEarlier ? timeline : timeline.filter(i => !i.past || (i.kind === 'block' && i.current));
-  const work = s.workdays.includes(weekday(today));
-  const name = s.name.trim();
-  const d = new Date(`${today}T12:00:00`);
-  const freeLeft = free ? minutesLeft(free, nowMin) : null;
-  const focusMin = now ? (freeLeft != null ? Math.max(5, Math.min(now.minutes, freeLeft)) : now.minutes) : 0;
-  const roster: Student[] = block?.section ? data.students.filter(st => st.period.toUpperCase() === block.section!.toUpperCase()) : [];
-  const logRoster = roster.filter(st => st.goals.length);
-  const accRoster = roster.filter(st => st.accommodations.length).sort((a, b) => a.initials.localeCompare(b.initials));
-  const accShown = allAcc ? accRoster : accRoster.slice(0, 5);
-
-  const done = (id: string) => {
-    const nowIso = new Date().toISOString();
-    mutate(x => completeTask(x, id, nowIso));
-    success();
-    const n = wins.length + 1;
-    showToast(`${n} ${n === 1 ? 'win' : 'wins'} today`, { kind: 'win', action: { label: 'Undo', onPress: () => mutate(x => reopenTask(x, id)) } });
-  };
-
-  const quickLog = (st: Student) => {
-    const g = st.goals[0];
-    if (!g) { router.push(`/student/${st.id}`); return; }
-    if (g.kind === 'trials') { router.push(`/student/${st.id}`); return; }
-    thud();
-    mutate(x => logPoint(x, st.id, g.id, today, 1));
-    showToast(`Logged for ${st.initials}`, { action: { label: 'Undo', onPress: () => mutate(x => undoPoint(x, st.id, g.id, today)) } });
-  };
-
-  const header = (
-    <View style={{ gap: 18 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Pressable accessibilityRole="button" accessibilityLabel="All tasks" onPress={() => { tap(); router.push('/tasks'); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 10, minHeight: 44 }}>
-          <Cap width={26} />
-          <Text style={{ fontFamily: F.semi, fontSize: 14, color: C.ink2 }}>{DAYS[d.getDay()]}, {MONTHS[d.getMonth()]} {d.getDate()}</Text>
-        </Pressable>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={log.recovery != null ? `Recovery ${log.recovery}. Open the morning plan` : 'Open the morning plan'} onPress={() => { tap(); router.push('/morning'); }} hitSlop={6}>
-            <Ring size={38} stroke={3} pct={(log.recovery ?? 0) / 100} color={recoveryColor(log.recovery)}>
-              {log.recovery != null ? <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.ink, fontVariant: ['tabular-nums'] }}>{log.recovery}</Text> : <Icon name="plus" size={14} color={C.ink2} width={2} />}
-            </Ring>
-          </Pressable>
-          <CircleBtn icon="calendar" size={40} kind="quiet" label="Calendar" onPress={() => router.push('/calendar')} />
-          <CircleBtn icon="settings" size={40} kind="quiet" label="Settings" onPress={() => router.push('/settings')} />
-        </View>
-      </View>
-      <Txt v="hero">{greeting(nowMin)}{name ? `,\n${name}.` : '.'}</Txt>
-    </View>
-  );
-
-  const planCard = work && !log.planned && nowMin < 12 * 60 && !teaching ? (
-    <Card onPress={() => router.push('/morning')} accessibilityLabel="Plan your day in two minutes" style={{ flexDirection: 'row', alignItems: 'center', gap: 14, paddingVertical: 16, backgroundColor: C.goldSoft }}>
-      <Icon name="focus" size={24} color={C.gold} />
-      <View style={{ flex: 1, gap: 2 }}>
-        <Txt v="semi">Plan in two minutes</Txt>
-        <Txt v="fine">Recovery, dinner, and today’s three.</Txt>
-      </View>
-      <Icon name="chevron" size={20} color={C.gold} />
-    </Card>
-  ) : null;
-
-  // Teaching: the next step is the class in front of you. Tasks wait for the next free block.
-  const classCard = block && teaching ? (
-    <Card style={{ gap: 16, padding: 22 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Txt v="label" color={C.gold}>{block.kind === 'homeroom' ? 'Homeroom' : block.kind === 'advisory' ? 'Advisory' : 'In class'}</Txt>
-        <Txt v="fine">until {fmtTime(block.end)} · {minutesLeft(block, nowMin)} min</Txt>
-      </View>
-      <Txt v="title">{block.label}</Txt>
-      <BlockBar block={block} nowMin={nowMin} />
-      {logRoster.length ? (
-        <View style={{ gap: 10 }}>
-          <Txt v="fine">Saw a goal happen? Tap to log.</Txt>
-          <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-            {logRoster.map(st => (
-              <Pressable key={st.id} accessibilityRole="button" accessibilityLabel={`Log for ${st.initials}`} onPress={() => quickLog(st)} style={({ pressed }) => [{ alignItems: 'center', gap: 4 }, pressed && { transform: [{ scale: 0.92 }] }]}>
-                <InitialsPatch initials={st.initials} size={52} />
-                <Text style={{ fontFamily: F.semi, fontSize: 11, color: C.ink2 }}>{st.goals[0]?.kind === 'trials' ? `/${st.goals[0].outOf}` : '+1'}</Text>
-              </Pressable>
-            ))}
-          </View>
-        </View>
-      ) : null}
-      {accRoster.length ? (
-        <View style={{ gap: 4, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.line }}>
-          <Txt v="label">{`Accommodations · ${accRoster.length}`}</Txt>
-          {accShown.map(st => (
-            <Pressable key={st.id} accessibilityRole="button" accessibilityLabel={`${st.initials}, ${st.plan}: ${st.accommodations.join(', ')}`} onPress={() => { tap(); router.push(`/student/${st.id}`); }} style={{ flexDirection: 'row', gap: 12, paddingVertical: 8 }}>
-              <View style={{ width: 52, gap: 1 }}>
-                <Text style={{ fontFamily: F.bold, fontSize: 14, color: C.ink }}>{st.initials}</Text>
-                <Text style={{ fontFamily: F.semi, fontSize: 11, color: C.ink3 }}>{st.plan}</Text>
-              </View>
-              {/* Real plans run 10 to 20 items: the first three, then the student page has the rest. */}
-              <Text style={{ flex: 1, fontFamily: F.med, fontSize: 14, lineHeight: 20, color: C.ink2 }}>
-                {st.accommodations.slice(0, 3).join(' · ')}
-                {st.accommodations.length > 3 ? <Text style={{ color: C.gold }}>{`  +${st.accommodations.length - 3} more`}</Text> : null}
-              </Text>
+function DayCard({ date, active }: { date: string; active: boolean }) {
+  const a = usePersonal();
+  const { data, today, nowMin, mutate, say } = a;
+  const isToday = date === today;
+  const { items, allDay } = dayTimeline(data, date, nowMin, today);
+  const low = data.lowEnergyDays.includes(date);
+  const lighterEntry = (data.log ?? [])
+    .slice()
+    .reverse()
+    .find(
+      (e) => e.undo?.t === "notLighter" && e.undo.date === date && !e.undone,
+    );
+  const waiting = isToday
+    ? planDay(data, date, nowMin).filter((x) => !x.time).length
+    : 0;
+  const tags = hatsOn(items);
+  const label =
+    date === today
+      ? "TODAY"
+      : date === addDays(today, 1)
+        ? "TOMORROW"
+        : date === addDays(today, -1)
+          ? "YESTERDAY"
+          : "";
+  return (
+    <View
+      style={{
+        flex: 1,
+        borderRadius: 28,
+        backgroundColor: P.paper,
+        overflow: "hidden",
+        ...(active ? sticker(5) : { borderWidth: 2, borderColor: P.line }),
+      }}
+    >
+      <ScrollView
+        nestedScrollEnabled
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={{ padding: 12, paddingBottom: 24, gap: 10 }}
+      >
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <T size={12} bold style={{ letterSpacing: 0.6, flex: 1 }}>
+            {label ? `${label} · ` : ""}
+            {dayShort(date).toUpperCase()} {fromISO(date).getDate()}
+          </T>
+          {tags.map(([hat, n]) => (
+            <Pressable
+              key={hat}
+              accessibilityRole="button"
+              accessibilityLabel={`${hatDef(hat).name}: ${n} today`}
+              accessibilityHint={`Opens ${hatDef(hat).name}`}
+              hitSlop={8}
+              onPress={() => router.push({ pathname: "/hat/[id]", params: { id: hat } })}
+              style={{
+                flexDirection: "row",
+                alignItems: "center",
+                gap: 2,
+                paddingLeft: 2,
+                paddingRight: 7,
+                paddingVertical: 1,
+                borderRadius: 10,
+                backgroundColor: tone(hatDef(hat).tint),
+                borderWidth: 1.5,
+                borderColor: P.edge,
+              }}
+            >
+              <Hat id={hatDef(hat).art} size={16} />
+              <T size={11} bold>
+                {n}
+              </T>
             </Pressable>
           ))}
-          {accRoster.length > accShown.length || allAcc ? (
-            <Pressable accessibilityRole="button" onPress={() => { tap(); setAllAcc(v => !v); }} hitSlop={8} style={{ alignSelf: 'flex-start', paddingVertical: 4 }}>
-              <Txt v="fine" color={C.gold}>{allAcc ? 'Show fewer' : `Show all ${accRoster.length}`}</Txt>
-            </Pressable>
-          ) : null}
         </View>
-      ) : null}
-      {now ? (
-        <Pressable accessibilityRole="button" accessibilityLabel={`Next task: ${now.title}`} onPress={() => { tap(); router.push(`/task/${now.id}`); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.line }}>
-          <Patch hat={now.hat} size={28} />
-          <View style={{ flex: 1, gap: 2 }}>
-            <Txt v="fine">{upcomingFree ? `Waiting for ${upcomingFree.label.split(' · ')[0]} at ${fmtTime(upcomingFree.start)}` : 'Up after school'}</Txt>
-            <Txt v="semi" numberOfLines={2}>{now.title}</Txt>
+
+        {low ? (
+          <View
+            style={{
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              padding: 10,
+              borderRadius: 18,
+              backgroundColor: tone("#FFF0C2"),
+              borderWidth: 2,
+              borderColor: P.edge,
+            }}
+          >
+            <Hat id="nightcap" size={34} tilt={-8} />
+            <View style={{ flex: 1 }}>
+              <T size={14} bold>
+                {lighterEntry ? "Hats made this day lighter" : "A lighter day"}
+              </T>
+              <T size={12} muted>
+                Fewer to-dos · easier dinner · rest instead of gym
+              </T>
+            </View>
+            <Button
+              title={lighterEntry ? "Undo" : "Normal"}
+              small
+              quiet
+              onPress={() => {
+                mutate((d) => {
+                  if (lighterEntry) undoEntry(d, lighterEntry.id);
+                  else
+                    d.lowEnergyDays = d.lowEnergyDays.filter((x) => x !== date);
+                });
+                say("Back to a normal day.");
+              }}
+            />
           </View>
-        </Pressable>
-      ) : null}
-    </Card>
-  ) : null;
+        ) : null}
 
-  const meetingCard = block && block.kind === 'meeting' ? (
-    <Card style={{ gap: 14, padding: 22 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Txt v="label" color={C.gold}>Meeting</Txt>
-        <Txt v="fine">until {fmtTime(block.end)}</Txt>
-      </View>
-      <Txt v="title">{block.label}</Txt>
-      <BlockBar block={block} nowMin={nowMin} />
-      <Btn title="Catch an action item" icon="mic" kind="ghost" small onPress={() => router.push('/capture')} />
-    </Card>
-  ) : null;
+        {isToday ? <NowCard items={items} /> : null}
 
-  const breakStrip = block && block.kind === 'break' ? (
-    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-      <View style={{ width: 8, height: 8, borderRadius: 4, backgroundColor: C.gold }} />
-      <Txt v="fine">{block.label} until {fmtTime(block.end)}</Txt>
+        <Timeline items={items} allDay={allDay} date={date} />
+
+        {isToday && weekNeedsDinners(data, today) ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Plan this week’s dinners"
+            accessibilityHint="Opens Meals"
+            onPress={() => router.push("/meals")}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              padding: 10,
+              borderRadius: 18,
+              backgroundColor: tone("#FFE6D3"),
+              borderWidth: 2,
+              borderColor: P.edge,
+              transform: [{ translateY: pressed ? 1 : 0 }],
+            })}
+          >
+            <Hat id="chef" size={34} tilt={-8} />
+            <View style={{ flex: 1 }}>
+              <T size={14} bold>
+                Plan this week’s dinners
+              </T>
+              <T size={12} muted>
+                Flip through recipe cards · the grocery list builds itself
+              </T>
+            </View>
+            <T bold color={P.blue}>
+              ›
+            </T>
+          </Pressable>
+        ) : null}
+
+        {waiting ? (
+          <Pressable
+            accessibilityRole="link"
+            onPress={() => router.push("/hats")}
+          >
+            <T size={13} muted>
+              {waiting} flexible {waiting === 1 ? "to-do is" : "to-dos are"}{" "}
+              waiting for room instead of piling onto today ›
+            </T>
+          </Pressable>
+        ) : null}
+
+        {!low && date >= today ? (
+          <Pressable
+            accessibilityRole="button"
+            onPress={() => {
+              mutate((d) => {
+                if (!d.lowEnergyDays.includes(date)) d.lowEnergyDays.push(date);
+              });
+              say(
+                "Made lighter: fewer to-dos, easier dinner, rest instead of gym.",
+              );
+            }}
+            style={{
+              alignSelf: "center",
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 6,
+              paddingHorizontal: 12,
+              minHeight: 40,
+              borderRadius: 20,
+              borderWidth: 2,
+              borderStyle: "dashed",
+              borderColor: P.muted,
+            }}
+          >
+            <Hat id="nightcap" size={22} />
+            <T size={13} bold muted>
+              Low on energy? Make this day lighter
+            </T>
+          </Pressable>
+        ) : null}
+      </ScrollView>
     </View>
-  ) : null;
-
-  const nowCard = teaching ? null : now ? (
-    <Card style={{ gap: 20, padding: 22 }}>
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-        <Txt v="label" color={C.gold}>{free ? `Now · ${freeLeft} min free` : 'Now'}</Txt>
-        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Patch hat={now.hat} size={22} />
-          <Txt v="fine">{HATS[now.hat].name}{now.time ? ` · ${fmtTime(now.time)}` : ''}{now.student ? ` · ${now.student}` : ''}</Txt>
-        </View>
-      </View>
-      <Pressable accessibilityRole="button" accessibilityLabel={`Edit ${now.title}`} onPress={() => { tap(); router.push(`/task/${now.id}`); }}>
-        <Txt v="title">{now.title}</Txt>
-      </Pressable>
-      {free ? <BlockBar block={free} nowMin={nowMin} /> : null}
-      <View style={{ flexDirection: 'row', gap: 10, alignItems: 'center' }}>
-        <Btn title={`Focus · ${focusMin} min`} icon="play" onPress={() => router.push(`/focus?id=${now.id}&max=${focusMin}`)} style={{ flex: 1 }} />
-        <CircleBtn icon="check" label="Done" onPress={() => done(now.id)} />
-        <CircleBtn icon="next" label="Not now" onPress={() => { const nowIso = new Date().toISOString(); mutate(x => notNow(x, now.id, nowIso)); }} />
-      </View>
-    </Card>
-  ) : (
-    <Card style={{ alignItems: 'center', paddingVertical: 26 }}>
-      <AllClearSpot size={150} />
-      <Txt v="title" center>All clear.</Txt>
-      <Txt v="sub" center>{wins.length ? `${wins.length} done today. Nothing else needs you.` : 'Nothing needs you right now.'}</Txt>
-      <Btn title="Say anything" icon="mic" kind="ghost" small onPress={() => router.push('/capture')} />
-    </Card>
-  );
-
-  const upNext = next.length && !teaching ? (
-    <View style={{ gap: 6 }}>
-      <Label right={more ? `+${more} more` : undefined}>Up next</Label>
-      <View>
-        {next.map((t, i) => <TaskRow key={t.id} task={t} today={today} last={i === next.length - 1} onDone={() => done(t.id)} />)}
-      </View>
-    </View>
-  ) : null;
-
-  const day = (
-    <View style={{ gap: 6 }}>
-      <Label right={<Pressable accessibilityRole="button" onPress={() => { tap(); router.push('/calendar'); }} hitSlop={8}><Txt v="fine" color={C.gold}>{wins.length ? `${wins.length} done · ` : ''}Calendar</Txt></Pressable>}>Today</Label>
-      {earlier.length ? (
-        <Pressable accessibilityRole="button" onPress={() => { tap(); setShowEarlier(v => !v); }} style={{ minHeight: 40, justifyContent: 'center' }}>
-          <Txt v="fine" color={C.ink3}>{showEarlier ? 'Hide earlier' : `${earlier.length} earlier · show`}</Txt>
-        </Pressable>
-      ) : null}
-      <View>
-        {visible.map((item, i) => <DayRow key={`${item.kind}-${item.time}-${i}`} item={item} last={i === visible.length - 1} />)}
-      </View>
-    </View>
-  );
-
-  const main = <>{planCard}{breakStrip}{classCard}{meetingCard}{nowCard}{upNext}</>;
-  if (wide) {
-    return (
-      <Screen>
-        {header}
-        <View style={{ flexDirection: 'row', gap: 28, alignItems: 'flex-start' }}>
-          <View style={{ flex: 1.1, gap: 22 }}>{main}</View>
-          <View style={{ flex: 1, gap: 22 }}>{day}</View>
-        </View>
-      </Screen>
-    );
-  }
-  return (
-    <Screen>
-      {header}
-      {main}
-      {day}
-    </Screen>
   );
 }

@@ -1,224 +1,996 @@
-import Constants from 'expo-constants';
-import { router } from 'expo-router';
-import { useState, type ReactNode } from 'react';
-import { Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
-import { fmtTime, minutesOf, timeOf } from '../engine/dates';
-import { HATS } from '../engine/hats';
-import { choreTime } from '../engine/rhythm';
-import type { Chore, KidColor, Settings } from '../engine/types';
-import { uid } from '../engine/util';
-import { sendTestReminder } from '../services/notifications';
-import { WIDGETS } from '../widgets/render';
-import { pinWidget, widgetsSupported } from '../widgets/update';
-import { useApp } from '../store/AppStore';
-import { ClaudeSection } from '../ui/AssistantSettings';
-import { Icon } from '../ui/icons';
-import { BackLink, Btn, Card, Chip, Field, Label, Patch, Screen, Segmented, Stepper, tap, Txt } from '../ui/kit';
-import { C, F, KID_COLORS } from '../ui/theme';
+import { useEffect, useState } from "react";
+import { Alert, Linking, Platform } from "react-native";
+import { router } from "expo-router";
+import {
+  currentSession,
+  getConfig,
+  googleCalendars,
+  googleSignIn,
+  readGoogleEvents,
+  signOut,
+} from "../personal/cloud";
+import { FamilySettings } from "../personal/FamilyShare";
+import { SignIn } from "../personal/SignIn";
+import { WhoopSettings } from "../personal/WhoopCard";
+import { ThisCopy } from "../personal/UpdateReady";
+import { hatDef } from "../personal/model";
+import { routinePrefs } from "../personal/routine";
+import {
+  STANDARD_WEEK,
+  WEEKDAYS,
+  dayFields,
+  dayFrom,
+  daySummary,
+  schoolOn,
+  isSimpleWeek,
+  simpleWeek,
+} from "../personal/school";
+import { fmtTime } from "../engine/dates";
+import { parseClock } from "../personal/clock";
+import { exportPersonal, pickBackup } from "../personal/backup";
+import { useEditor, required } from "../personal/Editor";
+import { makeTask } from "../personal/engine";
+import { usePersonal } from "../personal/Store";
+import { enableReminders } from "../personal/reminders";
+import { legacyHomeTasks, secretGet, secretSet } from "../personal/storage";
+import { pinPersonalWidget } from "../personal/widgets";
+import {
+  DISTRACTIONS,
+  focusAvailable,
+  openFocusSettings,
+  useFocusEnabled,
+} from "../personal/focus";
+import {
+  Button,
+  Check,
+  Chip,
+  Group,
+  Header,
+  Page,
+  Panel,
+  Row,
+  T,
+} from "../personal/ui";
 
-const DAY_LETTERS = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
-const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-const TIMES: { key: keyof Pick<Settings, 'morning' | 'schoolStart' | 'shutdown' | 'pickups' | 'bedtime' | 'gym'>; label: string }[] = [
-  { key: 'morning', label: 'Morning plan nudge' },
-  { key: 'schoolStart', label: 'School day starts' },
-  { key: 'shutdown', label: 'Shutdown' },
-  { key: 'pickups', label: 'Pickups' },
-  { key: 'bedtime', label: 'Kids’ bedtime' },
-  { key: 'gym', label: 'Gym window' },
-];
-const COLORS: KidColor[] = ['rose', 'teal', 'plum', 'ochre'];
-
-/** When a rhythm item lands on a school day (or its first day). */
-function choreWhen(c: Chore, s: Settings): string {
-  const probe = c.days.find(d => s.workdays.includes(d)) ?? c.days[0];
-  if (probe == null) return 'No days';
-  const date = new Date(2026, 0, 4 + probe); // Jan 4, 2026 is a Sunday
-  const iso = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
-  const t = choreTime(c, s, iso);
-  return t ? fmtTime(t, true) : 'Anytime';
+function confirm(title: string, message: string, onConfirm: () => void) {
+  if (Platform.OS === "web") {
+    if (window.confirm(`${title}\n\n${message}`)) onConfirm();
+  } else
+    Alert.alert(title, message, [
+      { text: "Cancel", style: "cancel" },
+      { text: "Continue", onPress: onConfirm },
+    ]);
 }
-
-function Section({ title, children }: { title: string; children: ReactNode }) {
-  return (
-    <View style={{ gap: 12 }}>
-      <Label>{title}</Label>
-      <Card style={{ gap: 0, paddingVertical: 6 }}>{children}</Card>
-    </View>
+const validTime = (value: string) => /^([01]\d|2[0-3]):[0-5]\d$/.test(value);
+export default function Settings() {
+  const {
+    data,
+    mutate,
+    replace,
+    reload,
+    say,
+    sync,
+    syncStatus,
+    conflict,
+    resolve,
+    today,
+    error,
+  } = usePersonal();
+  const editor = useEditor();
+  const [account, setAccount] = useState("");
+  const [configured, setConfigured] = useState(false);
+  const [legacyCount, setLegacyCount] = useState(0);
+  const [busy, setBusy] = useState(false);
+  const [calendars, setCalendars] = useState<{ id: string; summary: string }[]>(
+    [],
   );
-}
-
-function Line({ children, last }: { children: ReactNode; last?: boolean }) {
-  return <View style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 60, borderBottomWidth: last ? 0 : 1, borderBottomColor: C.line }}>{children}</View>;
-}
-
-export default function SettingsScreen() {
-  const { data, mutate, demo, startDemo, endDemo, eraseAll } = useApp();
-  const s = data.settings;
-  const [meal, setMeal] = useState('');
-  const [kid, setKid] = useState('');
-  const [chore, setChore] = useState('');
-  const [choreKind, setChoreKind] = useState<Chore['kind']>('other');
-  const [testNote, setTestNote] = useState<string | null>(null);
-  const [widgetNote, setWidgetNote] = useState<string | null>(null);
-  const addWidget = async (name: string) => {
-    const ok = await pinWidget(name);
-    setWidgetNote(ok ? 'Your phone will ask where to put it.' : 'Long-press an empty spot on your home screen, tap Widgets, then find Hats.');
+  const [selected, setSelected] = useState<string[]>([]);
+  const focusEnabled = useFocusEnabled();
+  useEffect(() => {
+    getConfig().then((c) => setConfigured(!!c));
+    legacyHomeTasks()
+      .then((t) => setLegacyCount(t.length))
+      .catch(() => {});
+    currentSession()
+      .then((s) => setAccount(s?.user.email ?? ""))
+      .catch(() => {});
+    secretGet("hats.google.calendars").then((v) => {
+      if (v) setSelected(JSON.parse(v));
+    });
+  }, []);
+  const run = async (action: () => Promise<void>) => {
+    setBusy(true);
+    try {
+      await action();
+    } catch (e) {
+      say(
+        e instanceof Error ? e.message : "That action could not be completed.",
+      );
+    } finally {
+      setBusy(false);
+    }
   };
-  const setS = (patch: Partial<Settings>) => mutate(d => { d.settings = { ...d.settings, ...patch }; });
-
-  return (
-    <Screen tabBar={false}>
-      <BackLink label="Hats" onPress={() => router.back()} />
-      <Txt v="display">Settings</Txt>
-
-      <View style={{ gap: 12 }}>
-        <Label>Your name</Label>
-        <Field value={s.name} onChangeText={name => setS({ name })} placeholder="First name" accessibilityLabel="Your first name" autoCapitalize="words" />
-      </View>
-
-      <Section title="Hats you wear">
-        {data.hats.map((h, i) => (
-          <Line key={h.id} last={i === data.hats.length - 1}>
-            <Patch hat={h.id} size={34} />
-            <View style={{ flex: 1 }}>
-              <Txt v="semi">{HATS[h.id].name}</Txt>
-              <Txt v="fine">{HATS[h.id].meaning}</Txt>
-            </View>
-            <Switch value={h.on} onValueChange={on => mutate(d => { d.hats = d.hats.map(x => (x.id === h.id ? { ...x, on } : x)); })} trackColor={{ true: C.gold, false: C.raised2 }} thumbColor={C.ink} accessibilityLabel={`Wear ${HATS[h.id].name}`} />
-          </Line>
-        ))}
-      </Section>
-
-      <Section title="Your day">
-        {TIMES.map((t, i) => (
-          <Line key={t.key} last={i === TIMES.length - 1}>
-            <Txt v="semi" style={{ flex: 1 }}>{t.label}</Txt>
-            <Stepper label={t.label} value={fmtTime(s[t.key], true)} onMinus={() => setS({ [t.key]: timeOf(minutesOf(s[t.key]) - 15) } as Partial<Settings>)} onPlus={() => setS({ [t.key]: timeOf(minutesOf(s[t.key]) + 15) } as Partial<Settings>)} />
-          </Line>
-        ))}
-      </Section>
-
-      <Btn title="Bell schedule" kind="quiet" icon="calendar" onPress={() => router.push('/schedule')} />
-
-      <View style={{ gap: 12 }}>
-        <Label>School days</Label>
-        <View style={{ flexDirection: 'row', gap: 8 }}>
-          {DAY_LETTERS.map((l, i) => {
-            const on = s.workdays.includes(i);
-            return (
-              <Pressable key={i} accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={DAY_NAMES[i]} onPress={() => { tap(); setS({ workdays: on ? s.workdays.filter(x => x !== i) : [...s.workdays, i].sort() }); }} style={{ flex: 1, height: 46, borderRadius: 23, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? C.gold : 'rgba(255,255,255,0.06)' }}>
-                <Text style={{ fontFamily: F.bold, fontSize: 14, color: on ? C.onGold : C.ink2 }}>{l}</Text>
-              </Pressable>
+  const evening = () => {
+    const r = routinePrefs(data);
+    editor.open({
+      title: "Your evening rhythm",
+      detail:
+        "Rough times are fine. Hats keeps these clear of chores and shows them as tonight’s timeline. Type 5:45 pm or 17:45.",
+      fields: [
+        ...(data.preferences.partner
+          ? [
+              {
+                key: "partnerHome",
+                label: `${data.preferences.partner} usually home`,
+                value: fmtTime(r.partnerHome, true),
+              },
+            ]
+          : []),
+        {
+          key: "dinnerTime",
+          label: "Dinner",
+          value: fmtTime(r.dinnerTime, true),
+        },
+        {
+          key: "storyTime",
+          label: "Stories",
+          value: fmtTime(r.storyTime, true),
+        },
+        {
+          key: "bedtime",
+          label: "Kids’ bedtime",
+          value: fmtTime(r.bedtime, true),
+        },
+      ],
+      onSave: (v) => {
+        const parsed: Record<string, string> = {};
+        for (const k of ["partnerHome", "dinnerTime", "storyTime", "bedtime"]) {
+          if (v[k] === undefined) continue;
+          const t = parseClock(v[k]);
+          if (!t)
+            throw new Error(
+              `“${v[k]}” isn’t a time Hats understands. Try 6:30 pm.`,
             );
-          })}
-        </View>
-      </View>
-
-      <Section title="Reminders">
-        {([['morning', 'Morning plan, with the defrost reminder'], ['blocks', 'When a free block starts'], ['shutdown', 'Shutdown on school days'], ['tasks', 'Tasks with a time'], ['events', 'Calendar events, 15 minutes before']] as const).map(([k, label], i) => (
-          <Line key={k} last={i === 4}>
-            <Txt v="semi" style={{ flex: 1 }}>{label}</Txt>
-            <Switch value={s.notify[k]} onValueChange={v => setS({ notify: { ...s.notify, [k]: v } })} trackColor={{ true: C.gold, false: C.raised2 }} thumbColor={C.ink} accessibilityLabel={label} />
-          </Line>
-        ))}
-      </Section>
-      <Btn title="Send a test reminder" kind="quiet" small icon="clock" onPress={async () => { const ok = await sendTestReminder(); setTestNote(ok ? 'Sent. It should arrive in a couple of seconds.' : 'Reminders are off for Hats. Turn on notifications for Hats in your phone’s settings.'); }} />
-      {testNote ? <Txt v="fine">{testNote}</Txt> : null}
-
-      <ClaudeSection />
-
-      {widgetsSupported ? (
-        <Section title="Home-screen widgets">
-          {([[WIDGETS.now, 'Now', 'Your one thing, with Focus and Done'], [WIDGETS.log, 'Caseload +1', 'Log a data point without opening Hats'], [WIDGETS.say, 'Say anything', 'One tap to capture out loud']] as const).map(([name, title, sub], i) => (
-            <Line key={name} last={i === 2}>
-              <View style={{ flex: 1, gap: 2 }}>
-                <Txt v="semi">{title}</Txt>
-                <Txt v="fine">{sub}</Txt>
-              </View>
-              <Btn title="Add" small kind="quiet" onPress={() => addWidget(name)} accessibilityLabel={`Add the ${title} widget`} />
-            </Line>
-          ))}
-        </Section>
+          parsed[k] = t;
+        }
+        if (
+          parsed.dinnerTime &&
+          parsed.storyTime &&
+          parsed.storyTime <= parsed.dinnerTime
+        )
+          throw new Error("Stories should come after dinner.");
+        mutate((d) => {
+          Object.assign(d.preferences, parsed);
+        });
+        say("Evening rhythm saved.");
+      },
+    });
+  };
+  const routine = () =>
+    editor.open({
+      title: "Your planning windows",
+      detail:
+        "These are availability windows, not exact dinner or bedtime appointments. Your evening sequence stays flexible.",
+      fields: [
+        {
+          key: "homeTime",
+          label: "Weekday home window starts · HH:MM",
+          value: data.preferences.homeTime,
+        },
+        {
+          key: "endTime",
+          label: "Weekday window ends · HH:MM",
+          value: data.preferences.endTime,
+        },
+        {
+          key: "weekendStart",
+          label: "Weekend starts · HH:MM",
+          value: data.preferences.weekendStart,
+        },
+        {
+          key: "weekendEnd",
+          label: "Weekend ends · HH:MM",
+          value: data.preferences.weekendEnd,
+        },
+        {
+          key: "gymStart",
+          label: "Gym starts · HH:MM",
+          value: data.preferences.gymStart,
+        },
+        {
+          key: "gymMinutes",
+          label: "Gym duration in minutes",
+          value: String(data.preferences.gymMinutes),
+          numeric: true,
+        },
+      ],
+      onSave: (v) => {
+        for (const k of [
+          "homeTime",
+          "endTime",
+          "weekendStart",
+          "weekendEnd",
+          "gymStart",
+        ])
+          if (!validTime(v[k]))
+            throw new Error("Use valid 24-hour times, like 16:45.");
+        if (v.endTime <= v.homeTime || v.weekendEnd <= v.weekendStart)
+          throw new Error("Each window must end after it starts.");
+        const gymMinutes = Number(v.gymMinutes);
+        if (!Number.isFinite(gymMinutes) || gymMinutes < 15 || gymMinutes > 180)
+          throw new Error("Use 15–180 minutes for the gym.");
+        mutate((d) =>
+          Object.assign(d.preferences, {
+            homeTime: v.homeTime,
+            endTime: v.endTime,
+            weekendStart: v.weekendStart,
+            weekendEnd: v.weekendEnd,
+            gymStart: v.gymStart,
+            gymMinutes,
+          }),
+        );
+      },
+    });
+  return (
+    <Page tabs={false}>
+      <Header title="Your life, your settings." back hat="hardhat" />
+      {error ? (
+        <Panel>
+          <T>{error}</T>
+          <Button
+            title="Try opening saved data again"
+            onPress={() => run(reload)}
+          />
+        </Panel>
       ) : null}
-      {widgetNote ? <Txt v="fine">{widgetNote}</Txt> : null}
-
-      <View style={{ gap: 12 }}>
-        <Label>Kids’ board</Label>
-        {data.kids.map(k => (
-          <View key={k.id} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 52 }}>
-            <Pressable accessibilityRole="button" accessibilityLabel={`Change ${k.name}’s color`} onPress={() => mutate(d => { d.kids = d.kids.map(x => (x.id === k.id ? { ...x, color: COLORS[(COLORS.indexOf(x.color) + 1) % COLORS.length] } : x)); })} style={{ width: 34, height: 34, borderRadius: 17, backgroundColor: KID_COLORS[k.color]?.solid ?? C.raised2 }} />
-            <Txt v="semi" style={{ flex: 1 }}>{k.name}</Txt>
-            <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${k.name}`} hitSlop={8} onPress={() => mutate(d => { d.kids = d.kids.filter(x => x.id !== k.id); })}><Icon name="close" size={18} color={C.ink3} /></Pressable>
-          </View>
-        ))}
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Field value={kid} onChangeText={setKid} placeholder="Add a kid’s first name" accessibilityLabel="Kid’s first name" style={{ flex: 1 }} autoCapitalize="words" />
-          <Btn title="Add" small disabled={!kid.trim()} onPress={() => { const n = kid.trim(); mutate(d => { d.kids.push({ id: uid('k'), name: n, color: COLORS[d.kids.length % COLORS.length] }); }); setKid(''); }} />
-        </View>
-        <View style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-          <Txt v="semi">Team star goal</Txt>
-          <Stepper label="star goal" value={String(data.board.goal)} onMinus={() => mutate(d => { d.board = { ...d.board, goal: Math.max(5, d.board.goal - 5) }; })} onPlus={() => mutate(d => { d.board = { ...d.board, goal: Math.min(100, d.board.goal + 5) }; })} />
-        </View>
-        <Field value={data.board.reward} onChangeText={reward => mutate(d => { d.board = { ...d.board, reward }; })} placeholder="The reward" accessibilityLabel="Team reward" />
-      </View>
-
-      <View style={{ gap: 12 }}>
-        <Label>Dinners to pick from</Label>
-        <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8 }}>
-          {data.meals.map(m => <Chip key={m} label={`${m}  ×`} onPress={() => mutate(d => { d.meals = d.meals.filter(x => x !== m); })} />)}
-        </View>
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Field value={meal} onChangeText={setMeal} placeholder="Add a dinner" accessibilityLabel="Dinner name" style={{ flex: 1 }} autoCapitalize="sentences" />
-          <Btn title="Add" small disabled={!meal.trim()} onPress={() => { const m = meal.trim(); mutate(d => { if (!d.meals.includes(m)) d.meals.push(m); }); setMeal(''); }} />
-        </View>
-      </View>
-
-      <View style={{ gap: 12 }}>
-        <Label>Weekly rhythm</Label>
-        <Txt v="fine">Each one becomes a Home task on its day: laundry after pickups, baths an hour before bedtime. Tap a name to change it, like turning “kid 1” into a name.</Txt>
-        {data.chores.map(c => (
-          <View key={c.id} style={{ gap: 8, paddingVertical: 6, borderBottomWidth: 1, borderBottomColor: C.line }}>
-            <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10 }}>
-              <TextInput value={c.label} onChangeText={label => mutate(d => { d.chores = d.chores.map(x => (x.id === c.id ? { ...x, label } : x)); })} accessibilityLabel={`Rename ${c.label}`} selectionColor={C.gold} style={{ flex: 1, fontFamily: F.semi, fontSize: 15, color: C.ink, paddingVertical: 6 }} />
-              <Text style={{ fontFamily: F.med, fontSize: 12, color: C.ink3 }}>{choreWhen(c, s)}</Text>
-              <Pressable accessibilityRole="button" accessibilityLabel={`Remove ${c.label}`} hitSlop={8} onPress={() => mutate(d => { d.chores = d.chores.filter(x => x.id !== c.id); })}><Icon name="close" size={18} color={C.ink3} /></Pressable>
-            </View>
-            <View style={{ flexDirection: 'row', gap: 6 }}>
-              {DAY_LETTERS.map((l, i) => {
-                const on = c.days.includes(i);
-                return (
-                  <Pressable key={i} accessibilityRole="checkbox" accessibilityState={{ checked: on }} accessibilityLabel={`${c.label} on ${DAY_NAMES[i]}`} onPress={() => { tap(); mutate(d => { d.chores = d.chores.map(x => (x.id === c.id ? { ...x, days: on ? x.days.filter(y => y !== i) : [...x.days, i].sort() } : x)); }); }} style={{ flex: 1, height: 34, borderRadius: 17, alignItems: 'center', justifyContent: 'center', backgroundColor: on ? 'rgba(242,193,78,0.18)' : 'rgba(255,255,255,0.04)' }}>
-                    <Text style={{ fontFamily: F.bold, fontSize: 12, color: on ? C.gold : C.ink3 }}>{l}</Text>
-                  </Pressable>
+      <Group
+        hat="propeller"
+        title="Family sharing"
+        summary={
+          data.household
+            ? `${data.household.name} · ${data.household.members.map((m) => m.name).join(", ")}`
+            : "Share groceries, dinners and the family calendar"
+        }
+      >
+        <FamilySettings />
+      </Group>
+      <Group
+        hat="pompom"
+        title="Personal setup"
+        summary={`${data.preferences.name || "Your profile"} · evening rhythm, gym days`}
+      >
+        <Panel>
+          <T size={18} bold>
+            {data.preferences.name || "Your profile"}
+          </T>
+          <T muted>
+            {data.preferences.city || "Area not set"} · up to{" "}
+            {data.preferences.travelMinutes} minutes of travel
+          </T>
+          <Button
+            title="Edit names and preferences"
+            quiet
+            onPress={() =>
+              editor.open({
+                title: "Your profile",
+                fields: [
+                  {
+                    key: "name",
+                    label: "Your name",
+                    value: data.preferences.name,
+                  },
+                  {
+                    key: "partner",
+                    label: "Partner’s name",
+                    value: data.preferences.partner,
+                  },
+                  {
+                    key: "city",
+                    label: "Home area",
+                    value: data.preferences.city,
+                  },
+                  {
+                    key: "travel",
+                    label: "Travel limit in minutes",
+                    value: String(data.preferences.travelMinutes),
+                    numeric: true,
+                  },
+                  {
+                    key: "budget",
+                    label: "Date budget, excluding childcare and transport",
+                    value: String(data.preferences.dateBudget),
+                    numeric: true,
+                  },
+                ],
+                onSave: (v) => {
+                  const travel = Number(v.travel),
+                    budget = Number(v.budget);
+                  if (
+                    !Number.isFinite(travel) ||
+                    travel < 5 ||
+                    travel > 240 ||
+                    !Number.isFinite(budget) ||
+                    budget < 0
+                  )
+                    throw new Error("Use a valid travel limit and budget.");
+                  mutate((d) =>
+                    Object.assign(d.preferences, {
+                      name: v.name.trim(),
+                      partner: v.partner.trim(),
+                      city: required(v.city, "your area"),
+                      travelMinutes: travel,
+                      dateBudget: budget,
+                    }),
+                  );
+                },
+              })
+            }
+          />
+          <Button
+            title="Evening rhythm"
+            quiet
+            hat="nightcap"
+            onPress={evening}
+          />
+          <T size={13} bold>
+            Baths
+          </T>
+          <Row>
+            {(
+              [
+                ["alternate", "Every other night"],
+                ["nightly", "Every night"],
+                ["off", "Don’t show"],
+              ] as const
+            ).map(([value, label]) => (
+              <Chip
+                key={value}
+                title={label}
+                selected={routinePrefs(data).bathNights === value}
+                onPress={() =>
+                  mutate((d) => {
+                    d.preferences.bathNights = value;
+                    if (value === "alternate" && !d.preferences.bathAnchor)
+                      d.preferences.bathAnchor = today;
+                  })
+                }
+              />
+            ))}
+          </Row>
+          <Button title="Edit planning windows" quiet onPress={routine} />
+          <T size={13} bold>
+            Usual gym days · tap to choose
+          </T>
+          <Row>
+            {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map(
+              (label, i) => (
+                <Chip
+                  key={label}
+                  title={label}
+                  selected={data.preferences.gymDays.includes(i)}
+                  onPress={() =>
+                    mutate((d) => {
+                      d.preferences.gymDays = d.preferences.gymDays.includes(i)
+                        ? d.preferences.gymDays.filter((n) => n !== i)
+                        : [...d.preferences.gymDays, i];
+                    })
+                  }
+                />
+              ),
+            )}
+          </Row>
+          <T size={12} muted>
+            No gym days are assumed until you choose them. Keep unusual days as
+            personal calendar events.
+          </T>
+        </Panel>
+      </Group>
+      <Group
+        hat={hatDef("work").art}
+        title={isSimpleWeek(data.preferences.school?.week) ? "Work day" : "School day"}
+        summary={
+          !schoolOn(data)
+            ? "Off"
+            : isSimpleWeek(data.preferences.school?.week)
+              ? "On Today · your hours"
+              : "On Today · your bell schedule, Monday to Friday"
+        }
+      >
+        <Panel>
+          <Check
+            title="Show my school day on Today"
+            done={schoolOn(data)}
+            onPress={() =>
+              mutate((d) => {
+                d.preferences.school = {
+                  ...(d.preferences.school ?? {}),
+                  on: !schoolOn(d),
+                };
+              })
+            }
+          />
+          <T muted>
+            Homeroom, each class, your off periods, lunch and dismissal show on
+            Today, and whatever’s happening now is the big card. A calendar
+            meeting during an off period (like CPT during Specials) takes its
+            place. Days you don’t work and confirmed closures have no school day.
+          </T>
+        </Panel>
+        {schoolOn(data) && isSimpleWeek(data.preferences.school?.week) ? (
+          <Panel>
+            {WEEKDAYS.map((name, i) => {
+              const key = String(i + 1);
+              const b = data.preferences.school?.week?.[key]?.[0];
+              return (
+                <Button
+                  key={key}
+                  title={`${name} · ${b ? `${fmtTime(b.start, true)}–${fmtTime(b.end, true)}` : "Off"}`}
+                  quiet
+                  onPress={() =>
+                    editor.open({
+                      title: `${name}’s hours`,
+                      detail: "Leave both empty for a day off.",
+                      fields: [
+                        { key: "start", label: "Starts", value: b ? fmtTime(b.start, true) : "", placeholder: "8:00 AM" },
+                        { key: "end", label: "Ends", value: b ? fmtTime(b.end, true) : "", placeholder: "3:00 PM" },
+                      ],
+                      onSave: (v) => {
+                        const off = !v.start.trim() && !v.end.trim();
+                        const start = parseClock(v.start);
+                        const end = parseClock(v.end);
+                        if (!off && (!start || !end || start >= end))
+                          throw new Error("Use times like 8:00 AM and 3:00 PM, start before end.");
+                        mutate((d) => {
+                          const cur = d.preferences.school ?? { on: true };
+                          const week = { ...(cur.week ?? {}) };
+                          if (off) delete week[key];
+                          else week[key] = simpleWeek([i + 1], start!, end!, b?.title ?? "Work")[key];
+                          d.preferences.school = { ...cur, week };
+                          const days = new Set(d.preferences.unavailableDays);
+                          if (off) days.delete(i + 1);
+                          else days.add(i + 1);
+                          d.preferences.unavailableDays = [...days].sort();
+                        });
+                        say(`${name} updated.`);
+                      },
+                    })
+                  }
+                />
+              );
+            })}
+          </Panel>
+        ) : schoolOn(data) ? (
+          <Panel>
+            {WEEKDAYS.map((name, i) => {
+              const key = String(i + 1);
+              const week = data.preferences.school?.week ?? STANDARD_WEEK;
+              const blocks = week[key] ?? [];
+              return (
+                <Button
+                  key={key}
+                  title={`${name} · ${daySummary(blocks) || "No classes"}`}
+                  quiet
+                  onPress={() => {
+                    const f = dayFields(blocks);
+                    editor.open({
+                      title: `${name}’s classes`,
+                      fields: [
+                        { key: "p2", label: "Period 2 · 9:31", value: f.p2, placeholder: "7A" },
+                        { key: "p3", label: "Period 3 · 10:27", value: f.p3, placeholder: "7C" },
+                        { key: "p4", label: "Period 4 · 11:23 (RBR is off, or a Boost)", value: f.p4, placeholder: "7B Boost" },
+                        { key: "p5", label: "Period 5 · 12:19 (Recess or Advisory, then lunch)", value: f.p5, placeholder: "Recess" },
+                        { key: "p6", label: "Period 6 · 1:15", value: f.p6, placeholder: "7B" },
+                        { key: "p7", label: "Period 7 · 2:11", value: f.p7, placeholder: "7D" },
+                      ],
+                      onSave: (v) => {
+                        const next = dayFrom(v as Record<"p2" | "p3" | "p4" | "p5" | "p6" | "p7", string>);
+                        mutate((d) => {
+                          const cur = d.preferences.school ?? { on: true };
+                          d.preferences.school = {
+                            ...cur,
+                            week: { ...(cur.week ?? STANDARD_WEEK), [key]: next },
+                          };
+                        });
+                        say(`${name} updated.`);
+                      },
+                    });
+                  }}
+                />
+              );
+            })}
+            <T size={12} muted>
+              Tap a day to change its classes. Bell times follow the Condon
+              schedule: homeroom 8:15, Specials 8:35 (off), dismissal 3:05.
+            </T>
+          </Panel>
+        ) : null}
+        {!isSimpleWeek(data.preferences.school?.week) ? (
+          <>
+            <Panel>
+              <T bold>School breaks and seasonal plans</T>
+              <T muted>
+                Check the official BPS calendar, then add confirmed closures in
+                Capture. Your children’s school and daycare may have different
+                schedules.
+              </T>
+              <Button
+                title="Official BPS calendar"
+                quiet
+                onPress={() =>
+                  Linking.openURL(
+                    "https://www.bostonpublicschools.org/district-calendar",
+                  )
+                }
+              />
+              <Button
+                title="Tell Hats about a confirmed day off"
+                quiet
+                onPress={() => router.push("/capture")}
+              />
+            </Panel>
+          </>
+        ) : null}
+      </Group>
+      <Group
+        hat="nightcap"
+        title="Reminders and widgets"
+        summary={
+          data.preferences.notifications
+            ? "Reminders on · widgets"
+            : "Reminders off · widgets"
+        }
+      >
+        <Panel>
+          <Check
+            title="Optional adventures and playful prompts"
+            done={data.preferences.playful !== false}
+            onPress={() =>
+              mutate((d) => {
+                d.preferences.playful = d.preferences.playful === false;
+              })
+            }
+          />
+          <T muted>
+            Choose a small adventure because it feels worthwhile. Your chosen
+            streaks stay separate; you can track daily actions or weekly goals
+            without relationship scores.
+          </T>
+        </Panel>
+        <Panel>
+          <Check
+            title="Phone reminders"
+            done={data.preferences.notifications}
+            onPress={() =>
+              run(async () => {
+                if (data.preferences.notifications)
+                  mutate((d) => {
+                    d.preferences.notifications = false;
+                  });
+                else {
+                  await enableReminders();
+                  mutate((d) => {
+                    d.preferences.notifications = true;
+                  });
+                }
+              })
+            }
+          />
+          <T muted>
+            Morning {fmtTime(data.preferences.morningReminder, true)}: what’s on
+            today. Evening {fmtTime(data.preferences.eveningReminder, true)}: what’s
+            on tomorrow. Watch vibrations follow your phone/watch notification
+            settings.
+          </T>
+          <Check
+            title="“What’s for dinner?” in the afternoon when dinner isn’t planned"
+            done={data.preferences.dinnerNudge !== false}
+            onPress={() =>
+              mutate((d) => {
+                d.preferences.dinnerNudge = d.preferences.dinnerNudge === false;
+              })
+            }
+          />
+          <Button
+            title="Change reminder times"
+            quiet
+            onPress={() =>
+              editor.open({
+                title: "When reminders help",
+                fields: [
+                  {
+                    key: "morning",
+                    label: "Morning · HH:MM",
+                    value: data.preferences.morningReminder,
+                  },
+                  {
+                    key: "evening",
+                    label: "Evening · HH:MM",
+                    value: data.preferences.eveningReminder,
+                  },
+                ],
+                onSave: (v) => {
+                  if (!validTime(v.morning) || !validTime(v.evening))
+                    throw new Error("Use valid 24-hour times.");
+                  mutate((d) => {
+                    d.preferences.morningReminder = v.morning;
+                    d.preferences.eveningReminder = v.evening;
+                  });
+                },
+              })
+            }
+          />
+          <Button
+            title="Add my next-step widget"
+            quiet
+            onPress={() =>
+              run(async () => {
+                const added = await pinPersonalWidget();
+                if (!added)
+                  say("Add Hats from your Android home screen’s Widgets menu.");
+              })
+            }
+          />
+          <T size={12} muted>
+            Android may let you dismiss an ongoing notification. The task
+            remains in Hats and your widget until handled.
+          </T>
+        </Panel>
+      </Group>
+      <Group
+        hat="sunhat"
+        title="Light and dark"
+        summary={
+          { auto: "Matches your phone", light: "Always light", dark: "Always dark" }[
+            data.preferences.theme ?? "auto"
+          ]
+        }
+      >
+        <Panel>
+          <Row>
+            {(
+              [
+                ["auto", "Match my phone"],
+                ["light", "Light"],
+                ["dark", "Dark"],
+              ] as const
+            ).map(([key, label]) => (
+              <Chip
+                key={key}
+                title={label}
+                selected={(data.preferences.theme ?? "auto") === key}
+                onPress={() =>
+                  mutate((d) => {
+                    if (key === "auto") delete d.preferences.theme;
+                    else d.preferences.theme = key;
+                  })
+                }
+              />
+            ))}
+          </Row>
+          <T size={13} muted>
+            Dark is easier on the eyes at night, at bedtime stories, and in a dark room.
+          </T>
+        </Panel>
+      </Group>
+      <Group
+        hat="hardhat"
+        title="Account and sync"
+        summary={
+          account
+            ? `Signed in as ${account}`
+            : "Sign in to keep your plan safe on every device"
+        }
+      >
+        <Panel>
+          <T bold>
+            {account
+              ? `Signed in as ${account}`
+              : "Keep your plan across devices"}
+          </T>
+          <T muted>{syncStatus}</T>
+          <T size={12} muted>
+            {Platform.OS === "web"
+              ? "On the web, your plan is kept in this browser."
+              : "On this phone, your plan is encrypted with a key protected by the device."}{" "}
+            Synced copies are private to your account (not end-to-end
+            encrypted).
+          </T>
+          {!account ? (
+            <SignIn
+              say={say}
+              onSignedIn={async (who) => {
+                setAccount(who);
+                await sync();
+              }}
+            />
+          ) : (
+            <Row>
+              <Button
+                title="Sync now"
+                disabled={busy}
+                onPress={() => run(sync)}
+              />
+              <Button
+                title="Sign out"
+                quiet
+                disabled={busy}
+                onPress={() =>
+                  run(async () => {
+                    await signOut();
+                    setAccount("");
+                    say("Signed out. Your local plan stays on this device.");
+                  })
+                }
+              />
+            </Row>
+          )}
+          {conflict ? (
+            <>
+              <T bold>Both versions are preserved until you choose.</T>
+              <T muted>
+                Another version exists in your account. Keep the phone’s
+                version, or recover the cloud version. Your current phone
+                version is backed up locally first.
+              </T>
+              <Button
+                title="Use the cloud version"
+                quiet
+                onPress={() => run(() => resolve(true))}
+              />
+              <Button
+                title="Use this phone’s version"
+                quiet
+                onPress={() => run(() => resolve(false))}
+              />
+            </>
+          ) : null}
+        </Panel>
+      </Group>
+      <Group
+        hat="safari"
+        title="Google Calendar · read-only"
+        summary={"Show your Google calendars on the timeline"}
+      >
+        <Panel>
+          <T muted>
+            Choose personal calendars to read for the next 30 days. Hats never
+            writes events to Google.
+          </T>
+          <Button
+            title="Connect Google Calendar"
+            disabled={!configured || busy}
+            quiet
+            onPress={() =>
+              run(async () => {
+                await googleSignIn();
+                setAccount((await currentSession())?.user.email ?? "");
+                setCalendars(await googleCalendars());
+              })
+            }
+          />
+          <Button
+            title="Choose calendars"
+            disabled={!configured || busy}
+            quiet
+            onPress={() =>
+              run(async () => setCalendars(await googleCalendars()))
+            }
+          />
+          {calendars.map((c) => (
+            <Check
+              key={c.id}
+              title={c.summary}
+              done={selected.includes(c.id)}
+              onPress={() =>
+                setSelected((s) =>
+                  s.includes(c.id) ? s.filter((x) => x !== c.id) : [...s, c.id],
+                )
+              }
+            />
+          ))}
+          <Button
+            title="Refresh selected calendars"
+            disabled={!selected.length || busy}
+            onPress={() =>
+              run(async () => {
+                const events = await readGoogleEvents(selected);
+                mutate((d) => {
+                  d.events = [
+                    ...d.events.filter((e) => e.source !== "google"),
+                    ...events,
+                  ];
+                });
+                await secretSet(
+                  "hats.google.calendars",
+                  JSON.stringify(selected),
                 );
-              })}
-            </View>
-          </View>
-        ))}
-        <Segmented label="Kind" value={choreKind} onChange={setChoreKind} options={[{ value: 'laundry', label: 'Laundry' }, { value: 'bath', label: 'Baths' }, { value: 'other', label: 'Other' }]} />
-        <View style={{ flexDirection: 'row', gap: 10 }}>
-          <Field value={chore} onChangeText={setChore} placeholder="Add to the rhythm" accessibilityLabel="Rhythm item" style={{ flex: 1 }} autoCapitalize="sentences" />
-          <Btn title="Add" small disabled={!chore.trim()} onPress={() => { const label = chore.trim(); mutate(d => { d.chores.push({ id: uid('c'), label, days: [], kind: choreKind }); }); setChore(''); }} />
-        </View>
-      </View>
-
-      <View style={{ gap: 10 }}>
-        <Label>Data</Label>
-        <Txt v="fine">Everything is saved on this phone only. Student details are initials only.</Txt>
-        {demo ? <Btn title="Leave sample data" kind="quiet" onPress={endDemo} /> : <Btn title="Look around with sample data" kind="quiet" onPress={() => { startDemo(); router.replace('/'); }} />}
-        <Btn
-          title="Erase everything"
-          kind="ghost"
-          icon="trash"
-          onPress={() =>
-            Alert.alert('Erase everything?', 'Tasks, students, Pulse sorts and settings are deleted from this phone. This can’t be undone.', [
-              { text: 'Cancel', style: 'cancel' },
-              { text: 'Erase', style: 'destructive', onPress: () => { eraseAll(); router.replace('/welcome'); } },
-            ])
-          }
-        />
-      </View>
-      <Txt v="fine" center>Hats {Constants.expoConfig?.version ?? '1.0.0'}</Txt>
-    </Screen>
+                say("Calendar refreshed. No Google events were changed.");
+              })
+            }
+          />
+          <Button
+            title="Remove imported Google events"
+            quiet
+            onPress={() => {
+              mutate((d) => {
+                d.events = d.events.filter((e) => e.source !== "google");
+              });
+              setSelected([]);
+              secretSet("hats.google.calendars", "[]");
+            }}
+          />
+          <T size={12} muted>
+            Backend Google OAuth configuration is required. If access expires,
+            reconnect. Event updates are read when you refresh; they are not a
+            live stream.
+          </T>
+        </Panel>
+      </Group>
+      <Group
+        hat="bandana"
+        title="Health"
+        summary="WHOOP recovery and sleep"
+      >
+        <WhoopSettings signedIn={!!account} />
+      </Group>
+      {Platform.OS !== "web" ? (
+        <Group
+          hat="propeller"
+          title="Protected family time"
+          summary={"Keep distracting apps away during family time"}
+        >
+          <Panel>
+            <T size={18} bold>
+              Protected family time
+            </T>
+            <T muted>
+              {focusAvailable
+                ? focusEnabled
+                  ? "Android service enabled"
+                  : "Android service not enabled"
+                : "Available in the Android build"}
+            </T>
+            <T>
+              With your permission, Hats uses Android Accessibility to detect only
+              the package name of an app you open. During a session you start,
+              opening a selected distracting app returns you to the home screen.
+            </T>
+            <T muted>
+              It does not read screen contents, messages, or typed text, and sends
+              no accessibility data anywhere. You can end a session in Hats, or
+              disable the service in Android Settings at any time.
+            </T>
+            <Check
+              title="I understand and want this optional protection"
+              done={!!data.preferences.focusConsent}
+              onPress={() =>
+                mutate((d) => {
+                  d.preferences.focusConsent = !d.preferences.focusConsent;
+                  if (
+                    d.preferences.focusConsent &&
+                    !d.preferences.distractingPackages?.length
+                  )
+                    d.preferences.distractingPackages = DISTRACTIONS[0].packages;
+                })
+              }
+            />
+            {DISTRACTIONS.map((app) => (
+              <Check
+                key={app.name}
+                title={app.name}
+                done={app.packages.some((p) =>
+                  data.preferences.distractingPackages?.includes(p),
+                )}
+                onPress={() =>
+                  mutate((d) => {
+                    const current = d.preferences.distractingPackages ?? [];
+                    d.preferences.distractingPackages = app.packages.some((p) =>
+                      current.includes(p),
+                    )
+                      ? current.filter((p) => !app.packages.includes(p))
+                      : [...current, ...app.packages];
+                  })
+                }
+              />
+            ))}
+            <Button
+              title="Open Android accessibility settings"
+              quiet
+              disabled={!data.preferences.focusConsent || !focusAvailable}
+              onPress={() => run(openFocusSettings)}
+            />
+          </Panel>
+        </Group>
+      ) : null}
+      <Group
+        hat="stack"
+        title="Backups"
+        summary="Export, restore, or recover a previous version"
+      >
+        <Panel>
+          <T muted>
+            A backup contains your private notes and personal information. Keep
+            it somewhere you trust. Text and plans export; photo files remain on
+            their original device.
+          </T>
+          <Button
+            title="Export my personal backup"
+            quiet
+            onPress={() => run(() => exportPersonal(data))}
+          />
+          <Button
+            title="Import setup or backup"
+            quiet
+            onPress={() =>
+              confirm(
+                "Import a personal backup?",
+                "Your current version will be kept as a local recovery copy before the import.",
+                () =>
+                  run(async () => {
+                    const next = await pickBackup();
+                    if (next) {
+                      await replace(next);
+                      say("Personal data imported.");
+                    }
+                  }),
+              )
+            }
+          />
+          <Button
+            title="Recover previous local version"
+            quiet
+            onPress={() =>
+              run(async () => {
+                const AsyncStorage = (
+                  await import("@react-native-async-storage/async-storage")
+                ).default;
+                const raw = await AsyncStorage.getItem(
+                  "hats.personal.v2.before-import",
+                );
+                if (!raw)
+                  throw new Error("No previous import recovery copy exists.");
+                const { decodeLocal } = await import("../personal/storage");
+                await replace(await decodeLocal(raw));
+                say("Previous local version restored.");
+              })
+            }
+          />
+          {legacyCount ? (
+          <Button
+            title={`Bring in ${legacyCount} old Home ${legacyCount === 1 ? "task" : "tasks"}`}
+            quiet
+            onPress={() =>
+              run(async () => {
+                const tasks = await legacyHomeTasks();
+                let count = 0;
+                mutate((d) => {
+                  for (const t of tasks) {
+                    const source = `legacy-home:${t.id}`;
+                    if (d.tasks.some((x) => x.source === source)) continue;
+                    d.tasks.push(
+                      makeTask(String(t.title), "home", t.date ?? today, {
+                        source,
+                        doneAt: t.doneAt ?? null,
+                      }),
+                    );
+                    count++;
+                  }
+                });
+                say(
+                  `${count} Home tasks imported. Original data was left untouched.`,
+                );
+              })
+            }
+          />
+          ) : null}
+        </Panel>
+      </Group>
+      <Group hat="party" title="This copy of Hats" summary="Version and updates">
+        <Panel>
+          <ThisCopy />
+        </Panel>
+      </Group>
+      {editor.node}
+    </Page>
   );
 }
