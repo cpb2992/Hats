@@ -23,28 +23,13 @@ import type { HatArtId } from "./hatArt";
 import { finishStep, nextStep, reschedule } from "./engine";
 import { usePersonal } from "./Store";
 import { fmtRelative, fmtTime } from "../engine/dates";
+import { P, tone } from "./palette";
 
-export const P = {
-  bg: "#FFF4E3",
-  paper: "#FFFDF8",
-  ink: "#1D2D45",
-  muted: "#56647A",
-  line: "#E6D8C3",
-  soft: "#EAF1FB",
-  blue: "#3D65A2",
-  orange: "#B4512F",
-  warm: "#FFE6D2",
-  dark: "#1D2D45",
-  sun: "#F7C948",
-  sky: "#CFE3F7",
-  peach: "#FFD9C2",
-  lilac: "#EDE0FA",
-  mint: "#D3F0E8",
-};
+export { P, applyScheme, isDark, tone } from "./palette";
 /** Sticker edge: a dark outline with a chunkier bottom, like a cut-out. */
 export const sticker = (lift = 5): ViewStyle => ({
   borderWidth: 2,
-  borderColor: P.ink,
+  borderColor: P.edge,
   borderBottomWidth: lift,
 });
 /** Hats follows the phone's text size up to this much larger; past it, layouts stay readable instead of breaking. */
@@ -136,7 +121,7 @@ export function Panel({
   const s: ViewStyle = {
     padding: 17,
     borderRadius: 22,
-    backgroundColor: dark ? P.dark : (tint ?? P.paper),
+    backgroundColor: dark ? P.dark : tint ? tone(tint) : P.paper,
     gap: 10,
     ...sticker(),
     ...style,
@@ -226,14 +211,14 @@ export function Button({
       {icon && !hat ? (
         <Icon
           name={icon}
-          color={quiet || disabled || tone === "sun" ? P.ink : P.paper}
+          color={tone === "sun" && !disabled ? P.onSun : quiet || disabled ? P.ink : P.paper}
           size={18}
         />
       ) : null}
       <T
         size={small ? 13 : 15}
         bold
-        color={quiet || disabled || tone === "sun" ? P.ink : P.paper}
+        color={tone === "sun" && !disabled ? P.onSun : quiet || disabled ? P.ink : P.paper}
         style={{ flexShrink: 1 }}
       >
         {title}
@@ -270,11 +255,11 @@ export function Chip({
         borderRadius: 22,
         backgroundColor: selected ? P.sun : P.paper,
         borderWidth: 2,
-        borderColor: selected ? P.ink : P.line,
+        borderColor: selected ? P.edge : P.line,
         justifyContent: "center",
       }}
     >
-      <T size={13} bold color={P.ink}>
+      <T size={13} bold color={selected ? P.onSun : P.ink}>
         {selected ? "✓ " : ""}
         {title}
       </T>
@@ -297,7 +282,7 @@ export function Field({ label, ...props }: TextInputProps & { label: string }) {
             borderRadius: 16,
             backgroundColor: P.paper,
             borderWidth: 2,
-            borderColor: P.ink,
+            borderColor: P.edge,
             padding: 14,
             fontFamily: F.body,
             fontSize: 16,
@@ -451,7 +436,7 @@ export function Section({
               backgroundColor: P.paper,
               borderRadius: 16,
               borderWidth: 2,
-              borderColor: P.ink,
+              borderColor: P.edge,
               paddingHorizontal: 12,
               paddingVertical: 6,
             }}
@@ -518,9 +503,9 @@ export function Check({
           height: 28,
           width: 28,
           borderRadius: 10,
-          backgroundColor: done ? P.sun : P.paper,
+          backgroundColor: done ? P.done : P.paper,
           borderWidth: 2,
-          borderColor: P.ink,
+          borderColor: P.edge,
           alignItems: "center",
           justifyContent: "center",
         }}
@@ -563,7 +548,7 @@ export function TaskCard({
             flexDirection: "row",
             alignItems: "center",
             gap: 6,
-            backgroundColor: hatDef(task.hat).tint,
+            backgroundColor: tone(hatDef(task.hat).tint),
             borderRadius: 16,
             paddingRight: 10,
             paddingLeft: 4,
@@ -696,7 +681,7 @@ export function Group({
           borderRadius: 20,
           backgroundColor: open ? P.paper : pressed ? P.soft : "transparent",
           borderWidth: 2,
-          borderColor: open ? P.ink : P.line,
+          borderColor: open ? P.edge : P.line,
         })}
       >
         <Hat id={hat} size={34} tilt={-6} />
@@ -739,9 +724,9 @@ export function HatTag({
         paddingRight: 8,
         paddingVertical: 1,
         borderRadius: 10,
-        backgroundColor: h.tint,
+        backgroundColor: tone(h.tint),
         borderWidth: 1.5,
-        borderColor: P.ink,
+        borderColor: P.edge,
       }}
     >
       <Hat id={h.art} size={16} />

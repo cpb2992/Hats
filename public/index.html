@@ -14,12 +14,15 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <link rel="manifest" href="/manifest.json" />
+    <!-- Hats draws its own dark mode; "only light" stops browsers repainting its colors on top. -->
     <meta name="color-scheme" content="only light" />
-    <meta name="theme-color" content="#FFF4E3" />
+    <meta name="theme-color" content="#FFF4E3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#10151E" media="(prefers-color-scheme: dark)" />
     <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
     <style id="expo-reset">
       html, body { height: 100%; }
       body { overflow: hidden; background-color: #FFF4E3; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+      @media (prefers-color-scheme: dark) { body { background-color: #10151E; } }
       #root { display: flex; height: 100%; flex: 1; }
     </style>
   </head>

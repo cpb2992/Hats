@@ -291,9 +291,6 @@ export function Intro({ onDone }: { onDone: () => void }) {
           <T display size={48}>
             hats.
           </T>
-          <T muted size={15} style={{ textAlign: "center" }}>
-            You wear a lot of hats.{"\n"}Keep them all in one place.
-          </T>
         </Animated.View>
       </View>
     </Animated.View>

@@ -57,10 +57,10 @@ function TalkButton({ onCapture }: { onCapture: boolean }) {
             alignItems: "center",
             paddingVertical: 8,
             borderRadius: 16,
-            backgroundColor: P.ink,
+            backgroundColor: P.dark,
           }}
         >
-          <T size={13} bold color={P.paper}>
+          <T size={13} bold color={P.onDark}>
             Listening… let go when done
           </T>
         </View>
@@ -97,7 +97,7 @@ function TalkButton({ onCapture }: { onCapture: boolean }) {
           height: 64,
           marginTop: -34,
           borderRadius: 32,
-          backgroundColor: holding ? P.orange : P.ink,
+          backgroundColor: holding ? P.orange : P.dark,
           borderWidth: 3,
           borderColor: holding ? P.sun : P.bg,
           alignItems: "center",
@@ -175,7 +175,7 @@ function Bar({ state, emitter, navigateToTab }: BottomTabBarProps) {
                 borderRadius: 20,
                 backgroundColor: selected ? P.sun : "transparent",
                 borderWidth: 2,
-                borderColor: selected ? P.ink : "transparent",
+                borderColor: selected ? P.edge : "transparent",
               }}
             >
               <Hat
@@ -183,7 +183,7 @@ function Bar({ state, emitter, navigateToTab }: BottomTabBarProps) {
                 size={selected ? 32 : 28}
                 tilt={selected ? -8 : 0}
               />
-              <T size={11} bold color={P.ink}>
+              <T size={11} bold color={selected ? P.onSun : P.ink}>
                 {meta.title}
               </T>
             </Pressable>

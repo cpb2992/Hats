@@ -239,7 +239,7 @@ export function FamilySettings() {
           paddingVertical: 10,
           borderRadius: 16,
           borderWidth: 2,
-          borderColor: P.ink,
+          borderColor: P.edge,
           backgroundColor: P.soft,
         }}
       >

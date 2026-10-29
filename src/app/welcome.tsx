@@ -8,7 +8,7 @@ import { Hat } from "../personal/Hat";
 import type { HatArtId } from "../personal/hatArt";
 import { HATS, HAT_IDS, type BuiltInHat } from "../personal/model";
 import { applySetup } from "../personal/setup";
-import { Button, Chip, Field, P, Page, Panel, Row, T, sticker } from "../personal/ui";
+import { Button, Chip, Field, P, Page, Panel, Row, T, sticker , tone } from "../personal/ui";
 
 type Step = "start" | "you" | "hats" | "work" | "evening";
 type Work = "teacher" | "office" | "hands-on" | "other";
@@ -105,10 +105,7 @@ export default function Welcome() {
           </View>
           <View style={{ gap: 6 }}>
             <T display size={32} header>
-              You wear a lot of hats.
-            </T>
-            <T display size={22} color={P.blue}>
-              Keep them all in one place.
+              Welcome to Hats.
             </T>
             <T muted>
               Your family, your home, your work, and you: one calm plan for the day,
@@ -146,7 +143,7 @@ export default function Welcome() {
           {[1, 2, 3, 4].map((n) => (
             <View
               key={n}
-              style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: n <= stepNo ? P.ink : "#E6D8C3" }}
+              style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: n <= stepNo ? P.ink : tone("#E6D8C3") }}
             />
           ))}
         </View>
@@ -242,9 +239,9 @@ export default function Welcome() {
                     gap: 4,
                     alignItems: "center",
                     borderRadius: 18,
-                    backgroundColor: on ? HATS[h].tint : P.paper,
+                    backgroundColor: on ? tone(HATS[h].tint) : P.paper,
                     borderWidth: 2,
-                    borderColor: on ? P.ink : "#E6D8C3",
+                    borderColor: on ? P.edge : tone("#E6D8C3"),
                     ...(on ? sticker(4) : {}),
                   }}
                 >

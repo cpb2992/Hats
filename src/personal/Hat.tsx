@@ -2,24 +2,39 @@ import { useEffect, useState } from "react";
 import { Animated, Easing, View, type ViewStyle } from "react-native";
 import Svg, { Circle, Ellipse, G, Path, Rect } from "react-native-svg";
 import { useReduceMotion } from "./a11y";
+import { isDark } from "./palette";
 import { foodShapes, type FoodArtId } from "./foodArt";
 import { hatShapes, type HatArtId, type Shape } from "./hatArt";
 
-function draw(s: Shape, key: number): React.ReactElement {
+/** At night, stickers get a light die-cut edge so dark hats (a bowler, a top hat) still show. */
+const HALO = "#E8E0D0";
+const HALO_W = 3.4;
+
+function draw(s: Shape, key: number, halo?: string): React.ReactElement | null {
   if (s.t === "g")
     return (
       <G key={key} transform={s.transform}>
-        {s.children.map(draw)}
+        {s.children.map((c, k) => draw(c, k, halo))}
       </G>
     );
-  const paint = {
-    fill: s.fill ?? "none",
-    stroke: s.stroke,
-    strokeWidth: s.stroke ? s.w : undefined,
-    strokeLinecap: "round" as const,
-    strokeLinejoin: "round" as const,
-    opacity: s.o,
-  };
+  // Highlights and see-through bits don't get an edge of their own.
+  if (halo && s.o !== undefined && s.o < 1) return null;
+  const paint = halo
+    ? {
+        fill: s.fill && s.fill !== "none" ? halo : "none",
+        stroke: halo,
+        strokeWidth: (s.stroke ? (s.w ?? 1) : 0) + HALO_W,
+        strokeLinecap: "round" as const,
+        strokeLinejoin: "round" as const,
+      }
+    : {
+        fill: s.fill ?? "none",
+        stroke: s.stroke,
+        strokeWidth: s.stroke ? s.w : undefined,
+        strokeLinecap: "round" as const,
+        strokeLinejoin: "round" as const,
+        opacity: s.o,
+      };
   switch (s.t) {
     case "path":
       return <Path key={key} d={s.d} {...paint} />;
@@ -92,8 +107,9 @@ export function Hat({
     outputRange: [0, -3],
   });
   const art = (
-    <Svg width={size} height={size} viewBox="0 0 64 64">
-      {hatShapes(id).map(draw)}
+    <Svg width={size} height={size} viewBox={isDark() ? "-2 -2 68 68" : "0 0 64 64"}>
+      {isDark() ? hatShapes(id).map((s, k) => draw(s, k, HALO)) : null}
+      {hatShapes(id).map((s, k) => draw(s, k))}
     </Svg>
   );
   return (
@@ -131,8 +147,9 @@ export function Food({
       importantForAccessibility="no-hide-descendants"
       style={[{ width: size, height: size, transform: [{ rotate: `${tilt}deg` }] }, style]}
     >
-      <Svg width={size} height={size} viewBox="0 0 64 64">
-        {foodShapes(id).map(draw)}
+      <Svg width={size} height={size} viewBox={isDark() ? "-2 -2 68 68" : "0 0 64 64"}>
+        {isDark() ? foodShapes(id).map((s, k) => draw(s, k, HALO)) : null}
+        {foodShapes(id).map((s, k) => draw(s, k))}
       </Svg>
     </View>
   );

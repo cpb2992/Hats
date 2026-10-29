@@ -7,7 +7,6 @@ import {
   googleCalendars,
   googleSignIn,
   readGoogleEvents,
-  setConfig,
   signOut,
 } from "../personal/cloud";
 import { FamilySettings } from "../personal/FamilyShare";
@@ -80,6 +79,7 @@ export default function Settings() {
   const editor = useEditor();
   const [account, setAccount] = useState("");
   const [configured, setConfigured] = useState(false);
+  const [legacyCount, setLegacyCount] = useState(0);
   const [busy, setBusy] = useState(false);
   const [calendars, setCalendars] = useState<{ id: string; summary: string }[]>(
     [],
@@ -88,6 +88,9 @@ export default function Settings() {
   const focusEnabled = useFocusEnabled();
   useEffect(() => {
     getConfig().then((c) => setConfigured(!!c));
+    legacyHomeTasks()
+      .then((t) => setLegacyCount(t.length))
+      .catch(() => {});
     currentSession()
       .then((s) => setAccount(s?.user.email ?? ""))
       .catch(() => {});
@@ -255,7 +258,6 @@ export default function Settings() {
         hat="pompom"
         title="Personal setup"
         summary={`${data.preferences.name || "Your profile"} · evening rhythm, gym days`}
-        defaultOpen
       >
         <Panel>
           <T size={18} bold>
@@ -502,6 +504,32 @@ export default function Settings() {
             </T>
           </Panel>
         ) : null}
+        {!isSimpleWeek(data.preferences.school?.week) ? (
+          <>
+            <Panel>
+              <T bold>School breaks and seasonal plans</T>
+              <T muted>
+                Check the official BPS calendar, then add confirmed closures in
+                Capture. Your children’s school and daycare may have different
+                schedules.
+              </T>
+              <Button
+                title="Official BPS calendar"
+                quiet
+                onPress={() =>
+                  Linking.openURL(
+                    "https://www.bostonpublicschools.org/district-calendar",
+                  )
+                }
+              />
+              <Button
+                title="Tell Hats about a confirmed day off"
+                quiet
+                onPress={() => router.push("/capture")}
+              />
+            </Panel>
+          </>
+        ) : null}
       </Group>
       <Group
         hat="nightcap"
@@ -609,79 +637,48 @@ export default function Settings() {
         </Panel>
       </Group>
       <Group
-        hat="propeller"
-        title="Protected family time"
-        summary={"Keep distracting apps away during family time"}
+        hat="sunhat"
+        title="Light and dark"
+        summary={
+          { auto: "Matches your phone", light: "Always light", dark: "Always dark" }[
+            data.preferences.theme ?? "auto"
+          ]
+        }
       >
         <Panel>
-          <T size={18} bold>
-            Protected family time
+          <Row>
+            {(
+              [
+                ["auto", "Match my phone"],
+                ["light", "Light"],
+                ["dark", "Dark"],
+              ] as const
+            ).map(([key, label]) => (
+              <Chip
+                key={key}
+                title={label}
+                selected={(data.preferences.theme ?? "auto") === key}
+                onPress={() =>
+                  mutate((d) => {
+                    if (key === "auto") delete d.preferences.theme;
+                    else d.preferences.theme = key;
+                  })
+                }
+              />
+            ))}
+          </Row>
+          <T size={13} muted>
+            Dark is easier on the eyes at night, at bedtime stories, and in a dark room.
           </T>
-          <T muted>
-            {focusAvailable
-              ? focusEnabled
-                ? "Android service enabled"
-                : "Android service not enabled"
-              : "Available in the Android build"}
-          </T>
-          <T>
-            With your permission, Hats uses Android Accessibility to detect only
-            the package name of an app you open. During a session you start,
-            opening a selected distracting app returns you to the home screen.
-          </T>
-          <T muted>
-            It does not read screen contents, messages, or typed text, and sends
-            no accessibility data anywhere. You can end a session in Hats, or
-            disable the service in Android Settings at any time.
-          </T>
-          <Check
-            title="I understand and want this optional protection"
-            done={!!data.preferences.focusConsent}
-            onPress={() =>
-              mutate((d) => {
-                d.preferences.focusConsent = !d.preferences.focusConsent;
-                if (
-                  d.preferences.focusConsent &&
-                  !d.preferences.distractingPackages?.length
-                )
-                  d.preferences.distractingPackages = DISTRACTIONS[0].packages;
-              })
-            }
-          />
-          {DISTRACTIONS.map((app) => (
-            <Check
-              key={app.name}
-              title={app.name}
-              done={app.packages.some((p) =>
-                data.preferences.distractingPackages?.includes(p),
-              )}
-              onPress={() =>
-                mutate((d) => {
-                  const current = d.preferences.distractingPackages ?? [];
-                  d.preferences.distractingPackages = app.packages.some((p) =>
-                    current.includes(p),
-                  )
-                    ? current.filter((p) => !app.packages.includes(p))
-                    : [...current, ...app.packages];
-                })
-              }
-            />
-          ))}
-          <Button
-            title="Open Android accessibility settings"
-            quiet
-            disabled={!data.preferences.focusConsent || !focusAvailable}
-            onPress={() => run(openFocusSettings)}
-          />
         </Panel>
       </Group>
       <Group
         hat="hardhat"
-        title="Private account and recovery"
+        title="Account and sync"
         summary={
           account
             ? `Signed in as ${account}`
-            : "Not signed in · sync and recovery"
+            : "Sign in to keep your plan safe on every device"
         }
       >
         <Panel>
@@ -693,42 +690,12 @@ export default function Settings() {
           <T muted>{syncStatus}</T>
           <T size={12} muted>
             {Platform.OS === "web"
-              ? "This browser preview uses browser storage."
+              ? "On the web, your plan is kept in this browser."
               : "On this phone, your plan is encrypted with a key protected by the device."}{" "}
-            Cloud sync uses your private account; it is not end-to-end
-            encryption.
+            Synced copies are private to your account (not end-to-end
+            encrypted).
           </T>
-          {!configured ? (
-            <>
-              <T muted>
-                Private sync needs a configured backend. Your app works locally
-                while it’s disconnected.
-              </T>
-              <Button
-                title="Configure private sync"
-                quiet
-                onPress={() =>
-                  editor.open({
-                    title: "Private sync connection",
-                    detail:
-                      "Use a configured Supabase project with the Hats personal-state migration. Only its public publishable/anon key belongs here; never a service-role secret.",
-                    fields: [
-                      {
-                        key: "url",
-                        label: "Supabase project URL",
-                        placeholder: "https://your-project.supabase.co",
-                      },
-                      { key: "key", label: "Public publishable or anon key" },
-                    ],
-                    onSave: async (v) => {
-                      await setConfig({ url: v.url.trim(), key: v.key.trim() });
-                      setConfigured(true);
-                    },
-                  })
-                }
-              />
-            </>
-          ) : !account ? (
+          {!account ? (
             <SignIn
               say={say}
               onSignedIn={async (who) => {
@@ -860,51 +827,85 @@ export default function Settings() {
         </Panel>
       </Group>
       <Group
-        hat="safari"
-        title="More context"
-        summary={"WHOOP, money, school calendar"}
+        hat="bandana"
+        title="Health"
+        summary="WHOOP recovery and sleep"
       >
-        <Panel>
-          <T bold>School breaks and seasonal plans</T>
-          <T muted>
-            Check the official BPS calendar, then add confirmed closures in
-            Capture. Your children’s school and daycare may have different
-            schedules.
-          </T>
-          <Button
-            title="Official BPS calendar"
-            quiet
-            onPress={() =>
-              Linking.openURL(
-                "https://www.bostonpublicschools.org/district-calendar",
-              )
-            }
-          />
-          <Button
-            title="Tell Hats about a confirmed day off"
-            quiet
-            onPress={() => router.push("/capture")}
-          />
-        </Panel>
         <WhoopSettings signedIn={!!account} />
-        <Panel>
-          <T bold>Financial data and personal email</T>
-          <T muted>
-            These providers are not connected in this build. Hats will not
-            invent balances, transactions, or email-derived plans. Your
-            routines, saved meals, personal notes, and logged spending work
-            without them.
-          </T>
-          <T size={12} muted>
-            Google Keep and Facebook are not required dependencies. Saved links
-            and chosen contacts work independently.
-          </T>
-        </Panel>
       </Group>
+      {Platform.OS !== "web" ? (
+        <Group
+          hat="propeller"
+          title="Protected family time"
+          summary={"Keep distracting apps away during family time"}
+        >
+          <Panel>
+            <T size={18} bold>
+              Protected family time
+            </T>
+            <T muted>
+              {focusAvailable
+                ? focusEnabled
+                  ? "Android service enabled"
+                  : "Android service not enabled"
+                : "Available in the Android build"}
+            </T>
+            <T>
+              With your permission, Hats uses Android Accessibility to detect only
+              the package name of an app you open. During a session you start,
+              opening a selected distracting app returns you to the home screen.
+            </T>
+            <T muted>
+              It does not read screen contents, messages, or typed text, and sends
+              no accessibility data anywhere. You can end a session in Hats, or
+              disable the service in Android Settings at any time.
+            </T>
+            <Check
+              title="I understand and want this optional protection"
+              done={!!data.preferences.focusConsent}
+              onPress={() =>
+                mutate((d) => {
+                  d.preferences.focusConsent = !d.preferences.focusConsent;
+                  if (
+                    d.preferences.focusConsent &&
+                    !d.preferences.distractingPackages?.length
+                  )
+                    d.preferences.distractingPackages = DISTRACTIONS[0].packages;
+                })
+              }
+            />
+            {DISTRACTIONS.map((app) => (
+              <Check
+                key={app.name}
+                title={app.name}
+                done={app.packages.some((p) =>
+                  data.preferences.distractingPackages?.includes(p),
+                )}
+                onPress={() =>
+                  mutate((d) => {
+                    const current = d.preferences.distractingPackages ?? [];
+                    d.preferences.distractingPackages = app.packages.some((p) =>
+                      current.includes(p),
+                    )
+                      ? current.filter((p) => !app.packages.includes(p))
+                      : [...current, ...app.packages];
+                  })
+                }
+              />
+            ))}
+            <Button
+              title="Open Android accessibility settings"
+              quiet
+              disabled={!data.preferences.focusConsent || !focusAvailable}
+              onPress={() => run(openFocusSettings)}
+            />
+          </Panel>
+        </Group>
+      ) : null}
       <Group
         hat="stack"
-        title="Backups and existing Hats data"
-        summary={"Export, restore, or bring in old Home tasks"}
+        title="Backups"
+        summary="Export, restore, or recover a previous version"
       >
         <Panel>
           <T muted>
@@ -954,8 +955,9 @@ export default function Settings() {
               })
             }
           />
+          {legacyCount ? (
           <Button
-            title="Import old Home tasks only"
+            title={`Bring in ${legacyCount} old Home ${legacyCount === 1 ? "task" : "tasks"}`}
             quiet
             onPress={() =>
               run(async () => {
@@ -980,6 +982,7 @@ export default function Settings() {
               })
             }
           />
+          ) : null}
         </Panel>
       </Group>
       <Group hat="party" title="This copy of Hats" summary="Version and updates">

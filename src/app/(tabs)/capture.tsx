@@ -27,6 +27,7 @@ import {
   Row,
   T,
   sticker,
+  tone,
 } from "../../personal/ui";
 import {
   startListening,
@@ -308,7 +309,7 @@ function CaptureForm({
           gap: 12,
           padding: 14,
           borderRadius: 22,
-          backgroundColor: listening ? P.ink : P.sun,
+          backgroundColor: listening ? P.dark : P.sun,
           ...sticker(pressed ? 2 : 5),
           transform: [{ translateY: pressed ? 2 : 0 }],
         })}
@@ -322,16 +323,16 @@ function CaptureForm({
             alignItems: "center",
             justifyContent: "center",
             borderWidth: 2,
-            borderColor: P.ink,
+            borderColor: P.edge,
           }}
         >
-          <Icon name={listening ? "pause" : "mic"} color={P.ink} size={22} />
+          <Icon name={listening ? "pause" : "mic"} color={listening ? P.onSun : P.ink} size={22} />
         </View>
         <View style={{ flex: 1 }}>
-          <T bold size={17} color={listening ? P.paper : P.ink}>
+          <T bold size={17} color={listening ? P.onDark : P.onSun}>
             {listening ? "Listening… tap to stop" : "Tap to talk"}
           </T>
-          <T size={13} color={listening ? "#D5DDE8" : P.ink}>
+          <T size={13} color={listening ? "#D5DDE8" : P.onSun}>
             {listening
               ? "Speak naturally. Hats writes it down."
               : "Hats sorts it into the right hat."}
@@ -426,9 +427,9 @@ function CaptureForm({
                     width: 78,
                     paddingVertical: 8,
                     borderRadius: 18,
-                    backgroundColor: on ? hatDef(h).tint : P.paper,
+                    backgroundColor: on ? tone(hatDef(h).tint) : P.paper,
                     borderWidth: 2,
-                    borderColor: on ? P.ink : P.line,
+                    borderColor: on ? P.edge : P.line,
                   }}
                 >
                   <Hat id={hatDef(h).art} size={34} tilt={on ? -8 : 0} />
@@ -453,7 +454,7 @@ function CaptureForm({
                 backgroundColor: P.paper,
                 borderWidth: 2,
                 borderStyle: "dashed",
-                borderColor: P.ink,
+                borderColor: P.edge,
               }}
             >
               <T display size={26}>

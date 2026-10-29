@@ -372,6 +372,8 @@ export interface Preferences {
   kidsRoutine?: boolean;
   /** The afternoon "what's for dinner?" reminder when dinner isn't planned. On unless turned off. */
   dinnerNudge?: boolean;
+  /** Light, dark, or follow the phone (the default). */
+  theme?: "auto" | "light" | "dark";
 }
 export const ROUTINE_DEFAULTS = {
   partnerHome: "18:00",
@@ -845,7 +847,8 @@ export function validData(value: unknown): value is PersonalData {
       (p.hiddenHats === undefined ||
         (Array.isArray(p.hiddenHats) && p.hiddenHats.every(isBuiltInHat))) &&
       (p.kidsRoutine === undefined || typeof p.kidsRoutine === "boolean") &&
-      (p.dinnerNudge === undefined || typeof p.dinnerNudge === "boolean")
+      (p.dinnerNudge === undefined || typeof p.dinnerNudge === "boolean") &&
+      (p.theme === undefined || ["auto", "light", "dark"].includes(p.theme))
     );
   } catch {
     return false;

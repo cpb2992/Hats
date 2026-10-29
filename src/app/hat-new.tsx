@@ -32,6 +32,7 @@ import {
   Row,
   T,
   sticker,
+  tone,
 } from "../personal/ui";
 
 /** Add a hat: name it, then pick one from the library that fits. Also edits a hat you added. */
@@ -119,9 +120,9 @@ export default function NewHat() {
           paddingVertical: 8,
           paddingHorizontal: 2,
           borderRadius: 18,
-          backgroundColor: on ? h.tint : P.paper,
+          backgroundColor: on ? tone(h.tint) : P.paper,
           borderWidth: 2,
-          borderColor: on ? P.ink : P.line,
+          borderColor: on ? P.edge : P.line,
           borderBottomWidth: on ? 4 : 2,
           transform: [{ translateY: pressed ? 2 : 0 }],
         })}
@@ -167,7 +168,7 @@ export default function NewHat() {
       />
       <View
         style={{
-          backgroundColor: preview.tint,
+          backgroundColor: tone(preview.tint),
           borderRadius: 26,
           padding: 20,
           flexDirection: "row",

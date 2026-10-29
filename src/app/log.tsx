@@ -64,7 +64,7 @@ export default function Log() {
                     borderRadius: 18,
                     backgroundColor: P.paper,
                     borderWidth: 2,
-                    borderColor: P.ink,
+                    borderColor: P.edge,
                     opacity: e.undone ? 0.55 : 1,
                   }}
                 >

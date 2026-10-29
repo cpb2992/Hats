@@ -144,13 +144,13 @@ export function CelebrationLayer({ c }: { c: Celebration | null }) {
         {shown.title ? (
           <View
             style={{
-              backgroundColor: P.ink,
+              backgroundColor: P.dark,
               borderRadius: 18,
               paddingHorizontal: 16,
               paddingVertical: 8,
             }}
           >
-            <T bold color={P.paper} size={16}>
+            <T bold color={P.onDark} size={16}>
               {shown.title}
             </T>
           </View>

@@ -37,6 +37,7 @@ import {
   Section,
   T,
   sticker,
+  tone,
 } from "../personal/ui";
 
 const FILTERS: { key: MealFilter; label: string }[] = [
@@ -140,7 +141,7 @@ export default function Meals() {
             gap: 14,
             padding: 16,
             borderRadius: 26,
-            backgroundColor: P.ink,
+            backgroundColor: P.dark,
             ...sticker(pressed ? 3 : 5),
             transform: [{ translateY: pressed ? 2 : 0 }],
           })}
@@ -150,7 +151,7 @@ export default function Meals() {
               width: 84,
               height: 84,
               borderRadius: 42,
-              backgroundColor: tonightRecipe?.tint ?? "#FFF0C2",
+              backgroundColor: tone(tonightRecipe?.tint ?? "#FFF0C2"),
               alignItems: "center",
               justifyContent: "center",
             }}
@@ -161,7 +162,7 @@ export default function Meals() {
             <T size={11} bold color={P.sun}>
               {tonight.planned ? "TONIGHT" : "IDEA FOR TONIGHT"}
             </T>
-            <T display size={21} color={P.paper} numberOfLines={2}>
+            <T display size={21} color={P.onDark} numberOfLines={2}>
               {tonight.meal.name}
             </T>
             <T size={12} color="#C8D7EA">
@@ -174,7 +175,7 @@ export default function Meals() {
                   onPress={() => plan(today, tonight.meal!.id, tonight.meal!.name)}
                   style={{ paddingHorizontal: 12, minHeight: 36, borderRadius: 12, backgroundColor: P.sun, justifyContent: "center" }}
                 >
-                  <T size={13} bold>
+                  <T size={13} bold color={P.onSun}>
                     Make this tonight
                   </T>
                 </Pressable>
@@ -185,7 +186,7 @@ export default function Meals() {
                 onPress={() => swap(today)}
                 style={{ paddingHorizontal: 12, minHeight: 36, borderRadius: 12, backgroundColor: "#2E4366", justifyContent: "center" }}
               >
-                <T size={13} bold color={P.paper}>
+                <T size={13} bold color={P.onDark}>
                   Swap
                 </T>
               </Pressable>
@@ -247,7 +248,7 @@ export default function Meals() {
                   width: n === at ? 18 : 7,
                   height: 7,
                   borderRadius: 4,
-                  backgroundColor: n === at ? P.ink : "#D9CBB4",
+                  backgroundColor: n === at ? P.ink : tone("#D9CBB4"),
                 }}
               />
             ))}
@@ -307,7 +308,7 @@ export default function Meals() {
                           padding: 10,
                           gap: 2,
                           borderRadius: 16,
-                          backgroundColor: pressed ? "#FFF0C2" : P.paper,
+                          backgroundColor: pressed ? tone("#FFF0C2") : P.paper,
                           ...sticker(pressed ? 2 : 3),
                         })}
                       >
@@ -383,7 +384,7 @@ export default function Meals() {
                 gap: 10,
                 padding: 10,
                 borderRadius: 20,
-                backgroundColor: date === today ? "#FFF0C2" : P.paper,
+                backgroundColor: date === today ? tone("#FFF0C2") : P.paper,
                 opacity: pressed ? 0.9 : 1,
                 ...sticker(date === today ? 4 : 2),
               })}
@@ -455,7 +456,7 @@ export default function Meals() {
               borderRadius: 14,
               backgroundColor: P.paper,
               borderWidth: 2,
-              borderColor: P.ink,
+              borderColor: P.edge,
               paddingHorizontal: 12,
               fontSize: 15,
               color: P.ink,
@@ -492,7 +493,7 @@ export default function Meals() {
                     }}
                     style={{ flex: 1, flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 }}
                   >
-                    <View style={{ width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: P.ink, backgroundColor: P.paper }} />
+                    <View style={{ width: 24, height: 24, borderRadius: 7, borderWidth: 2, borderColor: P.edge, backgroundColor: P.paper }} />
                     <T size={15} style={{ flex: 1 }}>
                       {x}
                     </T>
@@ -556,7 +557,7 @@ export default function Meals() {
                 placeholder="Rice, eggs, pasta…"
                 placeholderTextColor={P.muted}
                 returnKeyType="done"
-                style={{ flex: 1, minHeight: 46, borderRadius: 14, backgroundColor: P.paper, borderWidth: 2, borderColor: P.ink, paddingHorizontal: 12, fontSize: 15, color: P.ink }}
+                style={{ flex: 1, minHeight: 46, borderRadius: 14, backgroundColor: P.paper, borderWidth: 2, borderColor: P.edge, paddingHorizontal: 12, fontSize: 15, color: P.ink }}
               />
             </View>
             <Row>
@@ -601,7 +602,7 @@ export default function Meals() {
                   padding: 12,
                   gap: 6,
                   borderRadius: 20,
-                  backgroundColor: r?.tint ?? P.paper,
+                  backgroundColor: tone(r?.tint ?? P.paper),
                   ...sticker(pressed ? 2 : 4),
                 })}
               >

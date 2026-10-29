@@ -8,7 +8,7 @@ import { haptic } from "./haptics";
 import { haveCount, inPantry, isGoTo } from "./meals";
 import type { PersonalData } from "./model";
 import { TAG_LABEL, type Recipe } from "./recipes";
-import { P, T, sticker } from "./ui";
+import { P, T, sticker , tone } from "./ui";
 
 /** "25 min", or "20 min + 6–8 hours on low" for slow-cooker nights. */
 export const timeLabel = (r: Pick<Recipe, "minutes" | "wait">) =>
@@ -23,7 +23,7 @@ function Pill({ text, tone = "paper" }: { text: string; tone?: "paper" | "ink" }
         borderRadius: 12,
         backgroundColor: tone === "ink" ? P.ink : P.paper,
         borderWidth: 1.5,
-        borderColor: P.ink,
+        borderColor: P.edge,
       }}
     >
       <T size={11} bold color={tone === "ink" ? P.paper : P.ink}>
@@ -46,7 +46,7 @@ export function PantryMeter({ data, r }: { data: PersonalData; r: Recipe }) {
             ? `You have ${h.have} of ${h.of}`
             : `${h.of} things to pick up`}
       </T>
-      <View style={{ height: 8, borderRadius: 4, backgroundColor: "#EFE6D6", overflow: "hidden" }}>
+      <View style={{ height: 8, borderRadius: 4, backgroundColor: tone("#EFE6D6"), overflow: "hidden" }}>
         <View
           style={{
             width: `${Math.round(share * 100)}%`,
@@ -135,11 +135,11 @@ export function RecipeFlipCard({
           <View
             style={{
               height: height * 0.4,
-              backgroundColor: r.tint,
+              backgroundColor: tone(r.tint),
               alignItems: "center",
               justifyContent: "center",
               borderBottomWidth: 2,
-              borderColor: P.ink,
+              borderColor: P.edge,
             }}
           >
             <Food id={r.art} size={Math.min(140, height * 0.3)} tilt={-6} />
@@ -199,9 +199,9 @@ export function RecipeFlipCard({
             alignItems: "center",
             gap: 10,
             padding: 14,
-            backgroundColor: r.tint,
+            backgroundColor: tone(r.tint),
             borderBottomWidth: 2,
-            borderColor: P.ink,
+            borderColor: P.edge,
           }}
         >
           <Food id={r.art} size={40} />
@@ -260,7 +260,7 @@ export function RecipeFlipCard({
               alignItems: "center",
               padding: 10,
               borderRadius: 14,
-              backgroundColor: "#FFF0C2",
+              backgroundColor: tone("#FFF0C2"),
             }}
           >
             <Hat id="propeller" size={28} />

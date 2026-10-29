@@ -51,14 +51,14 @@ export function UpdateReady() {
         paddingLeft: 10,
         paddingRight: 8,
         borderRadius: 20,
-        backgroundColor: P.ink,
+        backgroundColor: P.dark,
         flexDirection: "row",
         alignItems: "center",
         gap: 10,
       }}
     >
       <Hat id="party" size={30} tilt={-10} />
-      <T color={P.paper} size={14} style={{ flex: 1 }}>
+      <T color={P.onDark} size={14} style={{ flex: 1 }}>
         A new version of Hats is ready.
       </T>
       <Pressable
@@ -85,7 +85,7 @@ export function UpdateReady() {
           backgroundColor: pressed ? "#E9A93A" : P.sun,
         })}
       >
-        <T bold color={P.ink}>
+        <T bold color={P.onSun}>
           Restart
         </T>
       </Pressable>
@@ -140,16 +140,16 @@ export function ThisCopy() {
         <Pressable
           accessibilityRole="button"
           onPress={() => Updates.reloadAsync().catch(() => setState("offline"))}
-          style={{ minHeight: 46, borderRadius: 16, backgroundColor: P.sun, borderWidth: 2, borderColor: P.ink, alignItems: "center", justifyContent: "center" }}
+          style={{ minHeight: 46, borderRadius: 16, backgroundColor: P.sun, borderWidth: 2, borderColor: P.edge, alignItems: "center", justifyContent: "center" }}
         >
-          <T bold>Restart Hats to update</T>
+          <T bold color={P.onSun}>Restart Hats to update</T>
         </Pressable>
       ) : (
         <Pressable
           accessibilityRole="button"
           disabled={state === "checking"}
           onPress={check}
-          style={{ minHeight: 46, borderRadius: 16, backgroundColor: P.soft, borderWidth: 2, borderColor: P.ink, alignItems: "center", justifyContent: "center", opacity: state === "checking" ? 0.6 : 1 }}
+          style={{ minHeight: 46, borderRadius: 16, backgroundColor: P.soft, borderWidth: 2, borderColor: P.edge, alignItems: "center", justifyContent: "center", opacity: state === "checking" ? 0.6 : 1 }}
         >
           <T bold>Check for updates</T>
         </Pressable>

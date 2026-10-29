@@ -16,6 +16,7 @@ import {
   Row,
   T,
   sticker,
+  tone,
 } from "../../personal/ui";
 
 const PEOPLE_HATS: PersonalHat[] = ["dad", "husband", "pets", "friends"];
@@ -192,7 +193,7 @@ export default function Family() {
                 padding: 12,
                 gap: 4,
                 borderRadius: 20,
-                backgroundColor: HATS.pets.tint,
+                backgroundColor: tone(HATS.pets.tint),
                 ...sticker(3),
               }}
             >
@@ -253,7 +254,7 @@ export default function Family() {
               gap: 8,
               padding: 10,
               borderRadius: 18,
-              backgroundColor: hatDef(h).tint,
+              backgroundColor: tone(hatDef(h).tint),
               ...sticker(pressed ? 2 : 3),
             })}
           >

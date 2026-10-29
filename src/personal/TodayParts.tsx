@@ -92,7 +92,7 @@ export function StreakStrip() {
               width: 148,
               padding: 12,
               borderRadius: 20,
-              backgroundColor: s.done ? P.sun : P.paper,
+              backgroundColor: s.done ? P.done : P.paper,
               gap: 4,
               ...sticker(pressed ? 2 : 4),
               transform: [{ translateY: pressed ? 2 : 0 }],
@@ -121,7 +121,7 @@ export function StreakStrip() {
                       height: 10,
                       borderRadius: 5,
                       borderWidth: 1.5,
-                      borderColor: P.ink,
+                      borderColor: P.edge,
                       backgroundColor: n < s.progress ? P.ink : "transparent",
                     }}
                   />
@@ -215,7 +215,7 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
         }}
       >
         <Hat id="nightcap" size={64} />
-        <T display size={22} color={P.paper}>
+        <T display size={22} color={P.onDark}>
           That’s the day.
         </T>
         <T color="#D5DDE8">Nothing left that needs you. Rest counts too.</T>
@@ -252,7 +252,7 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
             paddingVertical: 3,
           }}
         >
-          <T size={12} bold color={started ? P.ink : P.paper}>
+          <T size={12} bold color={started ? P.onSun : P.onDark}>
             {started
               ? work
                 ? `${now.block === "off" ? "OFF" : "NOW"} · UNTIL ${fmtTime(now.end ?? now.time, true)}`
@@ -269,7 +269,7 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <Hat id={now.hat} size={64} tilt={-6} />
         <View style={{ flex: 1, gap: 2 }}>
-          <T display size={24} color={P.paper}>
+          <T display size={24} color={P.onDark}>
             {task ? task.title : now.title}
           </T>
           {now.detail || work ? (
@@ -637,7 +637,7 @@ export function Timeline({
                   backgroundColor: P.sky,
                   borderRadius: 14,
                   borderWidth: 1.5,
-                  borderColor: P.ink,
+                  borderColor: P.edge,
                   paddingHorizontal: 10,
                   paddingVertical: 4,
                 }}
@@ -758,7 +758,7 @@ export function Timeline({
                     borderRadius: 5,
                     backgroundColor: item.done ? P.ink : P.paper,
                     borderWidth: 2,
-                    borderColor: P.ink,
+                    borderColor: P.edge,
                   }}
                 />
                 <View
@@ -869,8 +869,8 @@ export function Timeline({
                       height: 30,
                       borderRadius: 15,
                       borderWidth: 2,
-                      borderColor: item.done ? P.ink : "#9AA5B5",
-                      backgroundColor: item.done ? P.sun : P.paper,
+                      borderColor: item.done ? P.edge : P.muted,
+                      backgroundColor: item.done ? P.done : P.paper,
                       alignItems: "center",
                       justifyContent: "center",
                     }}

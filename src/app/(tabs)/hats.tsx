@@ -29,6 +29,7 @@ import {
   Section,
   T,
   sticker,
+  tone,
 } from "../../personal/ui";
 import { WhoopToday } from "../../personal/WhoopCard";
 
@@ -64,8 +65,8 @@ export default function Hats() {
   return (
     <Page>
       <Header
-        title="All the hats you wear."
-        subtitle="Keep them all in one place."
+        title="Your hats."
+        subtitle="What’s next under each one."
         hat="stack"
       />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
@@ -84,7 +85,7 @@ export default function Hats() {
                 flexBasis: 145,
                 maxWidth: 340,
                 minHeight: 150,
-                backgroundColor: hat.tint,
+                backgroundColor: tone(hat.tint),
                 borderRadius: 24,
                 padding: 16,
                 gap: 6,
@@ -125,7 +126,7 @@ export default function Hats() {
             justifyContent: "center",
             borderWidth: 2.5,
             borderStyle: "dashed",
-            borderColor: P.ink,
+            borderColor: P.edge,
             transform: [{ translateY: pressed ? 2 : 0 }],
           })}
         >
@@ -140,7 +141,7 @@ export default function Hats() {
               ...sticker(4),
             }}
           >
-            <T display size={30} style={{ lineHeight: 34 }}>
+            <T display size={30} color={P.onSun} style={{ lineHeight: 34 }}>
               +
             </T>
           </View>

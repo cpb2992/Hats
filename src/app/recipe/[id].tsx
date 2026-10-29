@@ -20,7 +20,7 @@ import {
 import { PantryMeter, timeLabel } from "../../personal/RecipeCard";
 import { TAG_LABEL, recipeById, sameItem } from "../../personal/recipes";
 import { usePersonal } from "../../personal/Store";
-import { Button, Header, P, Page, Panel, Row, T, sticker } from "../../personal/ui";
+import { Button, Header, P, Page, Panel, Row, T, sticker , tone } from "../../personal/ui";
 
 /** A recipe, from the library or one of your own dinners: plan it, shop for it, cook it. */
 export default function RecipePage() {
@@ -93,7 +93,7 @@ export default function RecipePage() {
         <Header title={name} subtitle={r?.blurb ?? "One of your dinners."} back />
         <View
           style={{
-            backgroundColor: r?.tint ?? "#FFF0C2",
+            backgroundColor: tone(r?.tint ?? "#FFF0C2"),
             borderRadius: 28,
             padding: 18,
             alignItems: "center",
@@ -104,7 +104,7 @@ export default function RecipePage() {
           <Food id={r?.art ?? "plate"} size={150} tilt={-6} />
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, justifyContent: "center" }}>
             {(r?.tags ?? []).map((t) => (
-              <View key={t} style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 12, backgroundColor: P.paper, borderWidth: 1.5, borderColor: P.ink }}>
+              <View key={t} style={{ paddingHorizontal: 9, paddingVertical: 3, borderRadius: 12, backgroundColor: P.paper, borderWidth: 1.5, borderColor: P.edge }}>
                 <T size={11} bold>
                   {TAG_LABEL[t]}
                 </T>
@@ -152,7 +152,7 @@ export default function RecipePage() {
                   accessibilityRole="button"
                   accessibilityLabel={`${label(date)}${has.planned ? `, replaces ${has.meal?.name}` : ""}`}
                   onPress={() => plan(date)}
-                  style={({ pressed }) => ({ width: 104, padding: 10, gap: 2, borderRadius: 16, backgroundColor: pressed ? "#FFF0C2" : P.paper, ...sticker(pressed ? 2 : 3) })}
+                  style={({ pressed }) => ({ width: 104, padding: 10, gap: 2, borderRadius: 16, backgroundColor: pressed ? tone("#FFF0C2") : P.paper, ...sticker(pressed ? 2 : 3) })}
                 >
                   <T bold size={14}>{label(date)}</T>
                   <T size={11} muted numberOfLines={2}>{has.planned ? `Now: ${has.meal?.name}` : "Open"}</T>
@@ -193,13 +193,13 @@ export default function RecipePage() {
                     height: 24,
                     borderRadius: 7,
                     borderWidth: 2,
-                    borderColor: P.ink,
+                    borderColor: P.edge,
                     backgroundColor: have ? "#5E9C6A" : P.paper,
                     alignItems: "center",
                     justifyContent: "center",
                   }}
                 >
-                  {have ? <Icon name="check" size={14} color={P.paper} width={3} /> : null}
+                  {have ? <Icon name="check" size={14} color={P.onDark} width={3} /> : null}
                 </View>
                 <T style={{ flex: 1 }} color={have ? P.muted : P.ink}>
                   {x.amount ? <T bold color={have ? P.muted : P.ink}>{x.amount} </T> : null}
@@ -233,8 +233,8 @@ export default function RecipePage() {
             <T display size={19}>{r ? "How it goes" : "Your notes"}</T>
             {steps.map((s, n) => (
               <View key={n} style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
-                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: P.sun, borderWidth: 2, borderColor: P.ink, alignItems: "center", justifyContent: "center" }}>
-                  <T bold size={13}>{n + 1}</T>
+                <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: P.sun, borderWidth: 2, borderColor: P.edge, alignItems: "center", justifyContent: "center" }}>
+                  <T bold size={13} color={P.onSun}>{n + 1}</T>
                 </View>
                 <T style={{ flex: 1 }} size={16}>{s}</T>
               </View>
@@ -279,7 +279,7 @@ export default function RecipePage() {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: P.ink,
+            backgroundColor: P.dark,
             paddingTop: insets.top + 12,
             paddingBottom: insets.bottom + 20,
             paddingHorizontal: 22,
@@ -293,7 +293,7 @@ export default function RecipePage() {
               onPress={() => setCooking(false)}
               style={{ width: 44, height: 44, borderRadius: 22, backgroundColor: "#2E4366", alignItems: "center", justifyContent: "center" }}
             >
-              <Icon name="close" size={18} color={P.paper} width={2.4} />
+              <Icon name="close" size={18} color={P.onDark} width={2.4} />
             </Pressable>
             <View style={{ flex: 1 }}>
               <T size={12} bold color={P.sun}>
@@ -307,7 +307,7 @@ export default function RecipePage() {
             <View style={{ width: `${((step + 1) / steps.length) * 100}%`, height: 8, backgroundColor: P.sun }} />
           </View>
           <ScrollView style={{ flex: 1 }} contentContainerStyle={{ flexGrow: 1, justifyContent: "center" }}>
-            <T display size={28} color={P.paper} style={{ lineHeight: 38 }}>
+            <T display size={28} color={P.onDark} style={{ lineHeight: 38 }}>
               {steps[step]}
             </T>
             {step === steps.length - 1 && r ? (
@@ -327,7 +327,7 @@ export default function RecipePage() {
               onPress={() => setStep(step - 1)}
               style={{ flex: 1, minHeight: 60, borderRadius: 20, backgroundColor: "#2E4366", alignItems: "center", justifyContent: "center", opacity: step === 0 ? 0.4 : 1 }}
             >
-              <T bold size={17} color={P.paper}>Back</T>
+              <T bold size={17} color={P.onDark}>Back</T>
             </Pressable>
             <Pressable
               accessibilityRole="button"
@@ -339,7 +339,7 @@ export default function RecipePage() {
               }}
               style={{ flex: 2, minHeight: 60, borderRadius: 20, backgroundColor: P.sun, alignItems: "center", justifyContent: "center" }}
             >
-              <T bold size={17}>{step === steps.length - 1 ? "Dinner’s ready" : "Next"}</T>
+              <T bold size={17} color={P.onSun}>{step === steps.length - 1 ? "Dinner’s ready" : "Next"}</T>
             </Pressable>
           </View>
         </View>

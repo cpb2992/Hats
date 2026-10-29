@@ -28,7 +28,7 @@ import {
   type TimelineItem,
 } from "../../personal/timeline";
 import { NowCard, Timeline } from "../../personal/TodayParts";
-import { Button, Empty, P, T, sticker } from "../../personal/ui";
+import { Button, Empty, P, T, sticker , tone } from "../../personal/ui";
 import { useWhoop } from "../../personal/WhoopCard";
 import { band, whoopToday } from "../../personal/whoop";
 
@@ -189,7 +189,7 @@ export default function Home() {
             borderRadius: 19,
             backgroundColor: P.paper,
             borderWidth: 2,
-            borderColor: P.ink,
+            borderColor: P.edge,
             transform: [{ translateY: pressed ? 1 : 0 }],
           })}
         >
@@ -259,10 +259,10 @@ export default function Home() {
               borderRadius: 19,
               backgroundColor: P.sun,
               borderWidth: 2,
-              borderColor: P.ink,
+              borderColor: P.edge,
             }}
           >
-            <T size={13} bold>
+            <T size={13} bold color={P.onSun}>
               {offset > 0 ? "‹ Today" : "Today ›"}
             </T>
           </Pressable>
@@ -279,7 +279,7 @@ export default function Home() {
               borderRadius: 16,
               backgroundColor: P.mint,
               borderWidth: 1.5,
-              borderColor: P.ink,
+              borderColor: P.edge,
             }}
           >
             <Hat id="pompom" size={26} />
@@ -431,9 +431,9 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
                 paddingRight: 7,
                 paddingVertical: 1,
                 borderRadius: 10,
-                backgroundColor: hatDef(hat).tint,
+                backgroundColor: tone(hatDef(hat).tint),
                 borderWidth: 1.5,
-                borderColor: P.ink,
+                borderColor: P.edge,
               }}
             >
               <Hat id={hatDef(hat).art} size={16} />
@@ -452,9 +452,9 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
               gap: 10,
               padding: 10,
               borderRadius: 18,
-              backgroundColor: "#FFF0C2",
+              backgroundColor: tone("#FFF0C2"),
               borderWidth: 2,
-              borderColor: P.ink,
+              borderColor: P.edge,
             }}
           >
             <Hat id="nightcap" size={34} tilt={-8} />
@@ -498,9 +498,9 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
               gap: 10,
               padding: 10,
               borderRadius: 18,
-              backgroundColor: "#FFE6D3",
+              backgroundColor: tone("#FFE6D3"),
               borderWidth: 2,
-              borderColor: P.ink,
+              borderColor: P.edge,
               transform: [{ translateY: pressed ? 1 : 0 }],
             })}
           >

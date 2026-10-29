@@ -10,7 +10,7 @@ import { recipeById } from "../../personal/recipes";
 import { daySummary, schoolBlocks } from "../../personal/school";
 import { usePersonal } from "../../personal/Store";
 import { dayTimeline, type TimelineItem } from "../../personal/timeline";
-import { Button, Chip, Header, HatTag, P, Page, Row, T, sticker } from "../../personal/ui";
+import { Button, Chip, Header, HatTag, P, Page, Row, T, sticker , tone } from "../../personal/ui";
 
 const MONTHS = ["January", "February", "March", "April", "May", "June", "July", "August", "September", "October", "November", "December"];
 const DOW = ["S", "M", "T", "W", "T", "F", "S"];
@@ -65,7 +65,7 @@ function Pager({ label, onPrev, onNext, onReset, showReset }: { label: string; o
       accessibilityRole="button"
       accessibilityLabel={a11y}
       onPress={onPress}
-      style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: P.paper, borderWidth: 2, borderColor: P.ink }}
+      style={{ width: 44, height: 44, borderRadius: 22, alignItems: "center", justifyContent: "center", backgroundColor: P.paper, borderWidth: 2, borderColor: P.edge }}
     >
       <T bold size={18}>{text}</T>
     </Pressable>
@@ -123,14 +123,14 @@ function WeekView({
           gap: 12,
           padding: 12,
           borderRadius: 20,
-          backgroundColor: "#FFE6D3",
+          backgroundColor: tone("#FFE6D3"),
           ...sticker(pressed ? 2 : 4),
         })}
       >
         <Hat id="chef" size={38} tilt={-8} />
         <View style={{ flex: 1, gap: 4 }}>
           <T bold>Dinners planned · {planned} of 7</T>
-          <View style={{ height: 8, borderRadius: 4, backgroundColor: "#F3D2BC", overflow: "hidden" }}>
+          <View style={{ height: 8, borderRadius: 4, backgroundColor: tone("#F3D2BC"), overflow: "hidden" }}>
             <View style={{ width: `${(planned / 7) * 100}%`, height: 8, backgroundColor: P.orange }} />
           </View>
           <T size={12} muted>
@@ -149,7 +149,7 @@ function WeekView({
             key={date}
             style={{
               borderRadius: 22,
-              backgroundColor: isToday ? "#FFF0C2" : P.paper,
+              backgroundColor: isToday ? tone("#FFF0C2") : P.paper,
               padding: 12,
               gap: 8,
               ...sticker(isToday ? 4 : 2),
@@ -204,7 +204,7 @@ function WeekView({
                 }
               />
             ))}
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 4, borderTopWidth: 1.5, borderColor: "#EFE3CF" }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8, paddingTop: 4, borderTopWidth: 1.5, borderColor: tone("#EFE3CF") }}>
               <Food id={r?.art ?? "plate"} size={30} />
               <Pressable
                 accessibilityRole="button"
@@ -301,15 +301,15 @@ function MonthView({ offset, setOffset, data, today, nowMin }: { offset: number;
                     justifyContent: "flex-start",
                     paddingTop: 4,
                     gap: 3,
-                    backgroundColor: isToday ? P.sun : n ? "#F6EEDF" : "transparent",
+                    backgroundColor: isToday ? P.sun : n ? tone("#F6EEDF") : "transparent",
                     borderWidth: isToday ? 2 : 0,
-                    borderColor: P.ink,
+                    borderColor: P.edge,
                   }}
                 >
-                  <T size={13} bold={isToday || n > 0}>{fromISO(date).getDate()}</T>
+                  <T size={13} bold={isToday || n > 0} color={isToday ? P.onSun : undefined}>{fromISO(date).getDate()}</T>
                   <View style={{ flexDirection: "row", gap: 2 }}>
                     {Array.from({ length: Math.min(3, n) }, (_, k) => (
-                      <View key={k} style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: P.ink }} />
+                      <View key={k} style={{ width: 5, height: 5, borderRadius: 3, backgroundColor: isToday ? P.onSun : P.ink }} />
                     ))}
                   </View>
                   {bday ? <T size={10}>🎂</T> : dinner ? <Food id="plate" size={14} /> : null}
