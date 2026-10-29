@@ -20,11 +20,12 @@ export default function Log() {
     <Page tabs={false}>
       <Header
         back
-        title={
-          done.filter((e) => e.date === today).length
-            ? `Hats did ${done.filter((e) => e.date === today).length} things today`
-            : "What Hats did"
-        }
+        title={(() => {
+          const n = done.filter((e) => e.date === today).length;
+          return n
+            ? `Hats did ${n} ${n === 1 ? "thing" : "things"} today`
+            : "What Hats did";
+        })()}
         subtitle="So you don’t have to. Anything can be undone."
         hat="wizard"
       />
