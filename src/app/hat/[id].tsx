@@ -1,7 +1,9 @@
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image, Linking, Pressable, View } from "react-native";
-import { Hat } from "../../personal/Hat";
+import { Food, Hat } from "../../personal/Hat";
+import { dinnerFor } from "../../personal/meals";
+import { recipeById } from "../../personal/recipes";
 import { addDays, fmtRelative, fmtTime } from "../../engine/dates";
 import { periodLabel, schoolBlocks, schoolOn } from "../../personal/school";
 import {
@@ -604,19 +606,60 @@ export default function HatPage() {
             action="Add meal"
             onPress={addMeal}
           />
+          {(() => {
+            const t = dinnerFor(data, today);
+            const r = recipeById(t.meal?.id);
+            return t.meal ? (
+              <Panel
+                tint={r?.tint ?? "#FFF0C2"}
+                onPress={() =>
+                  router.push({ pathname: "/recipe/[id]", params: { id: t.meal!.id } })
+                }
+              >
+                <Row>
+                  <Food id={r?.art ?? "plate"} size={48} tilt={-6} />
+                  <View style={{ flex: 1 }}>
+                    <T size={11} bold color={P.muted}>
+                      {t.planned ? "TONIGHT" : "IDEA FOR TONIGHT"}
+                    </T>
+                    <T bold size={17}>
+                      {t.meal.name}
+                    </T>
+                  </View>
+                  <T bold color={P.blue}>
+                    Recipe ›
+                  </T>
+                </Row>
+              </Panel>
+            ) : null;
+          })()}
+          <Button
+            title="Flip through recipe cards"
+            quiet
+            hat="chef"
+            onPress={() => router.push("/meals")}
+          />
           {!data.meals.length ? (
             <Empty
-              title="Start with three easy favorites"
-              detail="No full pantry database needed. Save dinners your family actually eats."
-              action="Add a reliable meal"
+              title="Add dinners your family already loves"
+              detail="Tap ♡ on a recipe card to keep it here, or add your own. Hats plans the week from them."
+              action="Add a dinner"
               onPress={addMeal}
             />
           ) : null}
           {data.meals.map((m) => (
-            <Panel key={m.id}>
-              <T size={19} display>
-                {m.name}
-              </T>
+            <Panel
+              key={m.id}
+              onPress={() =>
+                router.push({ pathname: "/recipe/[id]", params: { id: m.id } })
+              }
+            >
+              <Row>
+                <Food id={recipeById(m.id)?.art ?? "plate"} size={40} />
+                <T size={19} display style={{ flex: 1 }}>
+                  {m.name}
+                </T>
+              </Row>
               <T muted>
                 {m.minutes} minutes{m.prep ? ` · Earlier: ${m.prep}` : ""}
               </T>

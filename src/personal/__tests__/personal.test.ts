@@ -976,3 +976,38 @@ test("a week of dinner ideas never repeats a night", async () => {
   assert.equal(w.filter((x) => x.planned).length, 1);
   assert.equal(new Set(w.map((x) => x.meal?.id)).size, 7);
 });
+
+test("saying groceries puts them on the list, not the to-dos", async () => {
+  const { groceryItems } = await import("../recipes");
+  assert.deepEqual(groceryItems("We need milk and eggs"), ["milk", "eggs"]);
+  assert.deepEqual(groceryItems("add bananas, some bread & coffee to the grocery list"), ["bananas", "bread", "coffee"]);
+  assert.deepEqual(groceryItems("We're out of coffee."), ["coffee"]);
+  assert.deepEqual(groceryItems("grocery list: paper towels, apples"), ["paper towels", "apples"]);
+  assert.deepEqual(groceryItems("buy chicken thighs"), ["chicken thighs"]);
+  assert.equal(groceryItems("buy a birthday gift for Mom"), null);
+  assert.equal(groceryItems("pick up the kids at 3"), null);
+  assert.equal(groceryItems("call the dentist"), null);
+});
+
+test("a slow-cooker dinner puts a start reminder on the morning", async () => {
+  const { dayTimeline } = await import("../timeline");
+  const d = freshPersonal();
+  const thu = "2026-10-29";
+  d.dinners[thu] = "r-slow-cooker-chili";
+  const start = dayTimeline(d, thu, 6 * 60, thu).items.find((i) => i.key === "slowcook");
+  assert.equal(start?.time, "07:00");
+  assert.match(start?.title ?? "", /Start the slow cooker · Slow-cooker turkey chili/);
+  d.dinners[thu] = "r-turkey-tacos";
+  assert.equal(dayTimeline(d, thu, 6 * 60, thu).items.some((i) => i.key === "slowcook"), false);
+});
+
+test("birthdays show on the day and a week ahead, under the right hat", async () => {
+  const { dayTimeline } = await import("../timeline");
+  const d = freshPersonal();
+  d.people.push({ id: "ava", name: "Ava", role: "child", interests: "", detail: "", birthday: "2019-11-05" });
+  const on = dayTimeline(d, "2026-11-05", 600, "2026-11-05").allDay;
+  assert.deepEqual(on.map((x) => [x.title, x.hat]), [["Ava’s birthday 🎂", "dad"]]);
+  const soon = dayTimeline(d, "2026-10-29", 600, "2026-10-29").allDay;
+  assert.equal(soon[0]?.title, "Ava’s birthday is in a week");
+  assert.equal(dayTimeline(d, "2026-10-30", 600, "2026-10-30").allDay.length, 0);
+});

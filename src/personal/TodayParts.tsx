@@ -12,6 +12,7 @@ import {
 } from "./engine";
 import { Hat } from "./Hat";
 import { type Habit, type PersonalData, hatDef } from "./model";
+import { recipeById } from "./recipes";
 import { usePersonal } from "./Store";
 import { streakFor } from "./streaks";
 import {
@@ -354,12 +355,15 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
         ) : null}
         {now.key === "dinner" && meal ? (
           <Button
-            title="Recipe"
+            title={dinnerChosen && recipeById(meal.id) ? "Cook it" : "Recipe"}
             small
             quiet
             hat="chef"
             onPress={() =>
-              router.push({ pathname: "/recipe/[id]", params: { id: meal.id } })
+              router.push({
+                pathname: "/recipe/[id]",
+                params: dinnerChosen && recipeById(meal.id) ? { id: meal.id, cook: "1" } : { id: meal.id },
+              })
             }
           />
         ) : null}
@@ -440,8 +444,15 @@ export function Timeline({
           }}
         >
           {allDay.map((e) => (
-            <View
+            <Pressable
               key={e.id}
+              accessibilityRole={e.hat ? "button" : undefined}
+              accessibilityLabel={`All day: ${e.title}`}
+              accessibilityHint={e.hat ? `Opens ${hatDef(e.hat).name}` : undefined}
+              disabled={!e.hat}
+              onPress={() =>
+                e.hat && router.push({ pathname: "/hat/[id]", params: { id: e.hat } })
+              }
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -458,7 +469,7 @@ export function Timeline({
               <T size={12} bold>
                 All day · {e.title}
               </T>
-            </View>
+            </Pressable>
           ))}
         </View>
       ) : null}
@@ -577,22 +588,30 @@ export function Timeline({
               <Pressable
                 accessibilityRole="button"
                 accessibilityLabel={`${item.title}${item.done ? ", done" : item.skipped ? ", skipped" : ""}`}
-                onPress={() =>
+                accessibilityHint={
                   item.taskId
-                    ? router.push({
-                        pathname: "/task/[id]",
-                        params: { id: item.taskId },
-                      })
-                    : item.key === "dinner"
-                      ? (() => {
-                          const m = mealFor(a.data, date);
-                          if (m) router.push({ pathname: "/recipe/[id]", params: { id: m.id } });
-                          else router.push("/meals");
-                        })()
+                    ? "Opens the details"
+                    : item.key === "dinner" || item.key === "slowcook"
+                      ? "Opens the recipe"
                       : removable
-                        ? setOpen(open === item.id ? null : item.id)
-                        : undefined
+                        ? "Shows options"
+                        : item.tag
+                          ? `Opens ${hatDef(item.tag).name}`
+                          : undefined
                 }
+                onPress={() => {
+                  if (item.taskId)
+                    return router.push({ pathname: "/task/[id]", params: { id: item.taskId } });
+                  if (item.key === "dinner" || item.key === "slowcook") {
+                    const m = mealFor(a.data, date);
+                    return m
+                      ? router.push({ pathname: "/recipe/[id]", params: { id: m.id } })
+                      : router.push("/meals");
+                  }
+                  if (removable) return setOpen(open === item.id ? null : item.id);
+                  // Everything else opens its hat: a class opens the Teacher hat, stories open Dad.
+                  if (item.tag) router.push({ pathname: "/hat/[id]", params: { id: item.tag } });
+                }}
                 style={{
                   flex: 1,
                   flexDirection: "row",

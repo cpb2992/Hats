@@ -45,6 +45,8 @@ export const sticker = (lift = 5): ViewStyle => ({
   borderColor: P.ink,
   borderBottomWidth: lift,
 });
+/** Hats follows the phone's text size up to this much larger; past it, layouts stay readable instead of breaking. */
+const MAX_TEXT_SCALE = 1.6;
 export function T({
   children,
   size = 15,
@@ -54,6 +56,7 @@ export function T({
   color,
   style,
   numberOfLines,
+  header = false,
 }: {
   children: ReactNode;
   size?: number;
@@ -63,10 +66,14 @@ export function T({
   color?: string;
   style?: object;
   numberOfLines?: number;
+  /** Announced as a heading by screen readers. */
+  header?: boolean;
 }) {
   return (
     <Text
       numberOfLines={numberOfLines}
+      accessibilityRole={header ? "header" : undefined}
+      maxFontSizeMultiplier={MAX_TEXT_SCALE}
       style={[
         {
           fontFamily: display ? F.display : bold ? F.semi : F.body,
@@ -384,7 +391,7 @@ export function Header({
       </View>
       <View style={{ flexDirection: "row", alignItems: "flex-end", gap: 10 }}>
         <View style={{ flex: 1, gap: 4 }}>
-          <T display size={27}>
+          <T display size={27} header>
             {title}
           </T>
           {subtitle ? <T muted>{subtitle}</T> : null}
@@ -423,7 +430,7 @@ export function Section({
         }}
       >
         {hat ? <Hat id={hat} size={30} tilt={-6} /> : null}
-        <T size={18} bold style={{ flexShrink: 1 }}>
+        <T size={18} bold style={{ flexShrink: 1 }} header>
           {title}
         </T>
       </View>

@@ -965,3 +965,26 @@ export const TAG_LABEL: Record<RecipeTag, string> = {
   "freezer-friendly": "Freezes well",
   "low-effort": "Low effort",
 };
+
+const LEAD = /^(?:some|more|a|an|the|fresh|extra)\s+/i;
+/**
+ * Groceries said out loud: "we need milk and eggs", "add bananas to the grocery list",
+ * "out of coffee", "grocery list: bread, apples". Returns the items, or null when it sounds
+ * like a to-do instead ("buy a birthday gift" isn't groceries).
+ */
+export function groceryItems(text: string): string[] | null {
+  const t = text.trim().replace(/[.!]+$/, "");
+  const listed = t.match(/^(?:grocery|shopping)\s+list[:,]?\s+(.+)$/i);
+  const toList = t.match(/^(?:please\s+)?(?:add|put)\s+(.+?)\s+(?:to|on)\s+(?:the\s+|my\s+|our\s+)?(?:grocery|shopping)(?:\s+list)?$/i);
+  const need = t.match(/^(?:we\s+need|we(?:'|’)?re\s+out\s+of|we\s+are\s+out\s+of|out\s+of|need\s+to\s+buy|buy|pick\s+up|grab)\s+(.+)$/i);
+  const body = listed?.[1] ?? toList?.[1] ?? need?.[1];
+  if (!body) return null;
+  const items = body
+    .split(/,|\s+and\s+|\s*&\s*|\s+plus\s+/i)
+    .map((x) => x.trim().replace(LEAD, "").replace(LEAD, "").trim())
+    .filter(Boolean);
+  if (!items.length) return null;
+  // "Grocery list: …" and "add … to the grocery list" are clear; "buy …" only counts for food.
+  if (listed || toList) return items;
+  return items.every((x) => aisleFor(x) !== "Other") ? items : null;
+}

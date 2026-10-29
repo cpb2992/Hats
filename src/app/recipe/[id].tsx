@@ -24,13 +24,14 @@ import { Button, Header, P, Page, Panel, Row, T, sticker } from "../../personal/
 
 /** A recipe, from the library or one of your own dinners: plan it, shop for it, cook it. */
 export default function RecipePage() {
-  const { id } = useLocalSearchParams<{ id: string }>();
+  const { id, cook } = useLocalSearchParams<{ id: string; cook?: string }>();
   const { data, today, mutate, say, celebrate } = usePersonal();
   const insets = useSafeAreaInsets();
   const r = recipeById(id);
   const meal = findMeal(data, id);
   const [picking, setPicking] = useState(false);
-  const [cooking, setCooking] = useState(false);
+  // Opened from Today's "Cook it": straight into cooking mode.
+  const [cooking, setCooking] = useState(cook === "1" && !!recipeById(id));
   const [step, setStep] = useState(0);
 
   useEffect(() => {

@@ -61,6 +61,8 @@ export default function Meals() {
   const [at, setAt] = useState(0);
   const [picking, setPicking] = useState(false);
   const [item, setItem] = useState("");
+  const [staple, setStaple] = useState("");
+  const [kitchenOpen, setKitchenOpen] = useState(false);
   const week = Array.from({ length: 7 }, (_, i) => addDays(today, i));
   const deck = useMemo(() => suggestRecipes(data, today, filter, 12), [data, today, filter]);
   const current: Recipe | undefined = deck[Math.min(at, deck.length - 1)];
@@ -513,6 +515,67 @@ export default function Meals() {
         ) : (
           <T muted>All stocked. Planning a dinner adds what it needs.</T>
         )}
+      </Panel>
+
+      {/* What's at home: drives "Use what I have" and keeps it off the list */}
+      <Panel tint="#E6F2E3">
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: kitchenOpen }}
+          accessibilityLabel={`In your kitchen, ${data.pantry.length} things`}
+          onPress={() => setKitchenOpen(!kitchenOpen)}
+          style={{ flexDirection: "row", alignItems: "center", gap: 10, minHeight: 44 }}
+        >
+          <Food id="plate" size={34} />
+          <View style={{ flex: 1 }}>
+            <T size={12} bold>
+              IN YOUR KITCHEN · {data.pantry.length}
+            </T>
+            <T size={12} muted numberOfLines={1}>
+              {data.pantry.length ? data.pantry.slice(0, 6).join(", ") : "Checked-off groceries land here"}
+            </T>
+          </View>
+          <Icon name={kitchenOpen ? "minus" : "plus"} size={18} color={P.ink} width={2.2} />
+        </Pressable>
+        {kitchenOpen ? (
+          <>
+            <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+              <TextInput
+                accessibilityLabel="Add something you have at home"
+                value={staple}
+                onChangeText={setStaple}
+                onSubmitEditing={() => {
+                  const name = staple.trim();
+                  if (!name) return;
+                  mutate((d) => {
+                    if (!d.pantry.some((x) => sameItem(x, name))) d.pantry.push(name);
+                  });
+                  setStaple("");
+                }}
+                placeholder="Rice, eggs, pasta…"
+                placeholderTextColor={P.muted}
+                returnKeyType="done"
+                style={{ flex: 1, minHeight: 46, borderRadius: 14, backgroundColor: P.paper, borderWidth: 2, borderColor: P.ink, paddingHorizontal: 12, fontSize: 15, color: P.ink }}
+              />
+            </View>
+            <Row>
+              {data.pantry.map((x) => (
+                <Chip
+                  key={x}
+                  title={`${x} ×`}
+                  onPress={() =>
+                    mutate((d) => {
+                      d.pantry = d.pantry.filter((y) => y !== x);
+                    })
+                  }
+                />
+              ))}
+            </Row>
+            <T size={12} muted>
+              Tap one when it runs out. “Use what I have” finds dinners from these.
+            </T>
+          </>
+        ) : null}
       </Panel>
 
       {/* Your go-tos */}

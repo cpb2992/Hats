@@ -1,5 +1,6 @@
-import { weekday } from "../engine/dates";
+import { addDays, weekday } from "../engine/dates";
 import { mealFor, planDay } from "./engine";
+import { recipeById } from "./recipes";
 import type { HatArtId } from "./hatArt";
 import { HATS, type PersonalData, type PersonalHat, hatDef } from "./model";
 import { isBathNight, isWorkday, routinePrefs } from "./routine";
@@ -66,6 +67,7 @@ export function routineSteps(
     home: "home",
     partner: "husband",
     dinner: "home",
+    slowcook: "home",
     bath: "dad",
     stories: "dad",
     bedtime: "dad",
@@ -131,6 +133,19 @@ export function routineSteps(
         : "Pick something easy",
     40,
   );
+  // A slow-cooker dinner needs starting hours ahead: before school on workdays, else late morning.
+  const slow = chosen ? recipeById(meal?.id) : undefined;
+  if (slow?.tags.includes("slow-cooker"))
+    add(
+      "slowcook",
+      isWorkday(data, date)
+        ? "07:00"
+        : hhmm(Math.max(mins("09:00"), mins(r.dinnerTime) - 7 * 60)),
+      `Start the slow cooker · ${slow.name}`,
+      "chef",
+      `${slow.minutes} min now, then ${slow.wait}`,
+      slow.minutes,
+    );
   if (isBathNight(data, date))
     add(
       "bath",
@@ -262,6 +277,20 @@ export function dayTimeline(
   items.sort(
     (a, b) => mins(a.time) - mins(b.time) || a.kind.localeCompare(b.kind),
   );
+  // Birthdays: on the day, and a week ahead so there's time for a card or a gift.
+  const md = date.slice(5);
+  const weekOut = addDays(date, 7).slice(5);
+  for (const person of data.people) {
+    const b = /(\d{2})-(\d{2})$/.exec(person.birthday ?? "");
+    if (!b) continue;
+    const day = `${b[1]}-${b[2]}`;
+    const hat: PersonalHat =
+      person.role === "child" ? "dad" : person.role === "pet" ? "pets" : "friends";
+    if (day === md)
+      allDay.unshift({ id: `bday:${person.id}`, title: `${person.name}’s birthday 🎂`, hat });
+    else if (day === weekOut)
+      allDay.push({ id: `bday-soon:${person.id}`, title: `${person.name}’s birthday is in a week`, hat });
+  }
   return { items, allDay };
 }
 

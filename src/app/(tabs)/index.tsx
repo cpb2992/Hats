@@ -20,7 +20,7 @@ import {
 import { didToday, undoEntry } from "../../personal/auto";
 import { planDay } from "../../personal/engine";
 import { Hat } from "../../personal/Hat";
-import { type PersonalHat, hatDef } from "../../personal/model";
+import { type PersonalData, type PersonalHat, hatDef } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
 import {
   dayTimeline,
@@ -79,6 +79,15 @@ function hatsOn(items: TimelineItem[]) {
     if (i.tag && i.kind !== "routine" && i.kind !== "work")
       counts.set(i.tag, (counts.get(i.tag) ?? 0) + 1);
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
+}
+
+/** Weekend (or a bare Monday): fewer than three of the next seven dinners are planned. */
+function weekNeedsDinners(data: PersonalData, today: string) {
+  const day = new Date(`${today}T12:00:00`).getDay();
+  if (![0, 1, 6].includes(day)) return false;
+  let planned = 0;
+  for (let i = 0; i < 7; i++) if (data.dinners[addDays(today, i)]) planned++;
+  return planned < 3;
 }
 
 export default function Home() {
@@ -407,8 +416,13 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
             {dayShort(date).toUpperCase()} {fromISO(date).getDate()}
           </T>
           {tags.map(([hat, n]) => (
-            <View
+            <Pressable
               key={hat}
+              accessibilityRole="button"
+              accessibilityLabel={`${hatDef(hat).name}: ${n} today`}
+              accessibilityHint={`Opens ${hatDef(hat).name}`}
+              hitSlop={8}
+              onPress={() => router.push({ pathname: "/hat/[id]", params: { id: hat } })}
               style={{
                 flexDirection: "row",
                 alignItems: "center",
@@ -426,7 +440,7 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
               <T size={11} bold>
                 {n}
               </T>
-            </View>
+            </Pressable>
           ))}
         </View>
 
@@ -471,6 +485,39 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
         {isToday ? <NowCard items={items} /> : null}
 
         <Timeline items={items} allDay={allDay} date={date} />
+
+        {isToday && weekNeedsDinners(data, today) ? (
+          <Pressable
+            accessibilityRole="button"
+            accessibilityLabel="Plan this week’s dinners"
+            accessibilityHint="Opens Meals"
+            onPress={() => router.push("/meals")}
+            style={({ pressed }) => ({
+              flexDirection: "row",
+              alignItems: "center",
+              gap: 10,
+              padding: 10,
+              borderRadius: 18,
+              backgroundColor: "#FFE6D3",
+              borderWidth: 2,
+              borderColor: P.ink,
+              transform: [{ translateY: pressed ? 1 : 0 }],
+            })}
+          >
+            <Hat id="chef" size={34} tilt={-8} />
+            <View style={{ flex: 1 }}>
+              <T size={14} bold>
+                Plan this week’s dinners
+              </T>
+              <T size={12} muted>
+                Flip through recipe cards · the grocery list builds itself
+              </T>
+            </View>
+            <T bold color={P.blue}>
+              ›
+            </T>
+          </Pressable>
+        ) : null}
 
         {waiting ? (
           <Pressable

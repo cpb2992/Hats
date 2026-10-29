@@ -13,6 +13,7 @@ import {
 } from "../../personal/understand";
 import { fmtLong, fmtRelative, fmtTime } from "../../engine/dates";
 import { allHats, id, isHatId, type PersonalHat, hatDef } from "../../personal/model";
+import { groceryItems, sameItem } from "../../personal/recipes";
 import { usePersonal } from "../../personal/Store";
 import {
   Button,
@@ -143,6 +144,8 @@ function CaptureForm({
     kind: flipped[i] ? (u.kind === "event" ? "task" : "event") : u.kind,
   })) as Understood[];
   const draft = { hat: understood[0]?.hat ?? hat };
+  // "We need milk and eggs" goes on the grocery list, not the to-do list.
+  const shopping = kind === "task" ? groceryItems(text) : null;
   const choosePhoto = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -166,6 +169,25 @@ function CaptureForm({
     if (listening) {
       stopListening();
       setListening(false);
+    }
+    if (shopping) {
+      let added = 0;
+      mutate((d) => {
+        for (const item of shopping)
+          if (!d.groceries.some((g) => sameItem(g, item))) {
+            d.groceries.push(item);
+            added++;
+          }
+      });
+      setText("");
+      say(
+        added
+          ? `Added ${shopping.join(", ")} to groceries.`
+          : "Those are already on the grocery list.",
+      );
+      celebrate({ hat: "cap" });
+      router.push("/meals");
+      return;
     }
     mutate((d) => {
       if (kind === "task") addUnderstood(d, understood);
@@ -212,7 +234,7 @@ function CaptureForm({
     );
     router.push(
       kind === "groceries" || kind === "pantry"
-        ? "/hat/home"
+        ? "/meals"
         : {
             pathname: "/hat/[id]",
             params: {
@@ -333,6 +355,29 @@ function CaptureForm({
               : "A task, a promise, a song, or a useful link…"
         }
       />
+      {kind === "task" && !text.trim() ? (
+        <View style={{ gap: 6 }}>
+          <T size={12} bold muted>
+            TRY SAYING
+          </T>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            style={{ marginHorizontal: -20 }}
+            contentContainerStyle={{ paddingHorizontal: 20, gap: 8 }}
+          >
+            {[
+              "Dentist Tuesday at 4pm",
+              "We need milk and eggs",
+              "Date night Friday at 7",
+              "Call Mom this weekend",
+              "Grade lab reports tomorrow",
+            ].map((ex) => (
+              <Chip key={ex} title={`“${ex}”`} onPress={() => setText(ex)} />
+            ))}
+          </ScrollView>
+        </View>
+      ) : null}
       <Row>
         {!["task", "pantry", "groceries"].includes(kind) ? (
           <Button title="Keep a photo" hat="chef" quiet onPress={choosePhoto} />
@@ -418,7 +463,22 @@ function CaptureForm({
           </ScrollView>
         </>
       ) : null}
-      {kind === "task" && understood.length ? (
+      {shopping ? (
+        <Panel tint="#DCE9FA">
+          <T size={12} bold>
+            HATS HEARD · GROCERY LIST
+          </T>
+          <Row>
+            <Hat id="cap" size={28} />
+            <T bold style={{ flex: 1 }}>
+              {shopping.join(", ")}
+            </T>
+          </Row>
+          <T size={12} muted>
+            These go on the grocery list, sorted by aisle in Meals.
+          </T>
+        </Panel>
+      ) : kind === "task" && understood.length ? (
         <Panel>
           <T size={12} bold>
             HATS HEARD{" "}
@@ -458,7 +518,13 @@ function CaptureForm({
         </Panel>
       ) : null}
       <Button
-        title={kind === "reflection" ? "Save privately" : "Keep this"}
+        title={
+          kind === "reflection"
+            ? "Save privately"
+            : shopping
+              ? "Add to groceries"
+              : "Keep this"
+        }
         hat={kind === "reflection" ? "fedora" : "wizard"}
         disabled={!text.trim() && !photo}
         onPress={save}
