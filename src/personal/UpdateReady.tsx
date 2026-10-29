@@ -92,3 +92,68 @@ export function UpdateReady() {
     </View>
   );
 }
+
+const when = (d: Date | null) =>
+  d
+    ? `${d.toLocaleDateString(undefined, { month: "short", day: "numeric" })} at ${d.toLocaleTimeString(undefined, { hour: "numeric", minute: "2-digit" })}`
+    : "an earlier update";
+
+/** Settings: which version of Hats is running, and a button to check for a newer one. */
+export function ThisCopy() {
+  const [state, setState] = useState<"idle" | "checking" | "current" | "ready" | "offline">("idle");
+  if (!Updates.isEnabled || __DEV__)
+    return (
+      <T size={13} muted>
+        This copy of Hats doesn’t get over-the-air updates (a preview or developer build).
+      </T>
+    );
+  const check = async () => {
+    setState("checking");
+    try {
+      const found = await Updates.checkForUpdateAsync();
+      if (!found.isAvailable) return setState("current");
+      await Updates.fetchUpdateAsync();
+      setState("ready");
+    } catch {
+      setState("offline");
+    }
+  };
+  return (
+    <View style={{ gap: 8 }}>
+      <T bold>
+        {Updates.isEmbeddedLaunch
+          ? "Running the version that came with this install"
+          : `Running the update from ${when(Updates.createdAt)}`}
+      </T>
+      <T size={13} muted>
+        {state === "checking"
+          ? "Checking…"
+          : state === "current"
+            ? "You’re up to date."
+            : state === "ready"
+              ? "A new version is downloaded and ready."
+              : state === "offline"
+                ? "Couldn’t reach the update server. Try again on Wi-Fi or data."
+                : "New versions download in the background; Hats offers a restart when one is ready."}
+      </T>
+      {state === "ready" ? (
+        <Pressable
+          accessibilityRole="button"
+          onPress={() => Updates.reloadAsync().catch(() => setState("offline"))}
+          style={{ minHeight: 46, borderRadius: 16, backgroundColor: P.sun, borderWidth: 2, borderColor: P.ink, alignItems: "center", justifyContent: "center" }}
+        >
+          <T bold>Restart Hats to update</T>
+        </Pressable>
+      ) : (
+        <Pressable
+          accessibilityRole="button"
+          disabled={state === "checking"}
+          onPress={check}
+          style={{ minHeight: 46, borderRadius: 16, backgroundColor: P.soft, borderWidth: 2, borderColor: P.ink, alignItems: "center", justifyContent: "center", opacity: state === "checking" ? 0.6 : 1 }}
+        >
+          <T bold>Check for updates</T>
+        </Pressable>
+      )}
+    </View>
+  );
+}

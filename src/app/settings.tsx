@@ -13,6 +13,7 @@ import {
   verifyCode,
 } from "../personal/cloud";
 import { WhoopSettings } from "../personal/WhoopCard";
+import { ThisCopy } from "../personal/UpdateReady";
 import { routinePrefs } from "../personal/routine";
 import {
   STANDARD_WEEK,
@@ -952,6 +953,11 @@ export default function Settings() {
               })
             }
           />
+        </Panel>
+      </Group>
+      <Group hat="party" title="This copy of Hats" summary="Version and updates">
+        <Panel>
+          <ThisCopy />
         </Panel>
       </Group>
       {editor.node}
