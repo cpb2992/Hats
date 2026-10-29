@@ -76,7 +76,7 @@ function headline(
 function hatsOn(items: TimelineItem[]) {
   const counts = new Map<PersonalHat, number>();
   for (const i of items)
-    if (i.tag && i.kind !== "routine")
+    if (i.tag && i.kind !== "routine" && i.kind !== "work")
       counts.set(i.tag, (counts.get(i.tag) ?? 0) + 1);
   return [...counts.entries()].sort((a, b) => b[1] - a[1]).slice(0, 3);
 }

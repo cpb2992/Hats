@@ -18,6 +18,7 @@ export type HatArtId =
   | "crown"
   | "sunhat"
   | "nightcap"
+  | "mortarboard"
   | "stack";
 
 export type Shape =
@@ -104,7 +105,38 @@ const heart = (x: number, y: number, s: number, fill: string): Shape => ({
   w: 1.3,
 });
 
+// The Teacher hat: a graduation cap with a gold tassel.
+const MORTARBOARD: Shape[] = [
+  {
+    t: "path",
+    d: "M17 27 L17 42 Q32 50 47 42 L47 27 Z",
+    fill: "#3B5079",
+    stroke: INK,
+    w: S,
+  },
+  {
+    t: "path",
+    d: "M32 9 L60 21 L32 33 L4 21 Z",
+    fill: C.navy,
+    stroke: INK,
+    w: S,
+  },
+  { t: "path", d: "M14 21 L32 13.5", stroke: "#fff", w: 1.6, o: 0.3 },
+  { t: "path", d: "M32 21 Q43 22 51 25 L51 37", stroke: INK, w: 1.8 },
+  {
+    t: "path",
+    d: "M48 36 L54 36 L55.5 46 Q51 49.5 46.5 46 Z",
+    fill: C.sun,
+    stroke: INK,
+    w: 1.6,
+  },
+  { t: "path", d: "M49.5 40 L49 46 M52.5 40 L53 46", stroke: INK, w: 1, o: 0.5 },
+  { t: "circle", cx: 32, cy: 21, r: 2.8, fill: C.sun, stroke: INK, w: 1.6 },
+];
+
+
 const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
+  mortarboard: MORTARBOARD,
   cap: [
     {
       t: "path",
@@ -556,6 +588,7 @@ const ART: Record<Exclude<HatArtId, "stack">, Shape[]> = {
     { t: "path", d: "M50 8 h5 l-5 6 h5", stroke: INK, w: 1.6 },
   ],
 };
+
 
 function artFor(id: HatArtId): Shape[] {
   if (id !== "stack") return ART[id];

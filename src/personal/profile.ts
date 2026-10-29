@@ -16,6 +16,7 @@ const HATS: PersonalHat[] = [
   "home",
   "friends",
   "myself",
+  "work",
 ];
 const isHat = (x: unknown): x is PersonalHat =>
   HATS.includes(String(x) as PersonalHat);

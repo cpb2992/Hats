@@ -424,6 +424,7 @@ export function captureTask(
     home: /\b(dinner|laundry|dish|grocer|sweep|clean|repair)\b/i,
     friends: /\b(friend|call|catch up|birthday)\b/i,
     myself: /\b(gym|guitar|sleep|workout|save|budget)\b/i,
+    work: /\b(lesson|grade|grading|students?|IEP|504|CPT|homeroom|report cards?|progress reports?|copies)\b/i,
   };
   hat = HAT_IDS.find((h) => words[h].test(text)) ?? hat;
   const date = /\btomorrow\b/i.test(text) ? addDays(today, 1) : today;

@@ -1,6 +1,6 @@
 import type { HatArtId } from "./hatArt";
 export type PersonalHat =
-  "husband" | "dad" | "pets" | "home" | "friends" | "myself";
+  "husband" | "dad" | "pets" | "home" | "friends" | "myself" | "work";
 export const HATS = {
   husband: {
     art: "fedora" as HatArtId,
@@ -49,6 +49,14 @@ export const HATS = {
     icon: "gym",
     color: "#496A8B",
     subtitle: "Health, money, music, and rest.",
+  },
+  work: {
+    art: "mortarboard" as HatArtId,
+    tint: "#E3E8F6",
+    name: "Teacher",
+    icon: "doc",
+    color: "#2C3E63",
+    subtitle: "Your school day, period by period.",
   },
 } as const;
 export const HAT_IDS = Object.keys(HATS) as PersonalHat[];
@@ -145,6 +153,24 @@ export interface Habit {
   target: number;
   checkins: string[];
 }
+/** One block of the school day, e.g. Period 2 · 7A. Times are "HH:MM". */
+export interface SchoolBlock {
+  start: string;
+  end: string;
+  title: string;
+  kind: "class" | "boost" | "homeroom" | "advisory" | "off" | "break";
+  period?: number;
+  /** What's happening in an off period, e.g. "Specials" or "RBR". */
+  note?: string;
+  /** Class section for classes and Boost blocks, e.g. "7A". */
+  section?: string;
+}
+export interface SchoolPrefs {
+  /** Show the school day on Today (on unless turned off). */
+  on: boolean;
+  /** Blocks by weekday, "1" (Monday) to "5" (Friday). Missing = the standard bell schedule. */
+  week?: Record<string, SchoolBlock[]>;
+}
 export interface Preferences {
   name: string;
   partner: string;
@@ -182,6 +208,8 @@ export interface Preferences {
   bathNights?: "alternate" | "nightly" | "off";
   /** A date that was a bath night; alternate nights count from it. */
   bathAnchor?: string;
+  /** The school day (Teacher hat). */
+  school?: SchoolPrefs;
 }
 export const ROUTINE_DEFAULTS = {
   partnerHome: "18:00",
@@ -388,6 +416,28 @@ export function validData(value: unknown): value is PersonalData {
       (p.bathNights !== undefined &&
         !["alternate", "nightly", "off"].includes(p.bathNights)) ||
       (p.bathAnchor !== undefined && !validDate(p.bathAnchor))
+    )
+      return false;
+    if (
+      p.school !== undefined &&
+      (!p.school ||
+        typeof p.school.on !== "boolean" ||
+        (p.school.week !== undefined &&
+          (typeof p.school.week !== "object" ||
+            p.school.week === null ||
+            !Object.values(p.school.week).every(
+              (list) =>
+                Array.isArray(list) &&
+                list.every(
+                  (b) =>
+                    b &&
+                    time(b.start) &&
+                    time(b.end) &&
+                    b.start < b.end &&
+                    text(b.title) &&
+                    (b.note === undefined || text(b.note)),
+                ),
+            ))))
     )
       return false;
     for (const map of [v.routineDone, v.routineSkipped, v.autoDeclined])

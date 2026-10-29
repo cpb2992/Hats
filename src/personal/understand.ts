@@ -47,6 +47,7 @@ const HAT_WORDS: Record<PersonalHat, RegExp> = {
     /\b(friend|call mom|call dad|catch up|birthday|family visit|visit)\b/i,
   myself:
     /\b(gym|guitar|sleep|workout|run|doctor|dentist|haircut|budget|save)\b/i,
+  work: /\b(lesson|lesson plans?|grade|grading|papers|my class|students?|IEP|504|CPT|PD|staff meeting|homeroom|report cards?|progress reports?|exit tickets?|parent conference|copies|principal|caseload|BTU|evaluation)\b/i,
 };
 
 function hatFor(

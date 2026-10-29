@@ -14,6 +14,14 @@ import {
 } from "../personal/cloud";
 import { WhoopSettings } from "../personal/WhoopCard";
 import { routinePrefs } from "../personal/routine";
+import {
+  STANDARD_WEEK,
+  WEEKDAYS,
+  dayFields,
+  dayFrom,
+  daySummary,
+  schoolOn,
+} from "../personal/school";
 import { fmtTime } from "../engine/dates";
 import { parseClock } from "../personal/clock";
 import { exportPersonal, pickBackup } from "../personal/backup";
@@ -363,6 +371,81 @@ export default function Settings() {
             personal calendar events.
           </T>
         </Panel>
+      </Group>
+      <Group
+        hat="mortarboard"
+        title="School day"
+        summary={
+          schoolOn(data)
+            ? "On Today · your bell schedule, Monday to Friday"
+            : "Off"
+        }
+      >
+        <Panel>
+          <Check
+            title="Show my school day on Today"
+            done={schoolOn(data)}
+            onPress={() =>
+              mutate((d) => {
+                d.preferences.school = {
+                  ...(d.preferences.school ?? {}),
+                  on: !schoolOn(d),
+                };
+              })
+            }
+          />
+          <T muted>
+            Homeroom, each class, your off periods, lunch and dismissal show on
+            Today, and whatever’s happening now is the big card. A calendar
+            meeting during an off period (like CPT during Specials) takes its
+            place. Days you don’t work and confirmed closures have no school day.
+          </T>
+        </Panel>
+        {schoolOn(data) ? (
+          <Panel>
+            {WEEKDAYS.map((name, i) => {
+              const key = String(i + 1);
+              const week = data.preferences.school?.week ?? STANDARD_WEEK;
+              const blocks = week[key] ?? [];
+              return (
+                <Button
+                  key={key}
+                  title={`${name} · ${daySummary(blocks) || "No classes"}`}
+                  quiet
+                  onPress={() => {
+                    const f = dayFields(blocks);
+                    editor.open({
+                      title: `${name}’s classes`,
+                      fields: [
+                        { key: "p2", label: "Period 2 · 9:31", value: f.p2, placeholder: "7A" },
+                        { key: "p3", label: "Period 3 · 10:27", value: f.p3, placeholder: "7C" },
+                        { key: "p4", label: "Period 4 · 11:23 (RBR is off, or a Boost)", value: f.p4, placeholder: "7B Boost" },
+                        { key: "p5", label: "Period 5 · 12:19 (Recess or Advisory, then lunch)", value: f.p5, placeholder: "Recess" },
+                        { key: "p6", label: "Period 6 · 1:15", value: f.p6, placeholder: "7B" },
+                        { key: "p7", label: "Period 7 · 2:11", value: f.p7, placeholder: "7D" },
+                      ],
+                      onSave: (v) => {
+                        const next = dayFrom(v as Record<"p2" | "p3" | "p4" | "p5" | "p6" | "p7", string>);
+                        mutate((d) => {
+                          const cur = d.preferences.school ?? { on: true };
+                          d.preferences.school = {
+                            ...cur,
+                            week: { ...(cur.week ?? STANDARD_WEEK), [key]: next },
+                          };
+                        });
+                        say(`${name} updated.`);
+                      },
+                    });
+                  }}
+                />
+              );
+            })}
+            <T size={12} muted>
+              Tap a day to change its classes. Bell times follow the Condon
+              schedule: homeroom 8:15, Specials 8:35 (off), dismissal 3:05.
+            </T>
+          </Panel>
+        ) : null}
       </Group>
       <Group
         hat="nightcap"

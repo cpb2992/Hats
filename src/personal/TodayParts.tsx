@@ -1,6 +1,6 @@
 import { router } from "expo-router";
 import { useState } from "react";
-import { Pressable, ScrollView, View } from "react-native";
+import { Linking, Pressable, ScrollView, View } from "react-native";
 import { addDays, fmtTime } from "../engine/dates";
 import { haptic } from "./haptics";
 import {
@@ -220,6 +220,10 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
       </View>
     );
   const started = minutesOfDay(now.time) <= a.nowMin;
+  const work = now.kind === "work";
+  // School blocks: how much of this period is left.
+  const left = work && started ? minutesOfDay(now.end ?? now.time) - a.nowMin : 0;
+  const length = work ? minutesOfDay(now.end ?? now.time) - minutesOfDay(now.time) : 0;
   const task = now.taskId
     ? a.data.tasks.find((t) => t.id === now.taskId)
     : null;
@@ -244,7 +248,11 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
           }}
         >
           <T size={12} bold color={started ? P.ink : P.paper}>
-            {started ? "NOW" : `UP NEXT · ${fmtTime(now.time, true)}`}
+            {started
+              ? work
+                ? `${now.block === "off" ? "OFF" : "NOW"} · UNTIL ${fmtTime(now.end ?? now.time, true)}`
+                : "NOW"
+              : `UP NEXT · ${fmtTime(now.time, true)}`}
           </T>
         </View>
         {next ? (
@@ -259,16 +267,45 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
           <T display size={24} color={P.paper}>
             {task ? task.title : now.title}
           </T>
-          {now.detail ? (
+          {now.detail || work ? (
             <T size={14} color="#D5DDE8">
               {task && task.steps.length
                 ? `Next: ${nextStep(task)}`
-                : now.detail}
+                : work && started
+                  ? [now.detail, `${left} min left`].filter(Boolean).join(" · ")
+                  : now.detail}
             </T>
           ) : null}
         </View>
       </View>
+      {work && started && length > 0 ? (
+        <View
+          accessibilityLabel={`${left} of ${length} minutes left`}
+          style={{ height: 8, borderRadius: 4, backgroundColor: "#2F4466", overflow: "hidden" }}
+        >
+          <View
+            style={{
+              width: `${Math.min(100, Math.max(0, ((length - left) / length) * 100))}%`,
+              height: "100%",
+              borderRadius: 4,
+              backgroundColor: P.sun,
+            }}
+          />
+        </View>
+      ) : null}
       <Row>
+        {work && now.section ? (
+          <Button
+            title={`${now.section} attendance in Desk`}
+            small
+            tone="sun"
+            onPress={() =>
+              Linking.openURL(
+                `desk://attendance?section=${encodeURIComponent(now.section!)}`,
+              ).catch(() => a.say("Desk isn’t on this phone yet."))
+            }
+          />
+        ) : null}
         {now.kind === "routine" &&
         now.key === "dinner" &&
         !dinnerChosen &&

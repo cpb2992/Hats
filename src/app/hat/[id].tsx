@@ -2,7 +2,8 @@ import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image, Linking, Pressable, View } from "react-native";
 import { Hat } from "../../personal/Hat";
-import { addDays, fmtRelative } from "../../engine/dates";
+import { addDays, fmtRelative, fmtTime } from "../../engine/dates";
+import { periodLabel, schoolBlocks, schoolOn } from "../../personal/school";
 import {
   activityFor,
   budgetSummary,
@@ -750,6 +751,46 @@ export default function HatPage() {
             connected, and no messages are sent automatically.
           </T>
         </>
+      ) : null}
+      {hat === "work" ? (
+        (() => {
+          // Today's school day, or the next one.
+          let day = today;
+          for (let i = 0; i < 8 && !schoolBlocks(data, day).length; i++) day = addDays(today, i + 1);
+          const blocks = schoolBlocks(data, day);
+          return (
+            <>
+              <Panel dark>
+                <T size={21} display color="#FFFDFA">
+                  {!schoolOn(data)
+                    ? "Your school day is off."
+                    : day === today
+                      ? "Today at school"
+                      : `Next school day · ${fmtRelative(day, today)}`}
+                </T>
+                {blocks.map((b) => (
+                  <View key={b.start} style={{ flexDirection: "row", gap: 10, alignItems: "baseline" }}>
+                    <T size={13} color="#C8D7EA" style={{ width: 64 }}>
+                      {fmtTime(b.start, true)}
+                    </T>
+                    <T size={15} bold color="#FFFDFA" style={{ flex: 1 }}>
+                      {b.title}
+                    </T>
+                    <T size={12} color="#C8D7EA">
+                      {periodLabel(b)}
+                    </T>
+                  </View>
+                ))}
+                <Button
+                  title={schoolOn(data) ? "Change your classes" : "Turn on your school day"}
+                  quiet
+                  hat="mortarboard"
+                  onPress={() => router.push("/settings")}
+                />
+              </Panel>
+            </>
+          );
+        })()
       ) : null}
       {hat === "myself" ? (
         <>

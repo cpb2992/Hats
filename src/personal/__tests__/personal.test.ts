@@ -270,7 +270,7 @@ test("a private setup profile imports only known fields and links the kitchen ha
     ],
     notes: [
       { text: "Likes tulips", hat: "husband", secret: "drop me" },
-      { text: "bad hat", hat: "work" },
+      { text: "bad hat", hat: "office" },
     ],
     habits: [
       {
@@ -363,7 +363,7 @@ test("every space and screen hat has sticker art that renders to valid SVG", asy
     assert.ok(HAT_ART_IDS.includes(space.art));
   assert.equal(
     new Set(Object.values(spaces).map((s) => s.art)).size,
-    6,
+    7,
     "each space wears a different hat",
   );
   for (const id of HAT_ART_IDS) {
@@ -753,4 +753,70 @@ test("capture: a follow-up belongs to the day it points at; today's weekday mean
     600,
   );
   assert.equal(b[1].date, "2026-10-28");
+});
+
+test("school day: classes on Today, the current period is the big card, CPT takes an off period", async () => {
+  const { dayTimeline, nowAndNext } = await import("../timeline");
+  const { schoolBlocks, dayFields, dayFrom, STANDARD_WEEK } = await import("../school");
+  const d = freshPersonal();
+  d.preferences.unavailableDays = [1, 2, 3, 4, 5];
+  const thu = "2026-10-29";
+  d.events.push({ id: "cpt", title: "CPT Gr. 6-8 Science", date: thu, start: "08:35", end: "09:28", allDay: false, source: "google" });
+
+  // Before school: homeroom is up next, then the CPT meeting in the Specials off period (shown once).
+  const early = dayTimeline(d, thu, 6 * 60 + 50, thu);
+  const work = early.items.filter((i) => i.kind === "work");
+  assert.deepEqual(
+    work.map((i) => i.title),
+    ["Homeroom", "CPT Gr. 6-8 Science", "7B Science", "7D Science", "Off period", "Advisory", "Lunch", "7A Science", "7C Science", "Dismissal"],
+  );
+  assert.equal(early.items.filter((i) => i.title === "CPT Gr. 6-8 Science").length, 1);
+  assert.equal(work[1].detail, "Period 1 · during Specials");
+  const before = nowAndNext(early.items, 6 * 60 + 50);
+  assert.equal(before.now?.title, "Homeroom");
+  assert.equal(before.next?.title, "CPT Gr. 6-8 Science");
+
+  // 9:40 on Thursday is Period 2 with 7B; 7D is next. Earlier blocks are done.
+  const mid = dayTimeline(d, thu, 9 * 60 + 40, thu).items;
+  const now = nowAndNext(mid, 9 * 60 + 40);
+  assert.equal(now.now?.title, "7B Science");
+  assert.equal(now.now?.section, "7B");
+  assert.equal(now.now?.detail, "Period 2");
+  assert.equal(now.next?.title, "7D Science");
+  // RBR and Specials are off periods, labeled as such.
+  const rbr = nowAndNext(dayTimeline(d, thu, 11 * 60 + 40, thu).items, 11 * 60 + 40).now;
+  assert.equal(rbr?.title, "Off period");
+  assert.equal(rbr?.detail, "Period 4 · RBR");
+  assert.equal(rbr?.block, "off");
+  assert.equal(mid.find((i) => i.title === "Homeroom")?.done, true);
+  // In the 3 minutes between periods, the next class is up next.
+  assert.equal(nowAndNext(dayTimeline(d, thu, 10 * 60 + 25, thu).items, 10 * 60 + 25).now?.title, "7D Science");
+
+  // The week matches the bell schedule grid.
+  assert.deepEqual(schoolBlocks(d, "2026-10-26").filter((b) => b.kind === "class").map((b) => b.section), ["7A", "7C", "7B", "7D"]);
+  assert.equal(schoolBlocks(d, "2026-10-27").find((b) => b.period === 4)?.title, "7B Boost");
+  assert.equal(schoolBlocks(d, "2026-10-30").find((b) => b.period === 4)?.title, "7C Boost");
+
+  // No school day on weekends, closures, or with it turned off.
+  assert.deepEqual(schoolBlocks(d, "2026-10-31"), []);
+  d.events.push({ id: "closed", title: "No school", date: "2026-10-30", start: "00:00", end: "23:59", allDay: true, source: "hats", closure: true });
+  assert.deepEqual(schoolBlocks(d, "2026-10-30"), []);
+  d.preferences.school = { on: false };
+  assert.deepEqual(schoolBlocks(d, thu), []);
+  assert.equal(validData(d), true);
+
+  // Editing a day keeps the bell times; bad entries say what's wrong.
+  const f = dayFields(STANDARD_WEEK["2"]);
+  assert.deepEqual(f, { p2: "7B", p3: "7D", p4: "7B Boost", p5: "Advisory", p6: "7A", p7: "7C" });
+  const edited = dayFrom({ ...f, p2: "7c", p4: "rbr", p5: "recess" });
+  assert.equal(edited.find((b) => b.period === 2)?.section, "7C");
+  assert.equal(edited.find((b) => b.period === 4)?.title, "Off period");
+  assert.equal(edited.find((b) => b.period === 4)?.note, "RBR");
+  assert.equal(dayFields(edited).p4, "RBR");
+  assert.throws(() => dayFrom({ ...f, p4: "lunch duty" }), /Period 4/);
+  d.preferences.school = { on: true, week: { "4": edited } };
+  assert.equal(validData(d), true);
+  assert.equal(schoolBlocks(d, thu).find((b) => b.period === 2)?.title, "7C Science");
+  d.preferences.school = { on: true, week: { "4": [{ start: "10:00", end: "09:00", title: "x", kind: "class" }] } };
+  assert.equal(validData(d), false);
 });

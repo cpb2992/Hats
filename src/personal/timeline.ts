@@ -3,13 +3,14 @@ import { mealFor, planDay } from "./engine";
 import type { HatArtId } from "./hatArt";
 import { HATS, type PersonalData, type PersonalHat } from "./model";
 import { isBathNight, isWorkday, routinePrefs } from "./routine";
+import { isFree, periodLabel, schoolBlocks } from "./school";
 
 export { isBathNight, isWorkday, routinePrefs };
 
 /** One row in a day's timeline. Times are "HH:MM", local. */
 export interface TimelineItem {
   id: string;
-  kind: "routine" | "event" | "task";
+  kind: "routine" | "event" | "task" | "work";
   time: string;
   end?: string;
   title: string;
@@ -28,6 +29,11 @@ export interface TimelineItem {
   /** For events: where it came from. */
   source?: "hats" | "google";
   eventId?: string;
+  /** School blocks: the class section ("7A") and period number. */
+  section?: string;
+  period?: number;
+  /** School blocks: what kind of block (class, off period, lunch...). */
+  block?: "class" | "boost" | "homeroom" | "advisory" | "off" | "break";
 }
 
 const mins = (t: string) => {
@@ -176,7 +182,46 @@ export function dayTimeline(
     kind: "routine" as const,
   }));
   const allDay: { id: string; title: string; hat?: PersonalHat }[] = [];
+  // The school day. A calendar meeting that falls in an off period (CPT during Specials)
+  // takes that block's place instead of showing twice.
+  const merged = new Set<string>();
+  for (const b of schoolBlocks(data, date)) {
+    const meeting = isFree(b)
+      ? data.events.find(
+          (e) =>
+            e.date === date &&
+            !e.allDay &&
+            mins(e.start) >= mins(b.start) - 10 &&
+            mins(e.start) < mins(b.end) - 10 &&
+            !merged.has(e.id),
+        )
+      : undefined;
+    if (meeting) merged.add(meeting.id);
+    const period = periodLabel(b);
+    items.push({
+      id: `work:${b.start}`,
+      kind: "work",
+      time: meeting ? meeting.start : b.start,
+      end: meeting ? meeting.end : b.end,
+      title: meeting ? meeting.title : b.title,
+      detail: meeting
+        ? [b.period ? `Period ${b.period}` : "", `during ${b.note ?? b.title}`]
+            .filter(Boolean)
+            .join(" · ")
+        : period || undefined,
+      hat: HATS.work.art,
+      tag: "work",
+      section: b.section,
+      period: b.period,
+      block: b.kind,
+      ...(meeting ? { source: meeting.source, eventId: meeting.id } : {}),
+      done:
+        date < today ||
+        (isToday && mins(meeting ? meeting.end : b.end) <= nowMin),
+    });
+  }
   for (const e of data.events.filter((e) => e.date === date)) {
+    if (merged.has(e.id)) continue;
     if (e.allDay) {
       allDay.push({ id: e.id, title: e.title, hat: e.hat });
       continue;
