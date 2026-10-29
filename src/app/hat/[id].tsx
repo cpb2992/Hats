@@ -38,7 +38,7 @@ export default function HatPage() {
   const params = useLocalSearchParams<{ id: PersonalHat }>();
   const hat = HAT_IDS.includes(params.id) ? params.id : "home";
   const def = HATS[hat];
-  const { data, mutate, today, say, undo } = usePersonal();
+  const { data, mutate, today, say } = usePersonal();
   const editor = useEditor();
   const [showDone, setShowDone] = useState(false);
   const [showKnown, setShowKnown] = useState(false);
@@ -271,7 +271,6 @@ export default function HatPage() {
           small
           onPress={() => capture("idea")}
         />
-        <Chip title="Undo" onPress={undo} />
       </Row>
       {hat === "husband" ? (
         <>

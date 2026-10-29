@@ -30,7 +30,7 @@ import {
 } from "../../personal/ui";
 
 export default function Today() {
-  const { data, mutate, today, nowMin, nowMs, error, undo, say, celebrate } =
+  const { data, mutate, today, nowMin, nowMs, error, say, celebrate } =
     usePersonal();
   const focusEnabled = useFocusEnabled() && data.preferences.focusConsent;
   const low = data.lowEnergyDays.includes(today);
@@ -91,7 +91,6 @@ export default function Today() {
             })
           }
         />
-        <Chip title="Undo last change" onPress={undo} />
       </Row>
       {protectedNow ? (
         <Panel dark>

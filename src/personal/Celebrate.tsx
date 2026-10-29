@@ -1,12 +1,6 @@
-import * as Haptics from "expo-haptics";
 import { useEffect, useState } from "react";
-import {
-  AccessibilityInfo,
-  Animated,
-  Easing,
-  Platform,
-  View,
-} from "react-native";
+import { AccessibilityInfo, Animated, Easing, View } from "react-native";
+import { haptic } from "./haptics";
 import { Hat } from "./Hat";
 import type { HatArtId } from "./hatArt";
 import { P, T } from "./ui";
@@ -44,14 +38,6 @@ function pieces(n: number, spread: number) {
 }
 const SMALL = pieces(12, 90);
 const BIG = pieces(26, 170);
-
-export function haptic(kind: "tap" | "success") {
-  if (Platform.OS === "web") return;
-  (kind === "success"
-    ? Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success)
-    : Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)
-  ).catch(() => {});
-}
 
 /** A quick, non-blocking burst: hat pops, confetti flies, a buzz. Never steals taps. */
 export function CelebrationLayer({ c }: { c: Celebration | null }) {

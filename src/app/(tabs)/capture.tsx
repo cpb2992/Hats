@@ -1,9 +1,16 @@
 import { useEffect, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
-import { Image, View } from "react-native";
+import { Image, Pressable, ScrollView, View } from "react-native";
+import { Hat } from "../../personal/Hat";
+import { Icon } from "../../ui/icons";
 import * as ImagePicker from "expo-image-picker";
 import { File, Paths } from "expo-file-system";
-import { captureTask } from "../../personal/engine";
+import {
+  addUnderstood,
+  understand,
+  type Understood,
+} from "../../personal/understand";
+import { fmtLong, fmtRelative, fmtTime } from "../../engine/dates";
 import { HATS, HAT_IDS, id, type PersonalHat } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
 import {
@@ -11,10 +18,12 @@ import {
   Chip,
   Field,
   Header,
+  P,
   Page,
   Panel,
   Row,
   T,
+  sticker,
 } from "../../personal/ui";
 import {
   startListening,
@@ -23,6 +32,14 @@ import {
   useSpeechRecognitionEvent,
   abortListening,
 } from "../../services/speech";
+
+const endOf = (t: string, m: number) => {
+  const n = Math.min(
+    23 * 60 + 59,
+    Number(t.slice(0, 2)) * 60 + Number(t.slice(3)) + m,
+  );
+  return `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
+};
 
 type Kind = "task" | "idea" | "gift" | "reflection" | "groceries" | "pantry";
 export default function Capture() {
@@ -43,7 +60,8 @@ function CaptureForm({
 }: {
   params: { hat?: PersonalHat; kind?: Kind; text?: string };
 }) {
-  const { mutate, today, say } = usePersonal();
+  const { data, mutate, today, nowMin, say, celebrate } = usePersonal();
+  const [flipped, setFlipped] = useState<Record<number, boolean>>({});
   const [text, setText] = useState(params.text ?? "");
   const [kind, setKind] = useState<Kind>(
     params.kind &&
@@ -69,8 +87,12 @@ function CaptureForm({
     setListening(false);
     say("Voice capture stopped. You can keep typing or try again.");
   });
-  const draft = captureTask(text, hat, today);
-  if (manual) draft.hat = hat;
+  const understood = understand(text, data, today, hat, nowMin).map((u, i) => ({
+    ...u,
+    hat: manual ? hat : u.hat,
+    kind: flipped[i] ? (u.kind === "event" ? "task" : "event") : u.kind,
+  })) as Understood[];
+  const draft = { hat: understood[0]?.hat ?? hat };
   const choosePhoto = async () => {
     try {
       const result = await ImagePicker.launchImageLibraryAsync({
@@ -96,7 +118,7 @@ function CaptureForm({
       setListening(false);
     }
     mutate((d) => {
-      if (kind === "task") d.tasks.push(draft);
+      if (kind === "task") addUnderstood(d, understood);
       else if (kind === "groceries" || kind === "pantry") {
         const items = text
           .split(/[,\n]+/)
@@ -118,6 +140,25 @@ function CaptureForm({
     });
     setText("");
     setPhoto("");
+    setFlipped({});
+    if (kind === "task" && understood.length) {
+      const first = understood[0];
+      const when = `${fmtRelative(first.date, today)}${first.time ? ` · ${fmtTime(first.time, true)}` : ""}`;
+      say(
+        understood.length > 1
+          ? `Added ${understood.length} things · first: ${when}`
+          : `${first.kind === "event" ? "Event" : "To-do"} added · ${when}`,
+      );
+      celebrate({
+        hat: first.kind === "event" ? "safari" : HATS[first.hat].art,
+      });
+      router.push(
+        first.date === today
+          ? "/"
+          : { pathname: "/plan", params: { date: first.date } },
+      );
+      return;
+    }
     say(
       kind === "reflection"
         ? "Private reflection saved. Nothing was sent."
@@ -129,12 +170,7 @@ function CaptureForm({
         : {
             pathname: "/hat/[id]",
             params: {
-              id:
-                kind === "task"
-                  ? draft.hat
-                  : kind === "reflection"
-                    ? "husband"
-                    : hat,
+              id: kind === "reflection" ? "husband" : hat,
             },
           },
     );
@@ -143,10 +179,14 @@ function CaptureForm({
     <Page>
       <Header
         title="A thought worth keeping."
-        subtitle="Talk, type, or keep a useful idea. Then get back to life."
+        subtitle="Say it or type it. Then get back to life."
         hat="wizard"
       />
-      <Row>
+      <ScrollView
+        horizontal
+        showsHorizontalScrollIndicator={false}
+        contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+      >
         {(
           [
             "task",
@@ -173,7 +213,7 @@ function CaptureForm({
             onPress={() => setKind(k)}
           />
         ))}
-      </Row>
+      </ScrollView>
       {kind === "reflection" ? (
         <Panel>
           <T bold>Make room for your feelings before responding.</T>
@@ -187,6 +227,63 @@ function CaptureForm({
           </T>
         </Panel>
       ) : null}
+      <Pressable
+        accessibilityRole="button"
+        accessibilityLabel={listening ? "Stop listening" : "Tap to talk"}
+        onPress={async () => {
+          if (listening) {
+            stopListening();
+            setListening(false);
+            return;
+          }
+          if (!speechAvailable()) {
+            say(
+              "Speech recognition isn’t available here. Use your keyboard microphone or type.",
+            );
+            return;
+          }
+          try {
+            setListening(await startListening());
+          } catch {
+            say("Microphone unavailable. Check phone permissions.");
+          }
+        }}
+        style={({ pressed }) => ({
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 12,
+          padding: 14,
+          borderRadius: 22,
+          backgroundColor: listening ? P.ink : P.sun,
+          ...sticker(pressed ? 2 : 5),
+          transform: [{ translateY: pressed ? 2 : 0 }],
+        })}
+      >
+        <View
+          style={{
+            width: 46,
+            height: 46,
+            borderRadius: 23,
+            backgroundColor: listening ? P.sun : P.paper,
+            alignItems: "center",
+            justifyContent: "center",
+            borderWidth: 2,
+            borderColor: P.ink,
+          }}
+        >
+          <Icon name={listening ? "pause" : "mic"} color={P.ink} size={22} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <T bold size={17} color={listening ? P.paper : P.ink}>
+            {listening ? "Listening… tap to stop" : "Tap to talk"}
+          </T>
+          <T size={13} color={listening ? "#D5DDE8" : P.ink}>
+            {listening
+              ? "Speak naturally. Hats writes it down."
+              : "Hats sorts it into the right hat."}
+          </T>
+        </View>
+      </Pressable>
       <Field
         label={
           kind === "groceries" || kind === "pantry"
@@ -198,7 +295,7 @@ function CaptureForm({
         value={text}
         onChangeText={setText}
         multiline
-        style={{ minHeight: 160 }}
+        style={{ minHeight: 110 }}
         placeholder={
           kind === "pantry"
             ? "Rice, eggs, frozen vegetables"
@@ -208,29 +305,6 @@ function CaptureForm({
         }
       />
       <Row>
-        <Button
-          title={listening ? "Stop listening" : "Say it out loud"}
-          icon={listening ? "pause" : "mic"}
-          quiet
-          onPress={async () => {
-            if (listening) {
-              stopListening();
-              setListening(false);
-              return;
-            }
-            if (!speechAvailable()) {
-              say(
-                "Speech recognition isn’t available here. Use your keyboard microphone or type.",
-              );
-              return;
-            }
-            try {
-              setListening(await startListening());
-            } catch {
-              say("Microphone unavailable. Check phone permissions.");
-            }
-          }}
-        />
         {!["task", "pantry", "groceries"].includes(kind) ? (
           <Button title="Keep a photo" hat="chef" quiet onPress={choosePhoto} />
         ) : null}
@@ -252,37 +326,87 @@ function CaptureForm({
       {!["reflection", "groceries", "pantry"].includes(kind) ? (
         <>
           <T bold>Keep it under</T>
-          <Row>
-            {HAT_IDS.map((h) => (
-              <Chip
-                key={h}
-                title={HATS[h].name}
-                selected={(manual ? hat : draft.hat) === h}
-                onPress={() => {
-                  setHat(h);
-                  setManual(true);
-                }}
-              />
-            ))}
-          </Row>
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={{ gap: 8, paddingRight: 4 }}
+          >
+            {HAT_IDS.map((h) => {
+              const on = (manual ? hat : draft.hat) === h;
+              return (
+                <Pressable
+                  key={h}
+                  accessibilityRole="button"
+                  accessibilityState={{ selected: on }}
+                  accessibilityLabel={HATS[h].name}
+                  onPress={() => {
+                    setHat(h);
+                    setManual(true);
+                  }}
+                  style={{
+                    alignItems: "center",
+                    gap: 2,
+                    width: 78,
+                    paddingVertical: 8,
+                    borderRadius: 18,
+                    backgroundColor: on ? HATS[h].tint : P.paper,
+                    borderWidth: 2,
+                    borderColor: on ? P.ink : P.line,
+                  }}
+                >
+                  <Hat id={HATS[h].art} size={34} tilt={on ? -8 : 0} />
+                  <T size={11} bold numberOfLines={1}>
+                    {on ? "✓ " : ""}
+                    {HATS[h].name.split(" ")[0]}
+                  </T>
+                </Pressable>
+              );
+            })}
+          </ScrollView>
         </>
       ) : null}
-      {kind === "task" && text.trim() ? (
+      {kind === "task" && understood.length ? (
         <Panel>
           <T size={12} bold>
-            BEFORE YOU SAVE
+            HATS HEARD{" "}
+            {understood.length > 1 ? `${understood.length} THINGS` : ""}
           </T>
-          <T bold>{draft.title}</T>
-          <T muted>
-            {HATS[draft.hat].name} ·{" "}
-            {draft.date === today ? "Today" : "Tomorrow"}
-            {draft.time ? ` · ${draft.time}` : " · next available opening"}
-            {draft.steps.length ? " · includes all laundry steps" : ""}
+          {understood.map((u, i) => (
+            <View key={i} style={{ gap: 6 }}>
+              <Row>
+                <Hat
+                  id={u.kind === "event" ? "safari" : HATS[u.hat].art}
+                  size={28}
+                />
+                <T bold style={{ flex: 1 }}>
+                  {u.title}
+                </T>
+              </Row>
+              <Row>
+                <Chip
+                  title={u.kind === "event" ? "📅 Event ⇄" : "☑ To-do ⇄"}
+                  onPress={() => setFlipped({ ...flipped, [i]: !flipped[i] })}
+                />
+                <T size={13}>
+                  {fmtLong(u.date)}
+                  {u.time
+                    ? ` · ${fmtTime(u.time, true)}${u.kind === "event" ? `–${fmtTime(endOf(u.time, u.minutes), true)}` : ""}`
+                    : u.kind === "event"
+                      ? " · all day"
+                      : " · fits your next opening"}
+                </T>
+              </Row>
+            </View>
+          ))}
+          <T size={12} muted>
+            Tap Event / To-do to switch. Say a day (“Thursday”, “Nov 3”) and a
+            time (“at 5pm”) and it lands right there.
           </T>
         </Panel>
       ) : null}
       <Button
         title={kind === "reflection" ? "Save privately" : "Keep this"}
+        hat={kind === "reflection" ? "fedora" : "wizard"}
         disabled={!text.trim() && !photo}
         onPress={save}
       />

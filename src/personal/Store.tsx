@@ -30,6 +30,9 @@ interface State {
   ready: boolean;
   error: string;
   message: string;
+  /** True when the current message follows a change that Undo can reverse. */
+  messageUndoable: boolean;
+  dismissMessage: () => void;
   today: string;
   nowMin: number;
   nowMs: number;
@@ -69,7 +72,13 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
   const generation = useRef(0);
   const conflictOwner = useRef<string | null>(null);
   const handledNotifications = useRef(new Set<string>());
-  const say = useCallback((text: string) => setMessage(text), []);
+  const lastChange = useRef(0);
+  const [messageUndoable, setMessageUndoable] = useState(false);
+  const say = useCallback((text: string) => {
+    setMessageUndoable(Date.now() - lastChange.current < 1500);
+    setMessage(text);
+  }, []);
+  const dismissMessage = useCallback(() => setMessage(""), []);
   useEffect(() => {
     if (!message) return;
     const timer = setTimeout(() => setMessage(""), 4500);
@@ -106,6 +115,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
     (fn: (d: PersonalData) => void) => {
       if (error) return;
       generation.current++;
+      lastChange.current = Date.now();
       undoRef.current = clone(ref.current);
       const next = clone(ref.current);
       fn(next);
@@ -374,6 +384,8 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
         ready,
         error,
         message,
+        messageUndoable,
+        dismissMessage,
         today,
         nowMin,
         nowMs: clock.getTime(),

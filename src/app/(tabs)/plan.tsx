@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { router } from "expo-router";
+import { router, useLocalSearchParams } from "expo-router";
 import { ScrollView, View } from "react-native";
 import {
   addDays,
@@ -27,7 +27,19 @@ import {
 
 export default function Plan() {
   const { data, today, nowMin, mutate, say } = usePersonal();
-  const [date, setDate] = useState(today);
+  const params = useLocalSearchParams<{ date?: string }>();
+  const [date, setDate] = useState(
+    params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date)
+      ? params.date
+      : today,
+  );
+  // Arriving from Capture with a date jumps straight to that day.
+  const [lastParam, setLastParam] = useState(params.date);
+  if (params.date !== lastParam) {
+    setLastParam(params.date);
+    if (params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date))
+      setDate(params.date);
+  }
   const [adding, setAdding] = useState(false);
   const [title, setTitle] = useState("");
   const [start, setStart] = useState("18:00");

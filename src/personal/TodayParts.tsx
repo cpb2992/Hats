@@ -1,7 +1,8 @@
 import { router } from "expo-router";
+import { useState } from "react";
 import { Pressable, ScrollView, View } from "react-native";
 import { addDays, fmtTime } from "../engine/dates";
-import { haptic } from "./Celebrate";
+import { haptic } from "./haptics";
 import {
   finishStep,
   mealFor,
@@ -51,6 +52,7 @@ export function toggleHabit(a: Actions, h: Habit) {
     h.frequency === "weekly" &&
     before.progress < h.target &&
     after.progress >= h.target;
+  a.say(`Checked in · ${h.title}`);
   a.celebrate({
     hat: milestone ? "crown" : HATS[h.hat].art,
     big: milestone || weekMet,
@@ -106,15 +108,30 @@ export function StreakStrip() {
             <T size={13} bold style={{ minHeight: 34 }}>
               {h.title}
             </T>
-            <T size={12} bold>
-              {s.done
-                ? weekly
-                  ? `✓ ${s.progress}/${s.target} this week`
-                  : "✓ Done today"
-                : weekly
-                  ? `${s.progress}/${s.target} this week · tap`
-                  : "Tap when done"}
-            </T>
+            {weekly ? (
+              <Row>
+                {Array.from({ length: s.target }, (_, n) => (
+                  <View
+                    key={n}
+                    style={{
+                      width: 10,
+                      height: 10,
+                      borderRadius: 5,
+                      borderWidth: 1.5,
+                      borderColor: P.ink,
+                      backgroundColor: n < s.progress ? P.ink : "transparent",
+                    }}
+                  />
+                ))}
+                <T size={12} muted>
+                  this week
+                </T>
+              </Row>
+            ) : (
+              <T size={12} bold muted={!s.done}>
+                {s.done ? "✓ Done today" : "Not yet today"}
+              </T>
+            )}
           </Pressable>
         );
       })}
@@ -135,7 +152,8 @@ function toggleRoutine(a: Actions, item: TimelineItem) {
       if (day < addDays(a.today, -21)) delete d.routineDone[day];
   });
   if (was) haptic("tap");
-  else
+  a.say(was ? `${item.title} · not done` : `${item.title} · done`);
+  if (!was)
     a.celebrate({
       hat: item.hat,
       big: item.key === "bedtime",
@@ -151,6 +169,7 @@ function finishTaskStep(a: Actions, taskId: string) {
     const t = d.tasks.find((x) => x.id === taskId);
     if (t) finishStep(t);
   });
+  a.say(lastStep ? `${task.title} · all done` : `${nextStep(task)} · done`);
   a.celebrate({
     hat: HATS[task.hat].art,
     big: lastStep,
@@ -244,6 +263,7 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
                 for (const item of shoppingFor(d, meal.id))
                   if (!d.groceries.includes(item)) d.groceries.push(item);
               });
+              a.say(`Dinner tonight · ${meal.name}`);
               a.celebrate({ hat: "chef" });
             }}
           />
@@ -318,10 +338,21 @@ export function Timeline({
   isToday: boolean;
 }) {
   const a = usePersonal();
+  const [showEarlier, setShowEarlier] = useState(false);
+  const earlier = isToday
+    ? items.filter(
+        (i) =>
+          (i.done || isFaded(i, a.nowMin)) && minutesOfDay(i.time) < a.nowMin,
+      )
+    : [];
+  const hidden = showEarlier
+    ? new Set<string>()
+    : new Set(earlier.map((i) => i.id));
+  const shown = items.filter((i) => !hidden.has(i.id));
   const nowIndex = isToday
-    ? items.findIndex((i) => minutesOfDay(i.time) > a.nowMin)
+    ? shown.findIndex((i) => minutesOfDay(i.time) > a.nowMin)
     : -1;
-  const rows: (TimelineItem | "now")[] = [...items];
+  const rows: (TimelineItem | "now")[] = [...shown];
   if (isToday) rows.splice(nowIndex === -1 ? rows.length : nowIndex, 0, "now");
   return (
     <View style={{ gap: 0 }}>
@@ -343,6 +374,31 @@ export function Timeline({
             </View>
           ))}
         </Row>
+      ) : null}
+      {earlier.length ? (
+        <Pressable
+          accessibilityRole="button"
+          accessibilityState={{ expanded: showEarlier }}
+          onPress={() => setShowEarlier(!showEarlier)}
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            gap: 8,
+            minHeight: 36,
+          }}
+        >
+          <T size={12} muted style={{ width: 62, textAlign: "right" }}>
+            Earlier
+          </T>
+          <View style={{ width: 10, alignItems: "center" }}>
+            <View style={{ width: 2, height: 16, backgroundColor: P.line }} />
+          </View>
+          <T size={13} bold muted>
+            {showEarlier
+              ? "Hide earlier"
+              : `${earlier.length} earlier ${earlier.length === 1 ? "step" : "steps"} · show`}
+          </T>
+        </Pressable>
       ) : null}
       {rows.map((row, i) => {
         if (row === "now")
@@ -474,11 +530,11 @@ export function Timeline({
                       : item.taskId && finishTaskStep(a, item.taskId)
                   }
                   style={{
-                    width: 32,
-                    height: 32,
-                    borderRadius: 16,
+                    width: 28,
+                    height: 28,
+                    borderRadius: 14,
                     borderWidth: 2,
-                    borderColor: P.ink,
+                    borderColor: item.done ? P.ink : "#9AA5B5",
                     backgroundColor: item.done ? P.sun : P.paper,
                     alignItems: "center",
                     justifyContent: "center",

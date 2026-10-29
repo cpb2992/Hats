@@ -535,3 +535,99 @@ test("evening times accept the way people type them", async () => {
   assert.equal(parseClock("13 pm"), null);
   assert.equal(parseClock("dinner"), null);
 });
+
+test("capture: what you say lands on the right day and time", async () => {
+  const { understand, addUnderstood } = await import("../understand");
+  const { dayTimeline } = await import("../timeline");
+  const d = freshPersonal();
+  d.preferences.partner = "Alex";
+  d.people.push(
+    { id: "k1", name: "Robin", role: "child", interests: "", detail: "" },
+    { id: "f1", name: "Sam", role: "friend", interests: "", detail: "" },
+    { id: "p1", name: "Rex", role: "pet", interests: "", detail: "" },
+  );
+  const wed = "2026-10-28"; // a Wednesday
+  const one = (text: string, now = 9 * 60) =>
+    understand(text, d, wed, "home", now)[0];
+
+  // The exact example: an event on Thursday at 5pm.
+  let u = one("event on Thursday at 5pm");
+  assert.equal(u.kind, "event");
+  assert.equal(u.date, "2026-10-29");
+  assert.equal(u.time, "17:00");
+
+  u = one("Robin's dance class Thursday at 4:30");
+  assert.deepEqual(
+    [u.kind, u.date, u.time, u.hat],
+    ["event", "2026-10-29", "16:30", "dad"],
+  );
+  assert.match(u.title, /dance class/i);
+
+  u = one("dentist next Tuesday at 9am");
+  assert.deepEqual(
+    [u.kind, u.date, u.time, u.hat],
+    ["event", "2026-11-03", "09:00", "myself"],
+  );
+
+  u = one("dinner with Sam Nov 3 at 7");
+  assert.deepEqual(
+    [u.kind, u.date, u.time, u.hat],
+    ["event", "2026-11-03", "19:00", "friends"],
+  );
+
+  u = one("Rex vet appointment Friday 10:30am");
+  assert.deepEqual(
+    [u.kind, u.date, u.time, u.hat],
+    ["event", "2026-10-30", "10:30", "pets"],
+  );
+
+  u = one("Alex and I date night Saturday at 6pm for 3 hours");
+  assert.deepEqual(
+    [u.kind, u.date, u.time, u.minutes, u.hat],
+    ["event", "2026-10-31", "18:00", 180, "husband"],
+  );
+
+  // Chores stay to-dos, on the day you said.
+  u = one("buy flowers Friday");
+  assert.deepEqual([u.kind, u.date, u.time], ["task", "2026-10-30", null]);
+  u = one("call the plumber tomorrow at 3pm");
+  assert.deepEqual([u.kind, u.date, u.time], ["task", "2026-10-29", "15:00"]);
+
+  // A birthday party with no time is an all-day event.
+  u = one("Robin birthday party Saturday");
+  assert.deepEqual([u.kind, u.date, u.time], ["event", "2026-10-31", null]);
+
+  // A time that already passed today, with no day said, means tomorrow.
+  u = one("pediatrician at 9am", 20 * 60);
+  assert.deepEqual([u.date, u.time], ["2026-10-29", "09:00"]);
+
+  // Several thoughts at once become several items.
+  const many = understand(
+    "swim lesson Saturday at 10, buy diapers tomorrow, and call Sam Sunday",
+    d,
+    wed,
+    "home",
+    9 * 60,
+  );
+  assert.equal(many.length, 3);
+  assert.deepEqual(
+    many.map((x) => [x.kind, x.date]),
+    [
+      ["event", "2026-10-31"],
+      ["task", "2026-10-29"],
+      ["task", "2026-11-01"],
+    ],
+  );
+
+  // Saved events show on that day's timeline at that time.
+  addUnderstood(d, [
+    one("event on Thursday at 5pm"),
+    one("Robin birthday party Saturday"),
+  ]);
+  const thu = dayTimeline(d, "2026-10-29", 0, false);
+  const ev = thu.items.find((i) => i.kind === "event");
+  assert.equal(ev?.time, "17:00");
+  assert.equal(ev?.end, "18:00");
+  assert.equal(dayTimeline(d, "2026-10-31", 0, false).allDay.length, 1);
+  assert.ok(validData(d));
+});

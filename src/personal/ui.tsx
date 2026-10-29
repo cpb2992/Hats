@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   Pressable,
@@ -16,6 +16,7 @@ import { Icon, type IconName } from "../ui/icons";
 import { F } from "../ui/theme";
 import { HATS, type PersonalTask } from "./model";
 import { Hat } from "./Hat";
+import { haptic } from "./haptics";
 import type { HatArtId } from "./hatArt";
 import { finishStep, nextStep, reschedule } from "./engine";
 import { usePersonal } from "./Store";
@@ -172,20 +173,30 @@ export function Button({
       accessibilityRole="button"
       accessibilityLabel={title}
       disabled={disabled}
-      onPress={onPress}
+      onPress={() => {
+        haptic("tap");
+        onPress();
+      }}
       style={({ pressed }) => ({
         minHeight: 46,
         paddingHorizontal: small ? 12 : 18,
         paddingVertical: 7,
         borderRadius: 18,
-        backgroundColor: tone === "sun" ? P.sun : quiet ? P.soft : P.ink,
+        backgroundColor: disabled
+          ? P.soft
+          : tone === "sun"
+            ? P.sun
+            : quiet
+              ? P.soft
+              : P.ink,
         flexDirection: "row",
         gap: 9,
         justifyContent: "center",
         alignItems: "center",
         ...sticker(pressed ? 2 : 4),
         transform: [{ translateY: pressed ? 2 : 0 }],
-        opacity: disabled ? 0.4 : 1,
+        opacity: disabled ? 0.55 : 1,
+        borderStyle: disabled ? "dashed" : "solid",
       })}
     >
       {hat ? (
@@ -202,14 +213,14 @@ export function Button({
       {icon && !hat ? (
         <Icon
           name={icon}
-          color={quiet || tone === "sun" ? P.ink : P.paper}
+          color={quiet || disabled || tone === "sun" ? P.ink : P.paper}
           size={18}
         />
       ) : null}
       <T
         size={small ? 13 : 15}
         bold
-        color={quiet || tone === "sun" ? P.ink : P.paper}
+        color={quiet || disabled || tone === "sun" ? P.ink : P.paper}
         style={{ flexShrink: 1 }}
       >
         {title}
@@ -230,7 +241,14 @@ export function Chip({
     <Pressable
       accessibilityRole="button"
       accessibilityState={{ selected }}
-      onPress={onPress}
+      onPress={
+        onPress
+          ? () => {
+              haptic("tap");
+              onPress();
+            }
+          : undefined
+      }
       disabled={!onPress}
       style={{
         minHeight: 44,
@@ -515,7 +533,7 @@ export function TaskCard({
   task: PersonalTask;
   plannedTime?: string | null;
 }) {
-  const { mutate, say, today, nowMin } = usePersonal();
+  const { mutate, say, today, nowMin, celebrate } = usePersonal();
   const current = nextStep(task);
   return (
     <Panel>
@@ -574,7 +592,13 @@ export function TaskCard({
               const t = d.tasks.find((t) => t.id === task.id);
               if (t) finishStep(t);
             });
-            say("Hat tip! Saved. Undo is up top if you need it.");
+            const last = task.steps.filter((s) => !s.done).length <= 1;
+            say(last ? `${task.title} · all done` : `${current} · done`);
+            celebrate({
+              hat: HATS[task.hat].art,
+              big: last,
+              title: last ? "All the way done!" : undefined,
+            });
           }}
         />
         {!task.fixed ? (
@@ -623,6 +647,61 @@ export function Loading() {
         hats.
       </T>
       <ActivityIndicator color={P.ink} />
+    </View>
+  );
+}
+
+/** A collapsible settings group: hat, title, one-line summary; tap to open. */
+export function Group({
+  hat,
+  title,
+  summary,
+  defaultOpen = false,
+  children,
+}: {
+  hat: HatArtId;
+  title: string;
+  summary?: string;
+  defaultOpen?: boolean;
+  children: ReactNode;
+}) {
+  const [open, setOpen] = useState(defaultOpen);
+  return (
+    <View style={{ gap: 10 }}>
+      <Pressable
+        accessibilityRole="button"
+        accessibilityState={{ expanded: open }}
+        onPress={() => {
+          haptic("tap");
+          setOpen(!open);
+        }}
+        style={({ pressed }) => ({
+          flexDirection: "row",
+          alignItems: "center",
+          gap: 10,
+          padding: 12,
+          borderRadius: 20,
+          backgroundColor: open ? P.paper : pressed ? P.soft : "transparent",
+          borderWidth: 2,
+          borderColor: open ? P.ink : P.line,
+        })}
+      >
+        <Hat id={hat} size={34} tilt={-6} />
+        <View style={{ flex: 1 }}>
+          <T bold size={16}>
+            {title}
+          </T>
+          {summary ? (
+            <T size={12} muted numberOfLines={1}>
+              {summary}
+            </T>
+          ) : null}
+        </View>
+        <T bold size={18}>
+          {open ? "–" : "+"}
+        </T>
+      </Pressable>
+      {open ? children : null}
     </View>
   );
 }
