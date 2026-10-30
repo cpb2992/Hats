@@ -248,7 +248,7 @@ export default function SettingsScreen() {
         <Btn title="Rate Hats" kind="quiet" icon="star" onPress={() => { Linking.openURL(STORE_URL).catch(() => {}); }} />
         <Btn title="Privacy policy" kind="quiet" icon="lock" onPress={() => { Linking.openURL(PRIVACY_URL).catch(() => {}); }} />
       </View>
-      <Txt v="fine" center>Hats {Constants.expoConfig?.version ?? '1.0.0'}</Txt>
+      <Txt v="fine" center>Hats {Constants.expoConfig?.version ?? '1.0.0'}{Constants.expoConfig?.extra?.build ? ` · build ${Constants.expoConfig.extra.build}` : ''}</Txt>
     </Screen>
   );
 }

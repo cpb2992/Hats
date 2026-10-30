@@ -46,12 +46,19 @@ jobs:
       - name: Test the engine
         run: npm test
 
+      - name: Stamp the build number
+        run: node -e "const f='app.json';const j=require('./'+f);j.expo.extra={...(j.expo.extra||{}),build:'${{ github.run_number }}'};require('fs').writeFileSync(f,JSON.stringify(j,null,2))"
+
       - name: Generate the Android project
         run: npx expo prebuild --platform android --no-install
 
       - name: Build the app
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+
+      - name: Read the version
+        id: ver
+        run: echo "version=$(node -p "require('./app.json').expo.version")" >> "$GITHUB_OUTPUT"
 
       - name: Name the file
         run: cp android/app/build/outputs/apk/release/app-release.apk Hats-public.apk
@@ -60,8 +67,13 @@ jobs:
         uses: softprops/action-gh-release@v2
         with:
           tag_name: public-build-${{ github.run_number }}
-          name: Public Hats test build ${{ github.run_number }}
-          body: Test copy of the public version. Download Hats-public.apk on your phone and tap it to install. It sits beside your personal Hats.
+          # Tag the commit that was built (not the default branch), so the release page shows the right code.
+          target_commitish: ${{ github.sha }}
+          name: Public Hats ${{ steps.ver.outputs.version }} (test build ${{ github.run_number }})
+          body: |
+            Test copy of the public version, version ${{ steps.ver.outputs.version }}, built from ${{ github.sha }}.
+            Download Hats-public.apk on your phone and tap it to install. It sits beside your personal Hats.
+            Check you have it: Settings → bottom of the page shows "Hats ${{ steps.ver.outputs.version }} · build ${{ github.run_number }}".
           files: Hats-public.apk
           prerelease: true
           make_latest: false
