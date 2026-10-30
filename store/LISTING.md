@@ -49,6 +49,8 @@ The positioning: **You wear a lot of hats. Keep them all in one place.** Most pl
 
 ## Screenshots (phone, 1080×1920 or larger, 4 to 8)
 
+**Ready to upload in `store/images/`:** six captioned 1080×1920 screenshots (`1-hats` to `6-family`), the 1024×500 `feature-graphic.png` and the 512×512 `icon-512.png`. They use a made-up family (Sam, Jordan, Maya, Leo and Biscuit the dog). The plan below is what they follow; swap any as the app changes.
+
 Each screenshot gets a big caption above the phone. The first three do most of the work.
 
 1. **"You wear a lot of hats."** The Hats tab, every hat as a sticker.
