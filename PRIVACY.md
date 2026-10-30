@@ -2,13 +2,17 @@
 
 _Last updated: October 29, 2026_
 
-Hats is a planner for teachers and anyone who wears a lot of hats. It was built to keep your information on your phone.
+Hats is a planner for anyone who wears a lot of hats. It was built to keep your information on your phone.
 
 ## What Hats collects
 
 **Nothing is sent to us.** Hats has no accounts, no servers, no ads, and no analytics or tracking. We never see your tasks, calendar, students or settings.
 
-Everything you put in Hats (tasks, events, your bell schedule, your weekly rhythm, Caseload goals and data points, Pulse sorts, the kids' board) is saved only in the app's storage on your phone. Uninstalling Hats or tapping **Settings → Erase everything** deletes it.
+Everything you put in Hats (tasks, events, your schedule, your weekly rhythm, everything in your hat packs such as 1:1s, invoices, deadlines and care reminders, Caseload goals and data points, Pulse sorts, the kids' board) is saved only in the app's storage on your phone. Uninstalling Hats or tapping **Settings → Erase everything** deletes it.
+
+## Information about other people
+
+Packs let you keep short notes about people (the people you manage, mentees, clients, a parent you care for). Use first names or initials and only what you need. It stays on your phone.
 
 ## Student information
 
@@ -32,7 +36,7 @@ Hats may show Google Play's built-in rating prompt after you've used it for a wh
 
 ## Children
 
-Hats is made for adults (teachers and parents). It isn't directed to children under 13 and doesn't collect information from them. The kids' bedtime board is used by a parent on the parent's own phone or tablet.
+Hats is made for adults. It isn't directed to children under 13 and doesn't collect information from them. The kids' bedtime board is used by a parent on the parent's own phone or tablet.
 
 ## Changes
 

@@ -2,18 +2,17 @@
 
 **This is the `public` branch: the version of Hats headed for the Google Play Store.** Your personal Hats stays on `main`. This version has its own package name (`com.hatsplanner.app`), so a test copy installs beside your personal one.
 
-One thing at a time, for teachers who wear a lot of hats. Pick the roles you juggle (Teacher, Special ed, Team lead, Union, Mentor, Coach, Club advisor, Grad school, Side gig, Creative, Home, Me time) and rename any of them. Hats sorts everything you capture into those hats, knows your bell schedule, and shows only what's Now.
+One thing at a time, for anyone who wears a lot of hats. Pick the roles you juggle from 15 (Work, Team lead, Mentor, Union, Side gig, Teacher, Special ed, Student, Parent, Caregiver, Home, Volunteer, Coach, Creative, Me time) and rename any of them. Each hat brings its own **pack** (`src/engine/packs.ts`): 1:1s for a team lead, jobs and invoices for a side gig, deadlines for a student, a care list for a caregiver, the bell schedule, Pulse and Caseload for teachers. Anything in a pack with a date becomes a task in Now on its day.
 
 What's different from personal Hats:
 
-- Hats are picked at first launch from 12, and can be renamed in Settings. Caseload, Pulse and Home tabs only show when that hat is worn.
-- A generic six-period bell schedule to edit, a light weekly rhythm, and a made-up sample week.
-- Say anything works for anyone; the optional Claude key is the person's own.
+- Hats are picked at first launch, grouped Work / School / Life, and can be renamed in Settings (tap a patch there to open its pack). Your hats sit in a strip on Now.
+- Work hours and a plain work schedule for everyone; school words, the bell schedule, Caseload and Pulse only when a teaching hat is worn.
+- The sample week is an office worker with a side gig and kids. Tests run against a fixed teacher week (`src/engine/__tests__/fixture.ts`) so the hard schedule cases stay covered.
 - The Play rating prompt appears after a shutdown once someone has 5+ planned days and 15+ finished tasks (at most every 4 months).
-- Settings has Tell a teacher, Rate Hats and the privacy policy.
-- Store listing, Data safety answers and the launch plan are in [`store/LISTING.md`](store/LISTING.md). Privacy policy: [`PRIVACY.md`](PRIVACY.md).
+- Store listing, Data safety answers and the launch plan: [`store/LISTING.md`](store/LISTING.md). Privacy policy: [`PRIVACY.md`](PRIVACY.md).
 
-Built with Expo (React Native). Everything is stored on the phone. Student details are initials only.
+Built with Expo (React Native). Everything is stored on the phone.
 
 ## What's in the app
 
