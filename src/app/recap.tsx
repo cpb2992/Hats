@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { Text, View } from 'react-native';
 import { addDays, fmtShort } from '../engine/dates';
-import { HATS } from '../engine/hats';
+import { hatName } from '../engine/hats';
 import { weekStats } from '../engine/plan';
 import { useApp } from '../store/AppStore';
 import { Btn, Label, Patch, Screen, Txt } from '../ui/kit';
@@ -41,7 +41,7 @@ export default function Recap() {
           {w.byHat.map(x => (
             <View key={x.hat} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, minHeight: 40 }}>
               <Patch hat={x.hat} size={26} />
-              <Txt v="semi" style={{ width: 84 }}>{HATS[x.hat].name}</Txt>
+              <Txt v="semi" style={{ width: 84 }}>{hatName(x.hat)}</Txt>
               <View style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: 'rgba(255,255,255,0.06)', overflow: 'hidden' }}>
                 <View style={{ height: 6, borderRadius: 3, backgroundColor: C.gold, width: `${Math.round((x.count / top) * 100)}%` }} />
               </View>

@@ -1,6 +1,6 @@
 /** What each home-screen widget shows, worked out from AppData and the clock. No UI here. */
 import { dayName, fmtTime } from './dates';
-import { HATS } from './hats';
+import { hatName } from './hats';
 import { queue, winsOn } from './plan';
 import { currentBlock, isTeaching, minutesLeft, nextFree, sectionNow } from './schedule';
 import type { AppData, HatId } from './types';
@@ -38,7 +38,7 @@ export function nowView(data: AppData, today: string, nowMin: number): NowView {
   }
   const free = block?.kind === 'free' ? block : null;
   const left = free ? minutesLeft(free, nowMin) : null;
-  const bits = [HATS[task.hat].name];
+  const bits = [hatName(task.hat)];
   if (task.time) bits.push(fmtTime(task.time));
   bits.push(`${task.minutes} min`);
   return {

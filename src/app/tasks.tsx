@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { ScrollView, View } from 'react-native';
 import { completeTask, reopenTask } from '../engine/actions';
 import { fmtRelative } from '../engine/dates';
-import { ALL_HATS, HATS } from '../engine/hats';
+import { hatName, HATS, wornHats } from '../engine/hats';
 import { doneOn, queue } from '../engine/plan';
 import type { HatId, Task } from '../engine/types';
 import { useApp } from '../store/AppStore';
@@ -37,12 +37,12 @@ export default function TasksScreen() {
       <Segmented label="Show" value={tab} onChange={setTab} options={[{ value: 'today', label: `Today · ${queue(data, today, nowMin).length}` }, { value: 'upcoming', label: 'Upcoming' }, { value: 'done', label: 'Done' }]} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         <Chip label="All hats" on={hat === 'all'} onPress={() => setHat('all')} />
-        {ALL_HATS.map(h => <Chip key={h} label={HATS[h].name} dot={HATS[h].color} on={hat === h} onPress={() => setHat(h)} />)}
+        {wornHats().map(h => <Chip key={h} label={hatName(h)} dot={HATS[h].color} on={hat === h} onPress={() => setHat(h)} />)}
       </ScrollView>
 
       {tab === 'today' ? (
         todayList.length ? <View>{todayList.map((t, i) => <TaskRow key={t.id} task={t} today={today} last={i === todayList.length - 1} onDone={() => toggle(t)} />)}</View>
-          : <Txt v="sub">Nothing open today{hat !== 'all' ? ` under ${HATS[hat].name}` : ''}.</Txt>
+          : <Txt v="sub">Nothing open today{hat !== 'all' ? ` under ${hatName(hat)}` : ''}.</Txt>
       ) : null}
 
       {tab === 'upcoming' ? (

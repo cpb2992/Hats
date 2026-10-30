@@ -3,16 +3,17 @@ import { Tabs, type BottomTabBarProps } from 'expo-router/js-tabs';
 import { Pressable, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import Svg, { Path } from 'react-native-svg';
+import type { HatId } from '../../engine/types';
 import { useApp } from '../../store/AppStore';
 import { Icon, type IconName } from '../../ui/icons';
 import { CAP_PATH, CAP_SEAMS, tap, useWide } from '../../ui/kit';
 import { C, F, shadow } from '../../ui/theme';
 
-const TABS: Record<string, { label: string; icon: IconName | 'cap' }> = {
+const TABS: Record<string, { label: string; icon: IconName | 'cap'; hat?: HatId }> = {
   index: { label: 'Hats', icon: 'cap' },
-  caseload: { label: 'Caseload', icon: 'people' },
-  pulse: { label: 'Pulse', icon: 'pulse' },
-  home: { label: 'Home', icon: 'home' },
+  caseload: { label: 'Caseload', icon: 'people', hat: 'sped' },
+  pulse: { label: 'Pulse', icon: 'pulse', hat: 'teacher' },
+  home: { label: 'Home', icon: 'home', hat: 'home' },
 };
 
 function CapLine({ color }: { color: string }) {
@@ -28,7 +29,9 @@ function CapLine({ color }: { color: string }) {
 function FloatingBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
   const insets = useSafeAreaInsets();
   const wide = useWide();
-  const { demo, endDemo } = useApp();
+  const { demo, endDemo, data } = useApp();
+  // A tab shows only when its hat is worn: no Caseload for someone without a caseload.
+  const worn = new Set(data.hats.filter(h => h.on).map(h => h.id));
   return (
     <View pointerEvents="box-none" style={{ position: 'absolute', left: 0, right: 0, bottom: insets.bottom + 16, alignItems: 'center', paddingHorizontal: 16 }}>
       {demo ? (
@@ -40,7 +43,7 @@ function FloatingBar({ state, emitter, navigateToTab }: BottomTabBarProps) {
         <View accessibilityRole="tablist" style={[{ flex: 1, height: 64, borderRadius: 32, backgroundColor: C.glass, flexDirection: 'row', padding: 6, borderTopWidth: 1, borderTopColor: 'rgba(255,255,255,0.06)' }, shadow]}>
           {state.routes.map((route, index) => {
             const meta = TABS[route.name];
-            if (!meta) return null;
+            if (!meta || (meta.hat && !worn.has(meta.hat))) return null;
             const focused = state.index === index;
             const color = focused ? C.gold : C.ink2;
             const onPress = () => {

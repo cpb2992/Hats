@@ -79,7 +79,7 @@ export default function ScheduleScreen() {
                   </View>
                   <Txt v="fine">{KIND_NOTE[blk.kind]}</Txt>
                   {blk.kind === 'class' || blk.kind === 'boost' ? (
-                    <Field value={blk.section ?? ''} onChangeText={v => update(blk.id, { section: v.toUpperCase().trim() || undefined })} placeholder="Class section, like 7C" autoCapitalize="characters" accessibilityLabel="Class section" />
+                    <Field value={blk.section ?? ''} onChangeText={v => update(blk.id, { section: v.toUpperCase().trim() || undefined })} placeholder="Class section, like P3 or 7C" autoCapitalize="characters" accessibilityLabel="Class section" />
                   ) : null}
                   <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
                     <Label>Starts</Label>

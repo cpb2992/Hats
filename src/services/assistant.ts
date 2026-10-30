@@ -1,5 +1,5 @@
 /**
- * Understanding what Chris said. With a Claude key, Claude reads it against his day; without one
+ * Understanding what someone said. With a Claude key, Claude reads it against their day; without one
  * (or if Claude can't be reached), the rule-based reader does. Both return checked actions.
  */
 import { Platform } from 'react-native';
@@ -37,7 +37,7 @@ async function callClaude(key: string, utterance: string, s: Situation, signal?:
       max_tokens: 2000,
       system: SYSTEM_PROMPT,
       output_config: { format: { type: 'json_schema', schema: REPLY_SCHEMA } },
-      messages: [{ role: 'user', content: `${buildContext(s)}\n\nCHRIS SAID: "${utterance.replace(/"/g, "'")}"` }],
+      messages: [{ role: 'user', content: `${buildContext(s)}\n\nTHEY SAID: "${utterance.replace(/"/g, "'")}"` }],
     }),
   });
   if (!res.ok) {

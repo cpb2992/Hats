@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { ALL_HATS, HATS } from '../engine/hats';
+import { ALL_HATS, hatName, HATS } from '../engine/hats';
 import type { HatId } from '../engine/types';
 import { notificationsAllowed } from '../services/notifications';
 import { useApp } from '../store/AppStore';
@@ -32,7 +32,7 @@ export default function Welcome() {
       <View style={{ gap: 18, paddingTop: 12 }}>
         <Cap width={56} />
         <Txt v="display">Which hats do you wear?</Txt>
-        <Txt v="sub">Each hat gets its own color and symbol. Hats sorts everything you capture into one of them.</Txt>
+        <Txt v="sub">Pick every role you juggle. Hats sorts what you capture into them and shows you one thing at a time. You can rename them later.</Txt>
       </View>
       <Field value={name} onChangeText={setName} placeholder="Your first name" accessibilityLabel="Your first name" autoCapitalize="words" />
       <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
@@ -43,12 +43,12 @@ export default function Welcome() {
               key={id}
               accessibilityRole="checkbox"
               accessibilityState={{ checked: sel }}
-              accessibilityLabel={HATS[id].name}
+              accessibilityLabel={hatName(id)}
               onPress={() => { tap(); setOn(o => (sel ? o.filter(x => x !== id) : [...o, id])); }}
               style={({ pressed }) => [{ width: wide ? '23%' : '47.5%', flexGrow: 1, height: 116, borderRadius: 24, backgroundColor: C.raised, padding: 16, justifyContent: 'space-between', borderWidth: 1.5, borderColor: sel ? C.gold : 'transparent', opacity: sel ? 1 : 0.55 }, pressed && { transform: [{ scale: 0.97 }] }]}>
               <Patch hat={id} size={44} />
               <View style={{ gap: 1 }}>
-                <Txt v="semi">{HATS[id].name}</Txt>
+                <Txt v="semi">{hatName(id)}</Txt>
                 <Txt v="fine">{HATS[id].meaning}</Txt>
               </View>
               {sel ? (

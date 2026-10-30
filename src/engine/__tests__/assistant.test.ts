@@ -5,7 +5,7 @@ import { buildContext, checkActions, readWithoutClaude, type RawAction, type Sit
 import { minutesOf } from '../dates';
 import { choresOn, materializeChores } from '../rhythm';
 import { applyRoster, parseRoster } from '../roster';
-import { freshData } from '../seed';
+import { teacherData } from './fixture';
 import { planNotifications } from '../notify';
 import { agenda, dayTimeline, queue } from '../plan';
 import type { AppData } from '../types';
@@ -15,12 +15,12 @@ const TODAY = '2026-10-22';
 const NOW_ISO = '2026-10-22T17:00:00.000Z';
 
 function world(nowMin = 13 * 60 + 39): Situation {
-  const data: AppData = freshData();
+  const data: AppData = teacherData();
   data.settings.onboarded = true;
   applyRoster(data, parseRoster(`A.R. 7A IEP\ngoal: CER, 4 of 5\n\nA.R. 7D IEP\ngoal: break card 3 times a day\n\nD.W. 7A IEP\ngoal: starts tasks, 3 of 4\n\nE.R. 7C 504: extended time`, TODAY).students);
   newTask(data, { id: 't-report', title: 'Draft the progress report for D.W.', hat: 'sped' }, NOW_ISO);
-  newTask(data, { id: 't-lab', title: 'Email Sadie the lab list', hat: 'dept' }, NOW_ISO);
-  addEvent(data, { id: 'ev-1', title: 'Staff meeting', date: '2026-10-23', start: '15:15', end: '16:15', allDay: false, location: 'Library', note: '', hat: 'dept' }, NOW_ISO);
+  newTask(data, { id: 't-lab', title: 'Email Sadie the lab list', hat: 'lead' }, NOW_ISO);
+  addEvent(data, { id: 'ev-1', title: 'Staff meeting', date: '2026-10-23', start: '15:15', end: '16:15', allDay: false, location: 'Library', note: '', hat: 'lead' }, NOW_ISO);
   addEvent(data, { id: 'ev-2', title: 'Half day', date: '2026-10-26', start: null, end: null, allDay: true, location: '', note: '', hat: 'teacher' }, NOW_ISO);
   return { data, today: TODAY, nowMin, recent: [] };
 }
@@ -108,7 +108,7 @@ test('without Claude: data points and finished tasks', () => {
 });
 
 test('the weekly rhythm becomes Home tasks timed around the day', () => {
-  const d = freshData();
+  const d = teacherData();
   const monday = '2026-10-19';
   assert.equal(materializeChores(d, monday, NOW_ISO), true);
   const made = d.tasks.filter(t => t.date === monday);
@@ -128,13 +128,13 @@ test('the weekly rhythm becomes Home tasks timed around the day', () => {
 });
 
 test('monthly rhythm items land only on the first one of the month', () => {
-  const d = freshData();
+  const d = teacherData();
   assert.ok(choresOn(d.chores, '2026-11-07').some(c => c.label.startsWith('Bedding')));
   assert.ok(!choresOn(d.chores, '2026-11-14').some(c => c.label.startsWith('Bedding')));
 });
 
 test('school work comes first at school, home work after shutdown', () => {
-  const d = freshData();
+  const d = teacherData();
   newTask(d, { id: 'home-1', title: 'Order the birthday cake', hat: 'home' }, '2026-10-22T05:00:00.000Z');
   newTask(d, { id: 'school-1', title: 'Grade the quizzes', hat: 'teacher' }, '2026-10-22T06:00:00.000Z');
   newTask(d, { id: 'timed-1', title: 'Call the pediatrician', hat: 'home', time: '10:00', date: TODAY }, '2026-10-22T06:00:00.000Z');

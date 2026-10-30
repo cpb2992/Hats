@@ -9,7 +9,8 @@ import { dayTimeline, nowTask, openAtShutdown, queue, weekStats } from '../plan'
 import { comingDue, draftReport, summarize } from '../progress';
 import { currentBlock, isTeaching, nextBoost, nextFree, openTime, sectionNow, sections } from '../schedule';
 import { evidenceMonths, monthSummary } from '../pulse';
-import { freshData, makeDemo } from '../seed';
+import { defaultHat, hatName, setHatPrefs, wornHats } from '../hats';
+import { teacherData, teacherDemo } from './fixture';
 import type { AppData } from '../types';
 import { logView, nowView } from '../widgets';
 
@@ -73,15 +74,15 @@ test('minutes and speech-style initials', () => {
 });
 
 test('guesses hats from keywords', () => {
-  assert.equal(guessHat('Answer a coverage pay question'), 'btu');
-  assert.equal(guessHat('Sketch the new Sandy cover'), 'author');
-  assert.equal(guessHat('Send the lab-supply list to the science team'), 'dept');
+  assert.equal(guessHat('Answer a coverage pay question'), 'union');
+  assert.equal(guessHat('Sketch the new book cover'), 'creative');
+  assert.equal(guessHat('Send the lab-supply list to the science team'), 'lead');
   assert.equal(guessHat('Something random'), null);
-  assert.equal(parseMany('ask about coverage pay, and order ballet tights for Saturday', TODAY).map(p => p.hat).join(','), 'btu,home');
+  assert.equal(parseMany('ask about coverage pay, and order ballet tights for Saturday', TODAY).map(p => p.hat).join(','), 'union,home');
 });
 
 function demo(): AppData {
-  return makeDemo(TODAY);
+  return teacherDemo(TODAY);
 }
 
 test('Now follows the queue: arrived times, then today’s three, then order', () => {
@@ -177,7 +178,7 @@ test('kids board: stars follow checkmarks and nights reset', () => {
 });
 
 test('notification plan: morning nudge carries tonight’s dinner', () => {
-  const d = freshData();
+  const d = teacherData();
   d.dinners[addDays(TODAY, 1)] = 'Salmon';
   const plan = planNotifications(d, new Date(2026, 9, 22, 7, 0), 7);
   const fri = plan.find(p => p.id === 'sync-morning-2026-10-23');
@@ -189,7 +190,7 @@ test('notification plan: morning nudge carries tonight’s dinner', () => {
 });
 
 test('adding parsed tasks and weekly stats', () => {
-  const d = freshData();
+  const d = teacherData();
   const added = addParsed(d, parseMany('Print the lab sheets, then grade the quizzes for 30 min', TODAY).map(p => ({ ...p, hat: p.hat ?? 'teacher' })), NOW);
   assert.equal(added.length, 2);
   assert.equal(added[1].minutes, 30);
@@ -203,15 +204,15 @@ test('adding parsed tasks and weekly stats', () => {
 test('normalize repairs partial saves', () => {
   const d = normalizeData({ settings: { name: 'Chris' }, tasks: [{ id: 'a', title: 'x', hat: 'nope' }] });
   assert.equal(d.settings.name, 'Chris');
-  assert.equal(d.settings.shutdown, '16:45');
+  assert.equal(d.settings.shutdown, '16:15');
   assert.equal(d.tasks[0].hat, 'teacher');
-  assert.equal(d.hats.length, 7);
+  assert.equal(d.hats.length, 12);
   assert.equal(fmtTime('16:45'), '4:45');
 });
 
 
 test('bell schedule: Thursday', () => {
-  const s = freshData().settings;
+  const s = teacherData().settings;
   // Thursday 8:50 is CPT, not prep.
   assert.equal(currentBlock(s, TODAY, 8 * 60 + 50)?.kind, 'meeting');
   // 10:40 Thursday is 7D.
@@ -225,7 +226,7 @@ test('bell schedule: Thursday', () => {
 });
 
 test('bell schedule: Boosts and weekends', () => {
-  const s = freshData().settings;
+  const s = teacherData().settings;
   assert.deepEqual(nextBoost(s, '7C', TODAY, 8 * 60), { date: '2026-10-23', block: nextBoost(s, '7C', TODAY, 8 * 60)!.block });
   assert.equal(nextBoost(s, '7C', TODAY, 8 * 60)?.block.start, '11:23');
   assert.equal(nextBoost(s, '7B', TODAY, 8 * 60)?.date, '2026-10-27');
@@ -235,7 +236,7 @@ test('bell schedule: Boosts and weekends', () => {
 });
 
 test('free-block reminders and the school-day timeline', () => {
-  const d = freshData();
+  const d = teacherData();
   d.settings.onboarded = true;
   const plan = planNotifications(d, new Date(2026, 9, 22, 7, 0), 2);
   assert.ok(plan.some(p => p.id === 'sync-free-2026-10-22-11:23' && p.title === 'RBR · 53 free minutes'));
@@ -272,4 +273,29 @@ test('Caseload widget puts the class in front of you first', () => {
   assert.equal(off.header, 'Caseload');
   assert.equal(off.students.length, 4);
   assert.equal(off.students.find(s => s.initials === 'A.R.')?.trials, true);
+});
+
+test('hats: only worn hats are guessed, and renamed hats use their new name', () => {
+  const d = normalizeData({ hats: [{ id: 'teacher', name: 'Science', on: true }, { id: 'home', name: 'Home', on: true }] });
+  setHatPrefs(d.hats);
+  try {
+    assert.equal(hatName('teacher'), 'Science');
+    assert.equal(hatName('union'), 'Union');
+    // "coverage" is a Union word, but Union isn't worn.
+    assert.equal(guessHat('Answer a coverage pay question'), null);
+    assert.equal(guessHat('Grade the quizzes'), 'teacher');
+    assert.equal(guessHat('Order groceries'), 'home');
+    assert.deepEqual(wornHats(), ['teacher', 'home']);
+    assert.equal(defaultHat(), 'teacher');
+  } finally {
+    setHatPrefs(teacherData().hats);
+  }
+});
+
+test('a new install starts with a few hats worn and a generic school day', () => {
+  const d = normalizeData(null);
+  assert.deepEqual(d.hats.filter(h => h.on).map(h => h.id), ['teacher', 'home', 'wellness']);
+  const mon = d.settings.schedule['1'];
+  assert.ok(mon.some(x => x.kind === 'free'));
+  assert.deepEqual(mon.filter(x => x.kind === 'class').map(x => x.section), ['P1', 'P2', 'P3', 'P4', 'P5', 'P6']);
 });

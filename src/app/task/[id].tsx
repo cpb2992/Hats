@@ -4,7 +4,7 @@ import { Alert, KeyboardAvoidingView, Platform, Pressable, ScrollView, View } fr
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { completeTask, deleteTask, reopenTask, toggleThree } from '../../engine/actions';
 import { addDays, fmtRelative, fmtShort, fmtTime, minutesOf, nextMonday, nowMinutes, timeOf } from '../../engine/dates';
-import { ALL_HATS, HATS } from '../../engine/hats';
+import { hatName, wornHats } from '../../engine/hats';
 import { parseCapture } from '../../engine/parse';
 import { dayLog } from '../../engine/plan';
 import type { Task } from '../../engine/types';
@@ -51,14 +51,14 @@ export default function TaskScreen() {
         <View style={{ gap: 12 }}>
           <Label>Hat</Label>
           <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 12 }}>
-            {ALL_HATS.map(h => {
+            {wornHats().map(h => {
               const on = task.hat === h;
               return (
-                <Pressable key={h} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={HATS[h].name} onPress={() => { tap(); set({ hat: h }); }} style={{ alignItems: 'center', gap: 6, width: 66, opacity: on ? 1 : 0.55 }}>
+                <Pressable key={h} accessibilityRole="radio" accessibilityState={{ selected: on }} accessibilityLabel={hatName(h)} onPress={() => { tap(); set({ hat: h }); }} style={{ alignItems: 'center', gap: 6, width: 66, opacity: on ? 1 : 0.55 }}>
                   <View style={{ borderRadius: 26, borderWidth: 2, borderColor: on ? C.gold : 'transparent', padding: 2 }}>
                     <Patch hat={h} size={44} />
                   </View>
-                  <Txt v="fine" color={on ? C.ink : C.ink2} center>{HATS[h].name}</Txt>
+                  <Txt v="fine" color={on ? C.ink : C.ink2} center>{hatName(h)}</Txt>
                 </Pressable>
               );
             })}

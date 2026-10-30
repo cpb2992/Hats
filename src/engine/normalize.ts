@@ -1,5 +1,5 @@
 /** Fills in anything missing from saved data, so older saves keep working as the app grows. */
-import { ALL_HATS, HATS } from './hats';
+import { ALL_HATS, HATS, isHatId } from './hats';
 import { freshData } from './seed';
 import type { AppData, Task } from './types';
 
@@ -18,13 +18,15 @@ export function normalizeData(raw: unknown): AppData {
   const savedHats = arr(r.hats, base.hats);
   const hats = ALL_HATS.map(id => {
     const h = savedHats.find(x => x && x.id === id);
-    return { id, name: h?.name || HATS[id].name, on: h ? h.on !== false : true };
+    const fresh = base.hats.find(x => x.id === id);
+    // A hat missing from an older save stays off; a save with no hats at all starts with the starter set.
+    return { id, name: h?.name || HATS[id].name, on: h ? h.on !== false : !Array.isArray(r.hats) && !!fresh?.on };
   });
 
   const tasks = arr<Task>(r.tasks, []).filter(t => t && typeof t.id === 'string' && typeof t.title === 'string').map((t, i) => ({
     id: t.id,
     title: t.title,
-    hat: ALL_HATS.includes(t.hat) ? t.hat : 'teacher',
+    hat: isHatId(t.hat) ? t.hat : (hats.find(h => h.on)?.id ?? 'teacher'),
     date: t.date ?? null,
     time: t.time ?? null,
     minutes: typeof t.minutes === 'number' && t.minutes > 0 ? t.minutes : 10,

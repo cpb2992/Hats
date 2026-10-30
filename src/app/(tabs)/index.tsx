@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { completeTask, logPoint, notNow, reopenTask, undoPoint } from '../../engine/actions';
 import { fmtTime, greeting, minutesOf, weekday } from '../../engine/dates';
-import { HATS } from '../../engine/hats';
+import { hatName } from '../../engine/hats';
 import { dayLog, dayTimeline, queue, winsOn } from '../../engine/plan';
 import { currentBlock, isTeaching, minutesLeft, nextFree } from '../../engine/schedule';
 import type { Block, Student } from '../../engine/types';
@@ -82,7 +82,7 @@ export default function NowScreen() {
           <Text style={{ fontFamily: F.semi, fontSize: 14, color: C.ink2 }}>{DAYS[d.getDay()]}, {MONTHS[d.getMonth()]} {d.getDate()}</Text>
         </Pressable>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
-          <Pressable accessibilityRole="button" accessibilityLabel={log.recovery != null ? `Recovery ${log.recovery}. Open the morning plan` : 'Open the morning plan'} onPress={() => { tap(); router.push('/morning'); }} hitSlop={6}>
+          <Pressable accessibilityRole="button" accessibilityLabel={log.recovery != null ? `Energy ${log.recovery}. Open the morning plan` : 'Open the morning plan'} onPress={() => { tap(); router.push('/morning'); }} hitSlop={6}>
             <Ring size={38} stroke={3} pct={(log.recovery ?? 0) / 100} color={recoveryColor(log.recovery)}>
               {log.recovery != null ? <Text style={{ fontFamily: F.bold, fontSize: 11, color: C.ink, fontVariant: ['tabular-nums'] }}>{log.recovery}</Text> : <Icon name="plus" size={14} color={C.ink2} width={2} />}
             </Ring>
@@ -100,7 +100,7 @@ export default function NowScreen() {
       <Icon name="focus" size={24} color={C.gold} />
       <View style={{ flex: 1, gap: 2 }}>
         <Txt v="semi">Plan in two minutes</Txt>
-        <Txt v="fine">Recovery, dinner, and today’s three.</Txt>
+        <Txt v="fine">Energy, dinner, and today’s three.</Txt>
       </View>
       <Icon name="chevron" size={20} color={C.gold} />
     </Card>
@@ -188,7 +188,7 @@ export default function NowScreen() {
         <Txt v="label" color={C.gold}>{free ? `Now · ${freeLeft} min free` : 'Now'}</Txt>
         <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
           <Patch hat={now.hat} size={22} />
-          <Txt v="fine">{HATS[now.hat].name}{now.time ? ` · ${fmtTime(now.time)}` : ''}{now.student ? ` · ${now.student}` : ''}</Txt>
+          <Txt v="fine">{hatName(now.hat)}{now.time ? ` · ${fmtTime(now.time)}` : ''}{now.student ? ` · ${now.student}` : ''}</Txt>
         </View>
       </View>
       <Pressable accessibilityRole="button" accessibilityLabel={`Edit ${now.title}`} onPress={() => { tap(); router.push(`/task/${now.id}`); }}>

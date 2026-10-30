@@ -1,7 +1,7 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { applyRoster, matchExisting, parseRoster } from '../roster';
-import { freshData } from '../seed';
+import { teacherData } from './fixture';
 
 const TODAY = '2026-10-22';
 
@@ -123,7 +123,7 @@ test('the same student twice becomes one', () => {
 });
 
 test('applying adds new students and fills in existing ones without duplicates', () => {
-  const d = freshData();
+  const d = teacherData();
   const first = parseRoster('J.S. 7A IEP\n- calculator\nannual review 3/12', TODAY).students;
   assert.deepEqual(applyRoster(d, first), { added: 1, updated: 0 });
   const again = parseRoster('J.S. 7A IEP\n- calculator\n- breaks\nannual review 3/12\n\nA.R. 7C 504', TODAY).students;
@@ -170,11 +170,11 @@ M.T. IEP
 
 test('the caseload widget only offers students with a goal to log', async () => {
   const { logView } = await import('../widgets');
-  const d = freshData();
+  const d = teacherData();
   applyRoster(d, parseRoster('A.R. 7C 504: extended time\nJ.S. 7A IEP\ngoal: CER, 4 of 5', TODAY).students);
   const v = logView(d, TODAY, 8 * 60);
   assert.deepEqual(v.students.map(s => s.initials), ['J.S.']);
-  const only504 = freshData();
+  const only504 = teacherData();
   applyRoster(only504, parseRoster('A.R. 7C 504: extended time', TODAY).students);
   assert.equal(logView(only504, TODAY, 8 * 60).students.length, 0);
   assert.match(logView(only504, TODAY, 8 * 60).empty ?? '', /IEP goal/);

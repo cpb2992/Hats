@@ -1,5 +1,5 @@
 /**
- * The weekly rhythm (whose laundry day it is, baths, cleaners, ballet) becomes real Home tasks on the
+ * The weekly rhythm (laundry days, baths, groceries, lessons) becomes real Home tasks on the
  * right day, timed to fit around school: laundry after pickups, baths an hour before bedtime.
  */
 import { minutesOf, timeOf, weekday } from './dates';

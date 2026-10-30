@@ -6,7 +6,7 @@ import { Icon } from './icons';
 import { Btn, Card, Field, Label, Txt } from './kit';
 import { C } from './theme';
 
-/** The Claude key that lets Say anything understand what Chris means. */
+/** The optional Claude key that lets Say anything understand what you mean. */
 export function ClaudeSection() {
   const [saved, setSaved] = useState<boolean | null>(null);
   const [draft, setDraft] = useState('');
@@ -39,7 +39,7 @@ export function ClaudeSection() {
               <Icon name="check" size={18} color={C.gold} width={2.4} />
               <Txt v="semi" style={{ flex: 1 }}>Claude is on</Txt>
             </View>
-            <Txt v="fine">Say anything understands what you mean and uses your schedule: “after school Friday”, “during my prep tomorrow”, “plus one for D.W.”, “I emailed Sadie”, “cancel the staff meeting”.</Txt>
+            <Txt v="fine">Say anything understands what you mean and uses your schedule: “after school Friday”, “during my prep tomorrow”, “plus one for D.W.”, “I emailed the principal”, “cancel the staff meeting”.</Txt>
             <Btn title="Remove key" kind="ghost" small onPress={async () => { await setClaudeKey(null); setSaved(false); setNote(null); }} />
           </>
         ) : (

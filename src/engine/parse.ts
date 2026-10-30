@@ -4,7 +4,7 @@
  * into separate tasks.
  */
 import { addDays, nextMonday, timeOf, weekday } from './dates';
-import { HAT_ORDER, HATS } from './hats';
+import { hatFromKeywords } from './hats';
 import type { HatId } from './types';
 import { capitalize } from './util';
 
@@ -22,11 +22,12 @@ export interface Parsed {
 const esc = (s: string) => s.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 const kwRegex = (kw: string) => new RegExp(`(^|[^a-z0-9])${esc(kw)}(?=$|[^a-z0-9])`, 'i');
 
-const KW: { id: HatId; res: RegExp[] }[] = HAT_ORDER.map(id => ({ id, res: HATS[id].keywords.map(kwRegex) }));
+const KW = new Map<string, RegExp>();
+const kw = (k: string) => { let r = KW.get(k); if (!r) { r = kwRegex(k); KW.set(k, r); } return r; };
 
+/** Guesses the hat from keywords, among the hats this person wears. */
 export function guessHat(text: string): HatId | null {
-  for (const { id, res } of KW) if (res.some(r => r.test(text))) return id;
-  return null;
+  return hatFromKeywords(text, k => kw(k).test(text));
 }
 
 const DAYS = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];

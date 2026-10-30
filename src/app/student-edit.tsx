@@ -65,7 +65,7 @@ export default function StudentEdit() {
         <View style={{ flexDirection: 'row', gap: 12 }}>
           <View style={{ flex: 1, gap: 10 }}>
             <Label>Class</Label>
-            <Field value={s.period} onChangeText={v => setS(x => ({ ...x, period: v.toUpperCase().slice(0, 6) }))} placeholder="7C" autoCapitalize="characters" accessibilityLabel="Class section" />
+            <Field value={s.period} onChangeText={v => setS(x => ({ ...x, period: v.toUpperCase().slice(0, 6) }))} placeholder="P3" autoCapitalize="characters" accessibilityLabel="Class section" />
           </View>
           <View style={{ flex: 1.3, gap: 10 }}>
             <Label>Plan</Label>

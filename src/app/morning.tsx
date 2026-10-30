@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { markPlanned, setDinner, setRecovery, setThawed, toggleThree } from '../engine/actions';
 import { fmtLong } from '../engine/dates';
-import { HATS } from '../engine/hats';
+import { hatName } from '../engine/hats';
 import { dayLog, isDeep, threeCandidates } from '../engine/plan';
 import { openTime } from '../engine/schedule';
 import { useApp } from '../store/AppStore';
@@ -49,11 +49,11 @@ export default function Morning() {
             <Text style={{ fontFamily: F.display, fontSize: 22, color: C.ink, fontVariant: ['tabular-nums'] }}>{recovery ?? '–'}</Text>
           </Ring>
           <View style={{ flex: 1, gap: 4 }}>
-            <Label>Recovery</Label>
+            <Label>Energy</Label>
             <Txt v="h2">{headline(recovery)}</Txt>
           </View>
         </View>
-        <Field value={rec} onChangeText={v => setRec(v.replace(/[^0-9]/g, '').slice(0, 3))} keyboardType="number-pad" placeholder="Today’s WHOOP recovery, 0 to 100" accessibilityLabel="Today’s recovery percent" onBlur={() => mutate(d => setRecovery(d, today, recovery))} />
+        <Field value={rec} onChangeText={v => setRec(v.replace(/[^0-9]/g, '').slice(0, 3))} keyboardType="number-pad" placeholder="Energy today, 0 to 100 (or your WHOOP or Oura score)" accessibilityLabel="Energy today, 0 to 100" onBlur={() => mutate(d => setRecovery(d, today, recovery))} />
       </Card>
 
       {dinner ? (
@@ -93,7 +93,7 @@ export default function Morning() {
               <Patch hat={t.hat} size={36} />
               <View style={{ flex: 1, gap: 3 }}>
                 <Txt v="semi">{t.title}</Txt>
-                <Txt v="fine">{HATS[t.hat].name} · {dim ? 'deep work, maybe tomorrow' : isDeep(t) ? 'deep work' : 'quick win'}</Txt>
+                <Txt v="fine">{hatName(t.hat)} · {dim ? 'deep work, maybe tomorrow' : isDeep(t) ? 'deep work' : 'quick win'}</Txt>
               </View>
               <View style={{ width: 28, height: 28, borderRadius: 14, borderWidth: 1.5, borderColor: on ? C.gold : 'rgba(255,255,255,0.22)', backgroundColor: on ? C.gold : 'transparent', alignItems: 'center', justifyContent: 'center' }}>
                 {on ? <Icon name="check" size={14} color={C.onGold} width={3.2} /> : null}

@@ -1,13 +1,13 @@
 /**
- * Say anything: turns what Chris says into things that happen — calendar events, tasks, data points,
+ * Say anything: turns what someone says into things that happen — calendar events, tasks, data points,
  * finished tasks, moved or cancelled events — using what's going on right now (the class in front of
- * him, his free blocks, his calendar, his caseload).
+ * them, their free blocks, their calendar, their caseload).
  *
  * Claude does the understanding when a key is set; a rule-based reader does it otherwise. Either way
  * the result is the same list of actions, checked here before anything is applied.
  */
 import { addDays, dayShort, fmtTime, minutesOf, timeOf, weekday } from './dates';
-import { ALL_HATS, HATS } from './hats';
+import { ALL_HATS, defaultHat, HATS, hatName } from './hats';
 import { guessHat, parseMany, type Parsed } from './parse';
 import { blocksFor, currentBlock, freeBlocks, nextFree, sectionNow } from './schedule';
 import type { AppData, HatId, HatsEvent, Student } from './types';
@@ -88,7 +88,7 @@ export function cleanDate(raw: string | null | undefined): string | null {
 }
 
 const cleanHat = (raw: string | null | undefined, title: string): HatId =>
-  (ALL_HATS as string[]).includes(raw ?? '') ? (raw as HatId) : guessHat(title) ?? 'teacher';
+  (ALL_HATS as string[]).includes(raw ?? '') ? (raw as HatId) : guessHat(title) ?? defaultHat();
 
 const addMin = (time: string, min: number) => timeOf(Math.min(23 * 60 + 59, minutesOf(time) + min));
 
@@ -101,7 +101,7 @@ function defaultLength(title: string): number {
   return 30;
 }
 
-/** The student he means: initials, then the class he's in right now, then the class named. */
+/** The student they mean: initials, then the class they're in right now, then the class named. */
 export function findStudent(s: Situation, initials: string, cls = ''): Student | null {
   const ini = normalizeInitials(initials);
   if (!ini) return null;
@@ -143,15 +143,16 @@ function rightNow(s: Situation): string {
   return 'Passing time.';
 }
 
-/** Everything the model needs to know about Chris's day, as plain text. */
+/** Everything the model needs to know about this person's day, as plain text. */
 export function buildContext(s: Situation): string {
   const { data, today, nowMin } = s;
   const lines: string[] = [];
+  if (data.settings.name.trim()) lines.push(`NAME: ${data.settings.name.trim()}.`);
   lines.push(`NOW: ${DAY_FULL[weekday(today)]} ${today}, ${timeOf(nowMin)}.`);
   lines.push(`RIGHT NOW: ${rightNow(s)}`);
   const free = nextFree(data.settings, today, nowMin);
   if (free) lines.push(`NEXT FREE BLOCK TODAY: ${free.label} ${free.start}-${free.end}.`);
-  lines.push(`DAY SHAPE: morning ${data.settings.morning}, school ${data.settings.schoolStart}, shutdown ${data.settings.shutdown}, pickups ${data.settings.pickups}, kids' bedtime ${data.settings.bedtime}.`);
+  lines.push(`DAY SHAPE: morning ${data.settings.morning}, school ${data.settings.schoolStart}, shutdown ${data.settings.shutdown}, home by ${data.settings.pickups}, bedtime routine ${data.settings.bedtime}.`);
 
   lines.push('', 'BELL SCHEDULE (school days, next 8 days):');
   for (let i = 0; i < 8; i++) {
@@ -181,7 +182,7 @@ export function buildContext(s: Situation): string {
     lines.push(`- ${st.initials} ${st.period || '-'} ${st.plan}${g ? ` | goal logged ${g.kind === 'trials' ? `as x of ${g.outOf}` : 'as +1'}` : ' | no goal'}`);
   }
 
-  lines.push('', `HATS: ${ALL_HATS.filter(h => data.hats.find(x => x.id === h)?.on !== false).map(h => `${h}=${HATS[h].name} (${HATS[h].meaning})`).join('; ')}.`);
+  lines.push('', `HATS: ${ALL_HATS.filter(h => data.hats.find(x => x.id === h)?.on !== false).map(h => `${h}=${hatName(h)} (${HATS[h].meaning})`).join('; ')}.`);
 
   if (s.recent.length) {
     lines.push('', 'JUST DONE FROM THE LAST CAPTURE ("that", "it" usually means these):');
@@ -190,25 +191,25 @@ export function buildContext(s: Situation): string {
   return lines.join('\n');
 }
 
-export const SYSTEM_PROMPT = `You are the assistant inside Hats, the personal app of Chris, a 7th grade science and special education teacher in Boston who is also science department head, union building rep, mentor, children's book author and a dad of three. He has ADHD and talks to Hats in quick, messy bursts. Turn what he says into actions, using the context about his day.
+export const SYSTEM_PROMPT = `You are the assistant inside Hats, a planner for people who wear a lot of hats, most of them teachers. The person talks to Hats in quick, messy bursts between classes. Turn what they say into actions, using the context about their day. Their name, if they gave one, is in the context.
 
 Actions:
-- event: something he attends at a time (meetings, IEP/504 meetings, appointments, calls with people, PD, field trips, kids' games, dinners). Goes on the Hats calendar. Give date, start and end (HH:MM, 24h). Without a stated length: 30 min for calls and quick meetings, 60 min for IEP/504 meetings, conferences, appointments and PD. With no time at all and a whole-day thing (field trip, day off), set allDay true.
-- task: a to-do (send, email, print, grade, sign, buy, write, ask, remind me to). Give a time only when he says one or says "remind me at"; then it becomes a reminder.
-- log: a data point for a student's IEP goal ("J.S. got 4 out of 5", "plus one for A.R.", "log one for D.W."). student = initials exactly as listed. value = successes for "x of n" goals, or the number of +1s for tally goals (usually 1). If two students share initials, set studentClass, preferring the class he is teaching right now.
-- done: he finished an open task ("I sent the lab list"). ref = that task's ref.
-- move: change the date or time of a Hats calendar event. ref = the event's ref. Keep its length unless he gives a new one.
-- cancel: remove a Hats calendar event he says is cancelled or off. ref = the event's ref.
+- event: something they attend at a time (meetings, IEP/504 meetings, appointments, calls with people, PD, field trips, kids' games, dinners). Goes on the Hats calendar. Give date, start and end (HH:MM, 24h). Without a stated length: 30 min for calls and quick meetings, 60 min for IEP/504 meetings, conferences, appointments and PD. With no time at all and a whole-day thing (field trip, day off), set allDay true.
+- task: a to-do (send, email, print, grade, sign, buy, write, ask, remind me to). Give a time only when they say one or say "remind me at"; then it becomes a reminder.
+- log: a data point for a student's IEP goal ("J.S. got 4 out of 5", "plus one for A.R.", "log one for D.W."). student = initials exactly as listed. value = successes for "x of n" goals, or the number of +1s for tally goals (usually 1). If two students share initials, set studentClass, preferring the class they are teaching right now.
+- done: they finished an open task ("I sent the lab list"). ref = that task's ref.
+- move: change the date or time of a Hats calendar event. ref = the event's ref. Keep its length unless they give a new one.
+- cancel: remove a Hats calendar event they say is cancelled or off. ref = the event's ref.
 
 Use the situation:
-- "after school" = when dismissal ends. "before school" = before the first bell. "during my prep" / "free period" / "RBR" = his next free block on that day. "after this class" / "after class" = the end of the current block. "at lunch" = the lunch block. "tomorrow morning" = before school tomorrow on a school day.
-- Weekday names mean the next one coming. Dates are YYYY-MM-DD. Never schedule a school meeting over a class he teaches unless he says so; if the time he gives is during a class, still use his time.
-- Pick the hat: teacher (science teaching), sped (IEPs, 504s, caseload), dept (science department), btu (union), mentor (coaching teachers), author (his books), home (family and personal).
-- Titles: short and plain, like he'd write them ("IEP meeting · J.M.", "Email Sadie the lab list"). Keep student initials, never full names.
+- "after school" = when dismissal ends. "before school" = before the first bell. "during my prep" / "free period" / "planning" = their next free block on that day. "after this class" / "after class" = the end of the current block. "at lunch" = the lunch block. "tomorrow morning" = before school tomorrow on a school day.
+- Weekday names mean the next one coming. Dates are YYYY-MM-DD. Never schedule a school meeting over a class they teach unless they say so; if the time they give is during a class, still use their time.
+- Pick the hat from the HATS list in the context (only those). Use the hat's name and meaning to decide.
+- Titles: short and plain, like they'd write them ("IEP meeting · J.M.", "Email Ms. Diaz the lab list"). Keep student initials, never full names.
 - One utterance can hold several actions. If something is unclear, make the most reasonable choice and say what you chose in the reply.
-- If nothing should happen (he's just thinking out loud), return no actions and say so.
+- If nothing should happen (they're just thinking out loud), return no actions and say so.
 
-reply: one short, friendly sentence telling Chris what you did, in plain words (for example "Added the IEP meeting for J.M. to your calendar Thursday at 9:30, and a reminder to print the agenda."). No emoji.
+reply: one short, friendly sentence telling them what you did, in plain words (for example "Added the IEP meeting for J.M. to your calendar Thursday at 9:30, and a reminder to print the agenda."). No emoji.
 
 Fill every field of every action; use "" for text you don't need, 0 for numbers you don't need, and false for allDay when it doesn't apply.`;
 
@@ -228,7 +229,7 @@ export const REPLY_SCHEMA = {
         properties: {
           kind: { type: 'string', enum: ['event', 'task', 'log', 'done', 'move', 'cancel'] },
           title: { type: 'string' },
-          hat: { type: 'string', enum: [...ALL_HATS] },
+          hat: { type: 'string', enum: [...ALL_HATS] as string[] },
           date: { type: 'string', description: 'YYYY-MM-DD or ""' },
           start: { type: 'string', description: 'HH:MM 24h or ""' },
           end: { type: 'string', description: 'HH:MM 24h or ""' },
@@ -324,7 +325,7 @@ function situationalTime(text: string, s: Situation, date: string): string | nul
   if (!blocks.length) return null;
   if (/\bafter school\b/i.test(text)) return blocks[blocks.length - 1].end;
   if (/\bbefore school\b/i.test(text)) return addMin(blocks[0].start, -30);
-  if (/\b(during|in|at) (my )?(prep|free (period|block)|rbr|planning)\b/i.test(text)) {
+  if (/\b(during|in|at) (my )?(prep|free (period|block)|rbr|planning|planning period)\b/i.test(text)) {
     const free = date === s.today ? nextFree(s.data.settings, date, s.nowMin) : freeBlocks(s.data.settings, date)[0];
     return free?.start ?? null;
   }

@@ -4,7 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react';
 import { Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { completeTask, recordFocus, reopenTask } from '../engine/actions';
-import { HATS } from '../engine/hats';
+import { hatName } from '../engine/hats';
 import { winsOn } from '../engine/plan';
 import { startFocusNotice, stopFocusNotice } from '../services/notifications';
 import { useApp } from '../store/AppStore';
@@ -88,7 +88,7 @@ export default function FocusScreen() {
         {task ? (
           <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8 }}>
             <Patch hat={task.hat} size={22} />
-            <Txt v="fine">{HATS[task.hat].name}</Txt>
+            <Txt v="fine">{hatName(task.hat)}</Txt>
           </View>
         ) : <View />}
         <View style={{ width: 44 }} />

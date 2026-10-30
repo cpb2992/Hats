@@ -1,10 +1,10 @@
 /** Decides what's Now, what's next, and what the day looks like. */
 import { addDays, minutesOf, nextMonday, nextWorkday, weekday, weekStart } from './dates';
-import { ALL_HATS } from './hats';
+import { ALL_HATS, SCHOOL_HATS } from './hats';
 import { blocksFor } from './schedule';
 import type { AppData, Block, DayLog, HatId, HatsEvent, KeyDate, Settings, Student, Task } from './types';
 
-export const SCHOOL_HATS: HatId[] = ['teacher', 'sped', 'dept', 'btu', 'mentor'];
+export { SCHOOL_HATS };
 
 export function dayLog(data: AppData, date: string): DayLog {
   return data.days[date] ?? { date, recovery: null, three: [], planned: false, shutdown: false };

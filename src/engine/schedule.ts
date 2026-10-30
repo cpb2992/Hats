@@ -10,37 +10,28 @@ const b = (start: string, end: string, label: string, kind: BlockKind, section?:
 /** Teaching blocks keep tasks waiting; free blocks are when Hats hands you the next thing. */
 export const TEACHING: BlockKind[] = ['class', 'boost', 'advisory', 'homeroom'];
 
-function day(p2: string, p3: string, p4: Block, p5top: Block, p6: string, p7: string, p1: Block): Block[] {
+/**
+ * A common middle/high school day to start from: homeroom, six periods, a planning period and lunch.
+ * Everyone edits it to their own bells in Settings → Bell schedule.
+ */
+function typicalDay(): Block[] {
   return [
-    b('08:15', '08:35', 'Homeroom', 'homeroom'),
-    p1,
-    b('09:31', '10:24', p2, 'class', p2),
-    b('10:27', '11:20', p3, 'class', p3),
-    p4,
-    p5top,
-    b('12:45', '13:12', 'Lunch', 'break'),
-    b('13:15', '14:08', p6, 'class', p6),
-    b('14:11', '15:05', p7, 'class', p7),
-    b('15:05', '15:10', 'Dismissal', 'break'),
+    b('07:45', '08:00', 'Homeroom', 'homeroom'),
+    b('08:00', '08:50', 'P1', 'class', 'P1'),
+    b('08:54', '09:44', 'P2', 'class', 'P2'),
+    b('09:48', '10:38', 'P3', 'class', 'P3'),
+    b('10:42', '11:32', 'Planning', 'free'),
+    b('11:36', '12:06', 'Lunch', 'break'),
+    b('12:10', '13:00', 'P4', 'class', 'P4'),
+    b('13:04', '13:54', 'P5', 'class', 'P5'),
+    b('13:58', '14:48', 'P6', 'class', 'P6'),
+    b('14:48', '14:55', 'Dismissal', 'break'),
   ];
 }
 
-const prep = b('08:35', '09:28', 'Specialty · prep', 'free');
-const cpt = b('08:35', '09:28', 'CPT · science dept', 'meeting');
-const rbr = b('11:23', '12:16', 'RBR · off', 'free');
-const boost = (s: string) => b('11:23', '12:16', `${s} Boost`, 'boost', s);
-const recess = b('12:19', '12:45', 'Recess', 'break');
-const advisory = b('12:19', '12:45', 'Advisory', 'advisory');
-
-/** Weekly blocks keyed by weekday (1 = Monday ... 5 = Friday). Period 5 is split in half for recess or advisory, then lunch. */
+/** Weekly blocks keyed by weekday (1 = Monday ... 5 = Friday). */
 export function defaultSchedule(): Record<string, Block[]> {
-  return {
-    '1': day('7A', '7C', rbr, recess, '7B', '7D', prep),
-    '2': day('7B', '7D', boost('7B'), advisory, '7A', '7C', prep),
-    '3': day('7A', '7C', boost('7A'), recess, '7B', '7D', prep),
-    '4': day('7B', '7D', rbr, advisory, '7A', '7C', cpt),
-    '5': day('7A', '7C', boost('7C'), recess, '7B', '7D', prep),
-  };
+  return { '1': typicalDay(), '2': typicalDay(), '3': typicalDay(), '4': typicalDay(), '5': typicalDay() };
 }
 
 export function blocksFor(s: Settings, date: string): Block[] {

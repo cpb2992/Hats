@@ -3,6 +3,7 @@ import { createContext, useCallback, useContext, useEffect, useMemo, useRef, use
 import { AppState } from 'react-native';
 import { nowMinutes, todayISO } from '../engine/dates';
 import type { Recent } from '../engine/assistant';
+import { setHatPrefs } from '../engine/hats';
 import { normalizeData } from '../engine/normalize';
 import { materializeChores } from '../engine/rhythm';
 import { freshData, makeDemo } from '../engine/seed';
@@ -136,6 +137,8 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
   const hideToast = useCallback(() => setToast(null), []);
 
   const data = demoData ?? real;
+  // Hat names and the hats worn are read all over the app; keep the shared registry in step.
+  setHatPrefs(data.hats);
   const value = useMemo<Store>(() => ({
     ready, today, nowMin, demo: !!demoData, data, mutate, startDemo, endDemo, eraseAll, toast, showToast, hideToast, recent, setRecent,
   }), [ready, today, nowMin, demoData, data, mutate, startDemo, endDemo, eraseAll, toast, showToast, hideToast, recent]);

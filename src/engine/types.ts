@@ -1,6 +1,6 @@
 /** Everything Hats stores lives in one AppData object, saved on the phone. */
 
-export type HatId = 'teacher' | 'sped' | 'dept' | 'btu' | 'mentor' | 'author' | 'home';
+export type HatId = 'teacher' | 'sped' | 'lead' | 'union' | 'mentor' | 'coach' | 'advisor' | 'grad' | 'creative' | 'gig' | 'home' | 'wellness';
 
 export interface Hat {
   id: HatId;

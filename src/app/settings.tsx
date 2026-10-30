@@ -3,9 +3,9 @@ import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
 import { Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
 import { fmtTime, minutesOf, timeOf } from '../engine/dates';
-import { HATS } from '../engine/hats';
+import { hatName, HATS } from '../engine/hats';
 import { choreTime } from '../engine/rhythm';
-import type { Chore, KidColor, Settings } from '../engine/types';
+import type { Chore, HatId, KidColor, Settings } from '../engine/types';
 import { uid } from '../engine/util';
 import { sendTestReminder } from '../services/notifications';
 import { WIDGETS } from '../widgets/render';
@@ -59,6 +59,7 @@ export default function SettingsScreen() {
   const [chore, setChore] = useState('');
   const [choreKind, setChoreKind] = useState<Chore['kind']>('other');
   const [testNote, setTestNote] = useState<string | null>(null);
+  const [renaming, setRenaming] = useState<HatId | null>(null);
   const [widgetNote, setWidgetNote] = useState<string | null>(null);
   const addWidget = async (name: string) => {
     const ok = await pinWidget(name);
@@ -81,12 +82,30 @@ export default function SettingsScreen() {
           <Line key={h.id} last={i === data.hats.length - 1}>
             <Patch hat={h.id} size={34} />
             <View style={{ flex: 1 }}>
-              <Txt v="semi">{HATS[h.id].name}</Txt>
+              {renaming === h.id ? (
+                <TextInput
+                  autoFocus
+                  value={h.name}
+                  onChangeText={name => mutate(d => { d.hats = d.hats.map(x => (x.id === h.id ? { ...x, name: name.slice(0, 20) } : x)); })}
+                  onBlur={() => { setRenaming(null); mutate(d => { d.hats = d.hats.map(x => (x.id === h.id && !x.name.trim() ? { ...x, name: HATS[h.id].name } : x)); }); }}
+                  onSubmitEditing={() => setRenaming(null)}
+                  returnKeyType="done"
+                  selectionColor={C.gold}
+                  accessibilityLabel={`Name for ${HATS[h.id].name}`}
+                  style={{ fontFamily: F.semi, fontSize: 16, color: C.ink, paddingVertical: 2, borderBottomWidth: 1, borderBottomColor: C.gold }}
+                />
+              ) : (
+                <Pressable accessibilityRole="button" accessibilityLabel={`Rename ${hatName(h.id)}`} onPress={() => setRenaming(h.id)} style={{ flexDirection: 'row', alignItems: 'center', gap: 6 }}>
+                  <Txt v="semi">{hatName(h.id)}</Txt>
+                  <Icon name="edit" size={13} color={C.ink3} />
+                </Pressable>
+              )}
               <Txt v="fine">{HATS[h.id].meaning}</Txt>
             </View>
-            <Switch value={h.on} onValueChange={on => mutate(d => { d.hats = d.hats.map(x => (x.id === h.id ? { ...x, on } : x)); })} trackColor={{ true: C.gold, false: C.raised2 }} thumbColor={C.ink} accessibilityLabel={`Wear ${HATS[h.id].name}`} />
+            <Switch value={h.on} onValueChange={on => mutate(d => { if (!on && d.hats.filter(x => x.on).length <= 1) return; d.hats = d.hats.map(x => (x.id === h.id ? { ...x, on } : x)); })} trackColor={{ true: C.gold, false: C.raised2 }} thumbColor={C.ink} accessibilityLabel={`Wear ${hatName(h.id)}`} />
           </Line>
         ))}
+        <Txt v="fine">Tap a name to rename it, like “Science” or “Grade 7 lead”.</Txt>
       </Section>
 
       <Section title="Your day">

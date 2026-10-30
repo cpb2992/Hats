@@ -1,14 +1,14 @@
 import { router } from 'expo-router';
 import { Pressable, Text, View } from 'react-native';
 import { fmtRelative, fmtTime } from '../engine/dates';
-import { HATS } from '../engine/hats';
+import { hatName } from '../engine/hats';
 import type { Task } from '../engine/types';
 import { Icon } from './icons';
 import { Patch, tap } from './kit';
 import { C, F } from './theme';
 
 export function taskMeta(t: Task, today: string): string {
-  const parts: string[] = [HATS[t.hat].name];
+  const parts: string[] = [hatName(t.hat)];
   if (t.date && t.date > today) parts.push(fmtRelative(t.date, today));
   if (t.time) parts.push(fmtTime(t.time));
   if (t.student) parts.push(t.student);

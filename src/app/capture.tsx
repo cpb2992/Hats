@@ -3,7 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { ActivityIndicator, Animated, Easing, KeyboardAvoidingView, Platform, Pressable, ScrollView, Text, View } from 'react-native';
 import { useSafeAreaInsets } from 'react-native-safe-area-context';
 import { checkActions, describeWhen, readWithoutClaude, type Action, type Situation } from '../engine/assistant';
-import { HATS } from '../engine/hats';
+import { hatName } from '../engine/hats';
 import { understand } from '../services/assistant';
 import { runActions, type Outcome } from '../services/runner';
 import { getClaudeKey } from '../services/secrets';
@@ -36,7 +36,7 @@ function Pulse({ active }: { active: boolean }) {
 function previewLine(a: Action, today: string): { icon: IconName; title: string; detail: string } {
   switch (a.kind) {
     case 'event': return { icon: 'calendar', title: a.title, detail: `Calendar · ${a.allDay ? describeWhen(a.date, null, today) : describeWhen(a.date, a.start, today)}` };
-    case 'task': return { icon: 'check', title: a.title, detail: `${HATS[a.hat].name}${a.time ? ` · reminder ${describeWhen(a.date, a.time, today)}` : a.date ? ` · ${describeWhen(a.date, null, today)}` : ''}` };
+    case 'task': return { icon: 'check', title: a.title, detail: `${hatName(a.hat)}${a.time ? ` · reminder ${describeWhen(a.date, a.time, today)}` : a.date ? ` · ${describeWhen(a.date, null, today)}` : ''}` };
     case 'log': return { icon: 'people', title: `Log ${a.goalKind === 'trials' ? `${a.value} of ${a.outOf}` : `+${a.value}`} for ${a.initials}`, detail: 'Caseload' };
     case 'done': return { icon: 'check', title: a.title, detail: 'Check off' };
     case 'move': return { icon: 'calendar', title: a.title, detail: `Move to ${describeWhen(a.date, a.start, today)}` };
