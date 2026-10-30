@@ -110,3 +110,17 @@ test("saved data with packs still loads", async () => {
   addPackItem(d, { hat: "work", kind: "people", title: "Priya", date: TODAY }, NOW);
   assert.equal(validData(JSON.parse(JSON.stringify(d))), true);
 });
+
+test("rating prompt: only after real use, and not again for four months", async () => {
+  const { shouldAskForReview } = await import("../review");
+  const { makeTask } = await import("../engine");
+  const { addDays } = await import("../../engine/dates");
+  const d = freshPersonal();
+  assert.equal(shouldAskForReview(d, TODAY, null), false);
+  for (let i = 0; i < 15; i++) d.tasks.push(makeTask(`Task ${i}`, "home", TODAY, { doneAt: `${TODAY}T10:00:00.000Z` }));
+  assert.equal(shouldAskForReview(d, TODAY, null), false, "all on one day");
+  for (let i = 0; i < 15; i++) d.tasks[i].doneAt = `${addDays(TODAY, -(i % 5))}T10:00:00.000Z`;
+  assert.equal(shouldAskForReview(d, TODAY, null), true);
+  assert.equal(shouldAskForReview(d, TODAY, addDays(TODAY, -30)), false);
+  assert.equal(shouldAskForReview(d, TODAY, addDays(TODAY, -121)), true);
+});

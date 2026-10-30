@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Alert, Linking, Platform } from "react-native";
+import { Alert, Linking, Platform, Share } from "react-native";
 import { router } from "expo-router";
 import {
   currentSession,
@@ -12,6 +12,7 @@ import {
 import { FamilySettings } from "../personal/FamilyShare";
 import { SignIn } from "../personal/SignIn";
 import { WhoopSettings } from "../personal/WhoopCard";
+import { PRIVACY_URL, PUBLIC_BUILD, SHARE_MESSAGE, STORE_URL } from "../personal/flavor";
 import { ThisCopy } from "../personal/UpdateReady";
 import { hatDef } from "../personal/model";
 import { routinePrefs } from "../personal/routine";
@@ -833,7 +834,7 @@ export default function Settings() {
       >
         <WhoopSettings signedIn={!!account} />
       </Group>
-      {Platform.OS !== "web" ? (
+      {Platform.OS !== "web" && !PUBLIC_BUILD ? (
         <Group
           hat="propeller"
           title="Protected family time"
@@ -983,6 +984,13 @@ export default function Settings() {
             }
           />
           ) : null}
+        </Panel>
+      </Group>
+      <Group hat="party" title="Spread the word" summary="Tell a friend, rate Hats, privacy">
+        <Panel>
+          <Button title="Tell a friend about Hats" quiet onPress={() => { Share.share({ message: SHARE_MESSAGE }).catch(() => {}); }} />
+          {PUBLIC_BUILD ? <Button title="Rate Hats on Google Play" quiet onPress={() => { Linking.openURL(STORE_URL).catch(() => {}); }} /> : null}
+          <Button title="Privacy policy" quiet onPress={() => { Linking.openURL(PRIVACY_URL).catch(() => {}); }} />
         </Panel>
       </Group>
       <Group hat="party" title="This copy of Hats" summary="Version and updates">

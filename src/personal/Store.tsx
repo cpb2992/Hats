@@ -14,6 +14,7 @@ import { nowMinutes, todayISO } from "../engine/dates";
 import { currentSession, readRemote, writeRemote, type Remote } from "./cloud";
 import { finishStep, materialize, reschedule } from "./engine";
 import { syncPacks } from "./packs";
+import { maybeAskForReview } from "./askReview";
 import { freshPersonal, setCustomHats, type PersonalData } from "./model";
 import { syncPersonalReminders } from "./reminders";
 import { router } from "expo-router";
@@ -362,6 +363,17 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
         materialize(d, today);
       });
   }, [today, ready, error, mutate]);
+  // Right after checking something off is the moment to (rarely) ask for a rating.
+  const doneCount = data.tasks.reduce((n, t) => n + (t.doneAt ? 1 : 0), 0);
+  const lastDone = useRef<number | null>(null);
+  useEffect(() => {
+    if (!ready) return;
+    const before = lastDone.current;
+    lastDone.current = doneCount;
+    if (before == null || doneCount <= before) return;
+    const timer = setTimeout(() => { maybeAskForReview(ref.current, today).catch(() => {}); }, 1500);
+    return () => clearTimeout(timer);
+  }, [doneCount, ready, today]);
   // Pack lists and their to-dos stay in step: a check-in finished on Today books the next one.
   const packKey = `${JSON.stringify(data.packItems ?? [])}|${JSON.stringify(data.packs ?? {})}|${data.tasks
     .filter((t) => t.source?.startsWith("pack:"))

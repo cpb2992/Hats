@@ -1,7 +1,9 @@
 import { useEffect, useState } from "react";
 import { AppState, Platform } from "react-native";
 import Focus from "../../modules/hats-focus";
-export const focusAvailable = Platform.OS === "android" && !!Focus;
+import { PUBLIC_BUILD } from "./flavor";
+// The public Play Store build leaves the accessibility service out (see plugins/without-focus-service.js).
+export const focusAvailable = Platform.OS === "android" && !!Focus && !PUBLIC_BUILD;
 export function useFocusEnabled() {
   const [enabled, setEnabled] = useState(false);
   useEffect(() => {

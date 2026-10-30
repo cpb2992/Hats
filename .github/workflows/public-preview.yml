@@ -1,0 +1,107 @@
+# Ships the public Hats (the Play Store version) to test phones.
+#
+# Every push to the public branch sends an over-the-air update to the "public" channel, so test
+# copies pick it up without reinstalling. A new APK is built only when the native side changes
+# (or when you ask: Actions → "Public Hats test build" → Run workflow → Build a new app).
+# The test APK has its own package name (com.hatsplanner.app), so it installs beside your
+# personal Hats. Store builds are separate: npx eas-cli build --profile production (see store/LISTING.md).
+name: Public Hats test build
+on:
+  push:
+    branches: [public]
+    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+    inputs:
+      build:
+        description: Build a new app (APK) even if an update would do
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: public-preview-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+      - name: Update or new app?
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HAS_EXPO: ${{ secrets.EXPO_TOKEN != '' }}
+          FORCE: ${{ inputs.build }}
+        run: |
+          rv=$(npx expo-updates runtimeversion:resolve --platform android | tail -n 1 | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).runtimeVersion))")
+          echo "runtime=$rv" >> "$GITHUB_OUTPUT"
+          # Is there already an app for this runtime? Each release's notes name its runtime.
+          have=$(gh api "repos/${{ github.repository }}/releases?per_page=100" --jq "[.[] | select((.tag_name | startswith(\"public-\")) and ((.body // \"\") | contains(\"Runtime $rv\")))] | length")
+          if [ "$HAS_EXPO" != "true" ] || [ "$FORCE" = "true" ] || [ "$have" = "0" ]; then build=true; else build=false; fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "expo=$HAS_EXPO" >> "$GITHUB_OUTPUT"
+          if [ "$HAS_EXPO" != "true" ]; then
+            echo "::warning title=No over-the-air updates yet::Add the Expo access token as the repository secret EXPO_TOKEN (Settings → Secrets and variables → Actions). Building a new APK instead."
+          fi
+          echo "Runtime $rv · new app: $build · update: $HAS_EXPO" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: expo/expo-github-action@v9
+        if: steps.plan.outputs.expo == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Send an update to the installed app
+        if: steps.plan.outputs.expo == 'true'
+        run: |
+          set -o pipefail
+          msg="$(git log -1 --pretty=%s | cut -c1-120)"
+          eas update --channel public --platform android --environment preview --message "$msg" --non-interactive 2>&1 | tee step.log || {
+            echo "::error title=Sending the update failed::$(tail -n 15 step.log | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          }
+          echo "::notice title=Update sent::Hats picks it up the next time it opens or comes back to the front."
+
+      - uses: actions/setup-java@v4
+        if: steps.plan.outputs.build == 'true'
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.plan.outputs.build == 'true'
+      - if: steps.plan.outputs.build == 'true'
+        run: npx expo prebuild --platform android --no-install
+      - name: Build Android preview
+        if: steps.plan.outputs.build == 'true'
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+      - if: steps.plan.outputs.build == 'true'
+        run: cp android/app/build/outputs/apk/release/app-release.apk Hats-public.apk
+      - uses: actions/upload-artifact@v4
+        if: steps.plan.outputs.build == 'true'
+        with:
+          name: Hats-public
+          path: Hats-public.apk
+      - uses: softprops/action-gh-release@v2
+        if: steps.plan.outputs.build == 'true'
+        with:
+          tag_name: public-v2-build-${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: Public Hats 2 · test build ${{ github.run_number }}
+          prerelease: true
+          make_latest: false
+          body: |
+            The public version of Hats (the one headed for Google Play). Download Hats-public.apk. It installs beside your personal Hats. Signed with the standard development key; Play Store builds are signed separately.
+
+            After this, changes arrive as over-the-air updates until the next release.
+            Runtime ${{ steps.plan.outputs.runtime }}
+          files: Hats-public.apk

@@ -7,7 +7,8 @@
     "extra": {
       "eas": {
         "projectId": "677aeaf0-1d27-4a66-b255-2ab4e83ff64e"
-      }
+      },
+      "flavor": "public"
     },
     "version": "2.0.0",
     "orientation": "default",
@@ -16,13 +17,13 @@
     "backgroundColor": "#FFF4E3",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hatsfocus.app",
+      "bundleIdentifier": "com.hatsplanner.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.hatsfocus.app",
+      "package": "com.hatsplanner.app",
       "adaptiveIcon": {
         "backgroundColor": "#F7C948",
         "foregroundImage": "./assets/android-icon-foreground.png",
@@ -138,7 +139,8 @@
       ],
       "expo-secure-store",
       "expo-web-browser",
-      "expo-sharing"
+      "expo-sharing",
+      "./plugins/without-focus-service.js"
     ],
     "experiments": {
       "typedRoutes": false
@@ -149,10 +151,11 @@
     "updates": {
       "url": "https://u.expo.dev/677aeaf0-1d27-4a66-b255-2ab4e83ff64e",
       "requestHeaders": {
-        "expo-channel-name": "personal"
+        "expo-channel-name": "public"
       },
       "checkAutomatically": "ON_LOAD",
       "fallbackToCacheTimeout": 0
-    }
+    },
+    "description": "You wear a lot of hats. Keep them all in one place."
   }
 }
