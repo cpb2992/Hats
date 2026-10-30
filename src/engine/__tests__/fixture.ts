@@ -90,6 +90,8 @@ export function teacherDemo(today: string): AppData {
     task('Entered October grades', 'teacher', 20, { done: true, doneAt: `${today}T07:05:00.000Z` }),
     task('Replied to the lab safety email', 'lead', 5, { done: true, doneAt: `${today}T07:20:00.000Z` }),
   ];
+  d.packs = [];
+  d.days[today] = { ...d.days[today], three: ['demo-0', 'demo-7'] };
   for (const st of d.students) st.period = ({ P3: '7C', P1: '7A', P5: '7D' } as Record<string, string>)[st.period] ?? st.period;
   for (const c of d.cycles) c.period = '7C';
   return d;

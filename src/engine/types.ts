@@ -1,6 +1,6 @@
 /** Everything Hats stores lives in one AppData object, saved on the phone. */
 
-export type HatId = 'teacher' | 'sped' | 'lead' | 'union' | 'mentor' | 'coach' | 'advisor' | 'grad' | 'creative' | 'gig' | 'home' | 'wellness';
+export type HatId = 'work' | 'lead' | 'mentor' | 'union' | 'gig' | 'teacher' | 'sped' | 'student' | 'parent' | 'caregiver' | 'home' | 'volunteer' | 'coach' | 'creative' | 'wellness';
 
 export interface Hat {
   id: HatId;
@@ -186,6 +186,32 @@ export interface AppData {
   board: KidsBoard;
   days: Record<string, DayLog>;
   focus: FocusSession[];
+  /** Items kept by hat packs: 1:1s, deadlines, invoices, refills, projects. */
+  packs: PackItem[];
+}
+
+/** One item in a hat's pack (see engine/packs.ts for what each hat keeps). */
+export interface PackItem {
+  id: string;
+  hat: HatId;
+  title: string;
+  /** Second line: a person, client, class, place or next step, depending on the pack. */
+  who: string;
+  /** YYYY-MM-DD it's due or next happens; null = no date. */
+  date: string | null;
+  /** HH:MM or null. */
+  time: string | null;
+  /** 0 = once; otherwise it comes back this many days later when finished. */
+  repeatDays: number;
+  amount: number | null;
+  done: boolean;
+  doneAt: string | null;
+  /** Last time you met (people packs). */
+  last: string | null;
+  /** Dates you worked on it (Creative). */
+  sessions: string[];
+  note: string;
+  created: string;
 }
 
 /** An event on Hats' own calendar. */

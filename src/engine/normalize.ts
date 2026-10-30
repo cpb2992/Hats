@@ -1,7 +1,7 @@
 /** Fills in anything missing from saved data, so older saves keep working as the app grows. */
 import { ALL_HATS, HATS, isHatId } from './hats';
 import { freshData } from './seed';
-import type { AppData, Task } from './types';
+import type { AppData, PackItem, Task } from './types';
 
 const isObj = (v: unknown): v is Record<string, unknown> => !!v && typeof v === 'object' && !Array.isArray(v);
 const arr = <T>(v: unknown, fallback: T[]): T[] => (Array.isArray(v) ? (v as T[]) : fallback);
@@ -61,5 +61,11 @@ export function normalizeData(raw: unknown): AppData {
     board: { ...base.board, ...(isObj(r.board) ? r.board : {}) },
     days: isObj(r.days) ? (r.days as AppData['days']) : {},
     focus: arr(r.focus, []),
+    packs: arr<PackItem>(r.packs, []).filter(p => p && typeof p.id === 'string' && isHatId(p.hat)).map(p => ({
+      id: p.id, hat: p.hat, title: String(p.title ?? ''), who: String(p.who ?? ''), date: p.date ?? null, time: p.time ?? null,
+      repeatDays: typeof p.repeatDays === 'number' && p.repeatDays > 0 ? p.repeatDays : 0,
+      amount: typeof p.amount === 'number' ? p.amount : null, done: !!p.done, doneAt: p.doneAt ?? null, last: p.last ?? null,
+      sessions: arr<string>(p.sessions, []), note: String(p.note ?? ''), created: p.created ?? new Date().toISOString(),
+    })),
   };
 }

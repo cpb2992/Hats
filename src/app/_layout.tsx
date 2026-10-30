@@ -47,6 +47,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
           <Stack.Screen name="student-edit" options={modal} />
           <Stack.Screen name="student-import" options={modal} />
           <Stack.Screen name="pulse-sort" options={modal} />
+          <Stack.Screen name="pack/[hat]" />
           <Stack.Screen name="kids" options={{ animation: 'fade', contentStyle: { backgroundColor: C.night } }} />
         </Stack>
       ) : null}

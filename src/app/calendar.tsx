@@ -3,6 +3,7 @@ import { useMemo, useState } from 'react';
 import { Pressable, ScrollView, Text, View } from 'react-native';
 import { addDays, dayShort, fmtLong, weekday } from '../engine/dates';
 import { agenda, dayLoad } from '../engine/plan';
+import { dayWords } from '../engine/hats';
 import { useApp } from '../store/AppStore';
 import { DayRow } from '../ui/DayRow';
 import { BackLink, Btn, Card, Label, Screen, tap, Txt } from '../ui/kit';
@@ -47,7 +48,7 @@ export default function CalendarScreen() {
       <View style={{ gap: 6 }}>
         <Label right={hiddenBells || bells ? (
           <Pressable accessibilityRole="button" onPress={() => { tap(); setBells(b => !b); }} hitSlop={8}>
-            <Txt v="fine" color={C.gold}>{bells ? 'Hide bell schedule' : 'Show bell schedule'}</Txt>
+            <Txt v="fine" color={C.gold}>{`${bells ? 'Hide' : 'Show'} ${dayWords(data.hats).schedule.toLowerCase()}`}</Txt>
           </Pressable>
         ) : undefined}>{selected === today ? 'Today' : fmtLong(selected)}</Label>
         {shown.length ? (

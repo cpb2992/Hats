@@ -7,7 +7,7 @@ import { morningBody, planNotifications } from '../notify';
 import { guessHat, parseCapture, parseMany, splitCapture } from '../parse';
 import { dayTimeline, nowTask, openAtShutdown, queue, weekStats } from '../plan';
 import { comingDue, draftReport, summarize } from '../progress';
-import { currentBlock, isTeaching, nextBoost, nextFree, openTime, sectionNow, sections } from '../schedule';
+import { currentBlock, defaultSchedule, isTeaching, nextBoost, nextFree, openTime, sectionNow, sections } from '../schedule';
 import { evidenceMonths, monthSummary } from '../pulse';
 import { defaultHat, hatName, setHatPrefs, wornHats } from '../hats';
 import { shouldAskForReview } from '../review';
@@ -79,7 +79,7 @@ test('guesses hats from keywords', () => {
   assert.equal(guessHat('Sketch the new book cover'), 'creative');
   assert.equal(guessHat('Send the lab-supply list to the science team'), 'lead');
   assert.equal(guessHat('Something random'), null);
-  assert.equal(parseMany('ask about coverage pay, and order ballet tights for Saturday', TODAY).map(p => p.hat).join(','), 'union,home');
+  assert.equal(parseMany('ask about coverage pay, and order ballet tights for Saturday', TODAY).map(p => p.hat).join(','), 'union,parent');
 });
 
 function demo(): AppData {
@@ -205,9 +205,9 @@ test('adding parsed tasks and weekly stats', () => {
 test('normalize repairs partial saves', () => {
   const d = normalizeData({ settings: { name: 'Chris' }, tasks: [{ id: 'a', title: 'x', hat: 'nope' }] });
   assert.equal(d.settings.name, 'Chris');
-  assert.equal(d.settings.shutdown, '16:15');
-  assert.equal(d.tasks[0].hat, 'teacher');
-  assert.equal(d.hats.length, 12);
+  assert.equal(d.settings.shutdown, '17:00');
+  assert.equal(d.tasks[0].hat, 'work');
+  assert.equal(d.hats.length, 15);
   assert.equal(fmtTime('16:45'), '4:45');
 });
 
@@ -293,10 +293,11 @@ test('hats: only worn hats are guessed, and renamed hats use their new name', ()
   }
 });
 
-test('a new install starts with a few hats worn and a generic school day', () => {
+test('a new install starts with a few hats worn, no blocks, and a typical school day ready for teachers', () => {
   const d = normalizeData(null);
-  assert.deepEqual(d.hats.filter(h => h.on).map(h => h.id), ['teacher', 'home', 'wellness']);
-  const mon = d.settings.schedule['1'];
+  assert.deepEqual(d.hats.filter(h => h.on).map(h => h.id), ['work', 'home', 'wellness']);
+  assert.equal(Object.values(d.settings.schedule).flat().length, 0);
+  const mon = defaultSchedule()['1'];
   assert.ok(mon.some(x => x.kind === 'free'));
   assert.deepEqual(mon.filter(x => x.kind === 'class').map(x => x.section), ['P1', 'P2', 'P3', 'P4', 'P5', 'P6']);
 });

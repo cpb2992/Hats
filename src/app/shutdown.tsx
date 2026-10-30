@@ -4,19 +4,21 @@ import { Pressable, Text, View } from 'react-native';
 import { markShutdown, moveTask } from '../engine/actions';
 import { weekday } from '../engine/dates';
 import { moveDate, openAtShutdown, winsOn, type Move } from '../engine/plan';
+import { dayWords } from '../engine/hats';
 import { maybeAskForReview } from '../services/review';
 import { useApp } from '../store/AppStore';
 import { Icon } from '../ui/icons';
 import { Btn, Card, CircleBtn, Label, Patch, Screen, success, tap, Txt } from '../ui/kit';
 import { C, F } from '../ui/theme';
 
-/** 4:45 · two minutes to close the school day: see what got done, give each open item a date. */
+/** End of the day · two minutes to close the work or school day: see what got done, give each open item a date. */
 export default function Shutdown() {
   const { data, today, mutate, demo } = useApp();
   const wins = winsOn(data, today);
   const [open] = useState(() => openAtShutdown(data, today));
   const [moves, setMoves] = useState<Record<string, Move>>({});
   const friday = weekday(today) === 5;
+  const words = dayWords(data.hats);
   const placed = open.filter(t => moves[t.id]).length;
 
   const finish = () => {
@@ -38,7 +40,7 @@ export default function Shutdown() {
         <Txt v="fine">Shutdown</Txt>
         <CircleBtn icon="close" size={44} kind="quiet" label="Close" onPress={() => router.back()} />
       </View>
-      <Txt v="hero">School brain,{'\n'}off.</Txt>
+      <Txt v="hero">{words.brain},{'\n'}off.</Txt>
 
       <View style={{ gap: 4 }}>
         <View style={{ flexDirection: 'row', alignItems: 'baseline', gap: 10, paddingBottom: 6 }}>
@@ -81,7 +83,7 @@ export default function Shutdown() {
 
       <View style={{ gap: 10 }}>
         <Btn title={friday ? 'Shut it down · see your week' : 'Shut it down'} icon="power" onPress={finish} />
-        <Txt v="fine" center>{!open.length ? 'Nothing left open. Go be home.' : placed === open.length ? 'All placed. School stays hidden until morning.' : 'Anything without a date moves to the next school day.'}</Txt>
+        <Txt v="fine" center>{!open.length ? 'Nothing left open. Go be home.' : placed === open.length ? `All placed. ${words.Day} stays hidden until morning.` : 'Anything without a date moves to the next school day.'}</Txt>
       </View>
     </Screen>
   );

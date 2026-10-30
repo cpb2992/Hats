@@ -2,8 +2,8 @@
 import { addDays, nextWorkday, weekStart } from './dates';
 import { ALL_HATS, HATS, STARTER_HATS } from './hats';
 import { DEFAULT_MOVES } from './pulse';
-import { defaultSchedule } from './schedule';
-import type { AppData, Chore, Cycle, KidStep, Student, Task } from './types';
+import { emptySchedule } from './schedule';
+import type { AppData, Chore, Cycle, KidStep, PackItem, Student, Task } from './types';
 
 export const DEFAULT_ROUTINE: KidStep[] = [
   { id: 'r-backpack', label: 'Backpack away', icon: 'backpack' },
@@ -29,14 +29,14 @@ export function freshData(): AppData {
       name: '',
       onboarded: false,
       morning: '06:15',
-      schoolStart: '07:30',
-      shutdown: '16:15',
+      schoolStart: '09:00',
+      shutdown: '17:00',
       pickups: '17:00',
       bedtime: '20:00',
       gym: '20:30',
       workdays: [1, 2, 3, 4, 5],
       notify: { morning: true, shutdown: true, tasks: true, blocks: true, events: true },
-      schedule: defaultSchedule(),
+      schedule: emptySchedule(),
     },
     hats: ALL_HATS.map(id => ({ id, name: HATS[id].name, on: STARTER_HATS.includes(id) })),
     tasks: [],
@@ -52,6 +52,7 @@ export function freshData(): AppData {
     board: { date: '', done: {}, stars: 0, goal: 20, reward: 'Friday movie night. You pick the movie.' },
     days: {},
     focus: [],
+    packs: [],
   };
 }
 
@@ -60,7 +61,8 @@ export function makeDemo(today: string, settings?: AppData['settings']): AppData
   const d = freshData();
   if (settings) d.settings = { ...settings, onboarded: true, notify: { morning: false, shutdown: false, tasks: false, blocks: false, events: false } };
   d.settings.name = d.settings.name || 'Sam';
-  d.hats = d.hats.map(h => ({ ...h, on: ['teacher', 'sped', 'lead', 'coach', 'home', 'wellness'].includes(h.id) }));
+  d.hats = d.hats.map(h => ({ ...h, on: ['work', 'lead', 'gig', 'parent', 'home', 'wellness'].includes(h.id) }));
+  d.settings.schedule = sampleWorkWeek();
   d.settings.onboarded = true;
   const created = `${today}T06:00:00.000Z`;
   let order = 0;
@@ -68,19 +70,28 @@ export function makeDemo(today: string, settings?: AppData['settings']): AppData
     id: `demo-${order}`, title, hat, date: today, time: null, minutes, student: null, done: false, doneAt: null, created, order: order++, deferredAt: null, ...extra,
   });
   d.tasks = [
-    task('Print the exit tickets for P3', 'teacher', 5),
-    task('Sign the progress note for A.R.', 'sped', 10, { time: '10:40', student: 'A.R.' }),
-    task('Send the team agenda for Thursday', 'lead', 5, { time: '11:50' }),
-    task('Post the bus time for Saturday’s game', 'coach', 5, { time: '14:50' }),
-    task('Call the vet about the dog’s shots', 'home', 5),
+    task('Send the Q3 numbers to Dana', 'work', 10),
+    task('Prep the client deck', 'work', 45, { time: '10:30' }),
+    task('Write Priya’s review notes', 'lead', 20, { time: '13:30' }),
+    task('Invoice the Lees for October', 'gig', 5, { time: '16:30' }),
+    task('Sign the field trip form', 'parent', 2),
     task('30-minute walk', 'wellness', 30, { time: '17:30' }),
-    task('Book the kids’ dentist appointments', 'home', 10, { date: addDays(today, 2) }),
-    task('Finish the IEP draft for A.R.', 'sped', 25, { student: 'A.R.' }),
-    task('Plan the next unit’s first week', 'teacher', 30, { date: nextWorkday(today, [5]) }),
-    task('Entered quarter grades', 'teacher', 20, { done: true, doneAt: `${today}T07:05:00.000Z` }),
-    task('Replied to the supply order email', 'lead', 5, { done: true, doneAt: `${today}T07:20:00.000Z` }),
+    task('Book the kids’ dentist appointments', 'parent', 10, { date: addDays(today, 2) }),
+    task('Call the plumber about the sink', 'home', 10),
+    task('Renew the car registration', 'home', 15, { date: nextWorkday(today, [5]) }),
+    task('Answered the vendor email', 'work', 10, { done: true, doneAt: `${today}T07:05:00.000Z` }),
+    task('Paid the electric bill', 'home', 5, { done: true, doneAt: `${today}T07:20:00.000Z` }),
   ];
-  d.days[today] = { date: today, recovery: 72, three: ['demo-0', 'demo-7'], planned: true, shutdown: false };
+  const item = (hat: PackItem['hat'], title: string, extra: Partial<PackItem> = {}): PackItem => ({
+    id: `demo-pk-${d.packs.length}`, hat, title, who: '', date: null, time: null, repeatDays: 0, amount: null, done: false, doneAt: null, last: null, sessions: [], note: '', created, ...extra,
+  });
+  d.packs = [];
+  d.packs.push(item('lead', 'Priya', { who: 'Designer', date: addDays(today, 1), time: '14:00', repeatDays: 14, last: addDays(today, -13) }));
+  d.packs.push(item('lead', 'Marcus', { who: 'Analyst', date: addDays(today, 6), repeatDays: 14, last: addDays(today, -8) }));
+  d.packs.push(item('gig', 'Tutoring, October', { who: 'The Lees', amount: 240, date: today }));
+  d.packs.push(item('gig', 'Logo for the bakery', { who: 'Rise & Shine', amount: 350 }));
+  d.packs.push(item('gig', 'Tutoring, September', { who: 'The Lees', amount: 220, done: true, doneAt: `${today}T08:00:00.000Z` }));
+  d.days[today] = { date: today, recovery: 72, three: ['demo-0', 'demo-1'], planned: true, shutdown: false };
 
   const student = (id: string, initials: string, period: string, plan: Student['plan'], goal: string, kind: 'tally' | 'trials', values: number[], dueIn: number, dueLabel: string, accom: string[]): Student => {
     const goalId = `${id}-g1`;
@@ -111,4 +122,11 @@ export function makeDemo(today: string, settings?: AppData['settings']): AppData
   d.board = { date: today, done: { k1: ['r-backpack', 'r-dinner'], k2: ['r-backpack'] }, stars: 11, goal: 20, reward: 'Friday movie night. You pick the movie.' };
   d.focus = [{ taskId: 'demo-9', start: `${today}T06:50:00.000Z`, minutes: 20 }];
   return d;
+}
+
+/** The sample person's office week: a standup, a long meeting midweek, and focus time. */
+function sampleWorkWeek(): AppData['settings']['schedule'] {
+  const blk = (start: string, end: string, label: string, kind: 'meeting' | 'free' | 'break' | 'class') => ({ id: `${start}-${label}`.toLowerCase().replace(/[^a-z0-9]+/g, '-'), start, end, label, kind });
+  const day = (extra: ReturnType<typeof blk>[] = []) => [blk('09:00', '09:15', 'Standup', 'meeting'), blk('09:30', '11:30', 'Focus time', 'free'), blk('12:00', '12:45', 'Lunch', 'break'), ...extra];
+  return { '1': day([blk('14:00', '15:00', 'Team meeting', 'meeting')]), '2': day(), '3': day([blk('13:00', '16:00', 'Client workshop', 'class')]), '4': day(), '5': day([blk('15:00', '17:00', 'Focus time', 'free')]) };
 }

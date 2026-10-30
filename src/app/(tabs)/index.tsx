@@ -3,7 +3,7 @@ import { useState } from 'react';
 import { Pressable, Text, View } from 'react-native';
 import { completeTask, logPoint, notNow, reopenTask, undoPoint } from '../../engine/actions';
 import { fmtTime, greeting, minutesOf, weekday } from '../../engine/dates';
-import { hatName } from '../../engine/hats';
+import { dayWords, hatName } from '../../engine/hats';
 import { dayLog, dayTimeline, queue, winsOn } from '../../engine/plan';
 import { currentBlock, isTeaching, minutesLeft, nextFree } from '../../engine/schedule';
 import type { Block, Student } from '../../engine/types';
@@ -12,6 +12,7 @@ import { Icon } from '../../ui/icons';
 import { Btn, Cap, Card, CircleBtn, InitialsPatch, Label, Patch, Ring, Screen, success, tap, thud, Txt, useWide } from '../../ui/kit';
 import { AllClearSpot } from '../../ui/spots';
 import { DayRow } from '../../ui/DayRow';
+import { PackStrip } from '../../ui/PackStrip';
 import { TaskRow } from '../../ui/TaskRow';
 import { C, F, recoveryColor } from '../../ui/theme';
 
@@ -155,7 +156,7 @@ export default function NowScreen() {
         <Pressable accessibilityRole="button" accessibilityLabel={`Next task: ${now.title}`} onPress={() => { tap(); router.push(`/task/${now.id}`); }} style={{ flexDirection: 'row', alignItems: 'center', gap: 12, paddingTop: 14, borderTopWidth: 1, borderTopColor: C.line }}>
           <Patch hat={now.hat} size={28} />
           <View style={{ flex: 1, gap: 2 }}>
-            <Txt v="fine">{upcomingFree ? `Waiting for ${upcomingFree.label.split(' · ')[0]} at ${fmtTime(upcomingFree.start)}` : 'Up after school'}</Txt>
+            <Txt v="fine">{upcomingFree ? `Waiting for ${upcomingFree.label.split(' · ')[0]} at ${fmtTime(upcomingFree.start)}` : dayWords(data.hats).after}</Txt>
             <Txt v="semi" numberOfLines={2}>{now.title}</Txt>
           </View>
         </Pressable>
@@ -233,7 +234,7 @@ export default function NowScreen() {
     </View>
   );
 
-  const main = <>{planCard}{breakStrip}{classCard}{meetingCard}{nowCard}{upNext}</>;
+  const main = <>{planCard}{breakStrip}{classCard}{meetingCard}{nowCard}{upNext}<PackStrip /></>;
   if (wide) {
     return (
       <Screen>

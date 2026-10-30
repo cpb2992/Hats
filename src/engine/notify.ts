@@ -1,6 +1,6 @@
 /** Works out which reminders to schedule for the coming week. Scheduling itself lives in services/notifications. */
 import { addDays, fmtTime, fromISO, minutesOf, todayISO, weekday } from './dates';
-import { hatName } from './hats';
+import { dayWords, hatName } from './hats';
 import { blockMinutes, freeBlocks } from './schedule';
 import type { AppData } from './types';
 
@@ -39,7 +39,7 @@ export function planNotifications(data: AppData, now: Date, days = 7): Planned[]
     if (s.notify.shutdown && work) {
       const at = atTime(date, s.shutdown);
       const friday = weekday(date) === 5;
-      if (at > now) out.push({ id: `sync-shutdown-${date}`, title: friday ? 'Shutdown · end of the week' : 'Shutdown', body: friday ? 'Close the week and see your wins.' : 'Two minutes to close the school day.', at, url: '/shutdown' });
+      if (at > now) out.push({ id: `sync-shutdown-${date}`, title: friday ? 'Shutdown · end of the week' : 'Shutdown', body: friday ? 'Close the week and see your wins.' : `Two minutes to close the ${dayWords(data.hats).day} day.`, at, url: '/shutdown' });
     }
     if (s.notify.blocks && work) {
       for (const blk of freeBlocks(s, date)) {

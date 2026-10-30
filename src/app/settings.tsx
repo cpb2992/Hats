@@ -4,7 +4,8 @@ import { useState, type ReactNode } from 'react';
 import { Alert, Linking, Pressable, Share, Switch, Text, TextInput, View } from 'react-native';
 import { PRIVACY_URL, SHARE_MESSAGE, STORE_URL } from '../engine/links';
 import { fmtTime, minutesOf, timeOf } from '../engine/dates';
-import { hatName, HATS } from '../engine/hats';
+import { dayWords, hatName, HATS } from '../engine/hats';
+import { PACKS } from '../engine/packs';
 import { choreTime } from '../engine/rhythm';
 import type { Chore, HatId, KidColor, Settings } from '../engine/types';
 import { uid } from '../engine/util';
@@ -66,6 +67,7 @@ export default function SettingsScreen() {
     const ok = await pinWidget(name);
     setWidgetNote(ok ? 'Your phone will ask where to put it.' : 'Long-press an empty spot on your home screen, tap Widgets, then find Hats.');
   };
+  const words = dayWords(data.hats);
   const setS = (patch: Partial<Settings>) => mutate(d => { d.settings = { ...d.settings, ...patch }; });
 
   return (
@@ -81,7 +83,9 @@ export default function SettingsScreen() {
       <Section title="Hats you wear">
         {data.hats.map((h, i) => (
           <Line key={h.id} last={i === data.hats.length - 1}>
-            <Patch hat={h.id} size={34} />
+            <Pressable accessibilityRole="button" accessibilityLabel={`Open the ${hatName(h.id)} pack`} onPress={() => { tap(); router.push(`/pack/${h.id}`); }} hitSlop={6}>
+              <Patch hat={h.id} size={34} />
+            </Pressable>
             <View style={{ flex: 1 }}>
               {renaming === h.id ? (
                 <TextInput
@@ -101,27 +105,27 @@ export default function SettingsScreen() {
                   <Icon name="edit" size={13} color={C.ink3} />
                 </Pressable>
               )}
-              <Txt v="fine">{HATS[h.id].meaning}</Txt>
+              <Txt v="fine">{HATS[h.id].meaning} · {PACKS[h.id].title}</Txt>
             </View>
             <Switch value={h.on} onValueChange={on => mutate(d => { if (!on && d.hats.filter(x => x.on).length <= 1) return; d.hats = d.hats.map(x => (x.id === h.id ? { ...x, on } : x)); })} trackColor={{ true: C.gold, false: C.raised2 }} thumbColor={C.ink} accessibilityLabel={`Wear ${hatName(h.id)}`} />
           </Line>
         ))}
-        <Txt v="fine">Tap a name to rename it, like “Science” or “Grade 7 lead”.</Txt>
+        <Txt v="fine">Tap a name to rename it, like “Science” or “Night shift”. Tap a patch to open that hat’s pack.</Txt>
       </Section>
 
       <Section title="Your day">
         {TIMES.map((t, i) => (
           <Line key={t.key} last={i === TIMES.length - 1}>
-            <Txt v="semi" style={{ flex: 1 }}>{t.label}</Txt>
+            <Txt v="semi" style={{ flex: 1 }}>{t.key === 'schoolStart' ? `${words.Day} day starts` : t.label}</Txt>
             <Stepper label={t.label} value={fmtTime(s[t.key], true)} onMinus={() => setS({ [t.key]: timeOf(minutesOf(s[t.key]) - 15) } as Partial<Settings>)} onPlus={() => setS({ [t.key]: timeOf(minutesOf(s[t.key]) + 15) } as Partial<Settings>)} />
           </Line>
         ))}
       </Section>
 
-      <Btn title="Bell schedule" kind="quiet" icon="calendar" onPress={() => router.push('/schedule')} />
+      <Btn title={words.schedule} kind="quiet" icon="calendar" onPress={() => router.push('/schedule')} />
 
       <View style={{ gap: 12 }}>
-        <Label>School days</Label>
+        <Label>{`${words.Day} days`}</Label>
         <View style={{ flexDirection: 'row', gap: 8 }}>
           {DAY_LETTERS.map((l, i) => {
             const on = s.workdays.includes(i);
@@ -135,7 +139,7 @@ export default function SettingsScreen() {
       </View>
 
       <Section title="Reminders">
-        {([['morning', 'Morning plan, with the defrost reminder'], ['blocks', 'When a free block starts'], ['shutdown', 'Shutdown on school days'], ['tasks', 'Tasks with a time'], ['events', 'Calendar events, 15 minutes before']] as const).map(([k, label], i) => (
+        {([['morning', 'Morning plan, with the defrost reminder'], ['blocks', 'When a free block starts'], ['shutdown', `Shutdown on ${words.day} days`], ['tasks', 'Tasks with a time'], ['events', 'Calendar events, 15 minutes before']] as const).map(([k, label], i) => (
           <Line key={k} last={i === 4}>
             <Txt v="semi" style={{ flex: 1 }}>{label}</Txt>
             <Switch value={s.notify[k]} onValueChange={v => setS({ notify: { ...s.notify, [k]: v } })} trackColor={{ true: C.gold, false: C.raised2 }} thumbColor={C.ink} accessibilityLabel={label} />
@@ -240,7 +244,7 @@ export default function SettingsScreen() {
       </View>
       <View style={{ gap: 12 }}>
         <Label>Spread the word</Label>
-        <Btn title="Tell a teacher about Hats" kind="quiet" icon="share" onPress={() => { Share.share({ message: SHARE_MESSAGE }).catch(() => {}); }} />
+        <Btn title="Tell a friend about Hats" kind="quiet" icon="share" onPress={() => { Share.share({ message: SHARE_MESSAGE }).catch(() => {}); }} />
         <Btn title="Rate Hats" kind="quiet" icon="star" onPress={() => { Linking.openURL(STORE_URL).catch(() => {}); }} />
         <Btn title="Privacy policy" kind="quiet" icon="lock" onPress={() => { Linking.openURL(PRIVACY_URL).catch(() => {}); }} />
       </View>

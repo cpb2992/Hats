@@ -1,4 +1,5 @@
 /** Changes to AppData. Each takes the draft to change in place (the store hands over a copy). */
+import { isPackTask, packTaskDone } from './packs';
 import { dayLog } from './plan';
 import type { Parsed } from './parse';
 import type { AppData, HatId, HatsEvent, Task } from './types';
@@ -37,6 +38,7 @@ export function completeTask(d: AppData, id: string, nowIso: string) {
   t.done = true;
   t.doneAt = nowIso;
   t.deferredAt = null;
+  if (isPackTask(id)) packTaskDone(d, id, nowIso);
 }
 
 export function reopenTask(d: AppData, id: string) {

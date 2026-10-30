@@ -29,10 +29,17 @@ function typicalDay(): Block[] {
   ];
 }
 
-/** Weekly blocks keyed by weekday (1 = Monday ... 5 = Friday). */
+/** A typical school week for teachers to adjust, keyed by weekday (1 = Monday ... 5 = Friday). */
 export function defaultSchedule(): Record<string, Block[]> {
   return { '1': typicalDay(), '2': typicalDay(), '3': typicalDay(), '4': typicalDay(), '5': typicalDay() };
 }
+
+/** No blocks: the work day is just its start and end times until someone adds meetings or shifts. */
+export function emptySchedule(): Record<string, Block[]> {
+  return { '1': [], '2': [], '3': [], '4': [], '5': [] };
+}
+
+export const hasBlocks = (sch: Record<string, Block[]>) => Object.values(sch).some(list => list.length > 0);
 
 export function blocksFor(s: Settings, date: string): Block[] {
   if (!s.workdays.includes(weekday(date))) return [];

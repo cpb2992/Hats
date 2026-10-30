@@ -48,7 +48,8 @@ test('events get sensible lengths, dates and all-day handling', () => {
   ], s);
   assert.deepEqual(actions.map(a => a.kind === 'event' && [a.date, a.start, a.end, a.allDay, a.hat]), [
     ['2026-10-29', '09:30', '10:30', false, 'sped'],
-    [TODAY, '15:20', '15:50', false, 'teacher'],
+    // No keyword and a made-up hat: the first hat worn.
+    [TODAY, '15:20', '15:50', false, 'work'],
     ['2026-11-06', null, null, true, 'teacher'],
   ]);
 });

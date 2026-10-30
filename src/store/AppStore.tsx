@@ -5,6 +5,7 @@ import { nowMinutes, todayISO } from '../engine/dates';
 import type { Recent } from '../engine/assistant';
 import { setHatPrefs } from '../engine/hats';
 import { normalizeData } from '../engine/normalize';
+import { materializePacks } from '../engine/packs';
 import { materializeChores } from '../engine/rhythm';
 import { freshData, makeDemo } from '../engine/seed';
 import type { AppData } from '../engine/types';
@@ -86,11 +87,15 @@ export function AppStoreProvider({ children }: { children: ReactNode }) {
     if (!ready) return;
     Promise.resolve().then(() => setReal(prev => {
       const next = clone(prev);
-      if (!materializeChores(next, today, new Date().toISOString())) return prev;
+      const nowIso = new Date().toISOString();
+      const chores = materializeChores(next, today, nowIso);
+      // Pack items due today (a 1:1, a refill, a deadline) become today's tasks too.
+      const packs = materializePacks(next, today, nowIso);
+      if (!chores && !packs) return prev;
       AsyncStorage.setItem(DATA_KEY, JSON.stringify(next)).catch(() => {});
       return next;
     }));
-  }, [ready, today, real.chores]);
+  }, [ready, today, real.chores, real.packs, real.hats]);
 
   // Home-screen widgets follow your real data, and refresh as the school day moves between blocks.
   const tenMin = Math.floor(nowMin / 10);

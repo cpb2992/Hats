@@ -1,6 +1,6 @@
 /** Decides what's Now, what's next, and what the day looks like. */
 import { addDays, minutesOf, nextMonday, nextWorkday, weekday, weekStart } from './dates';
-import { ALL_HATS, SCHOOL_HATS } from './hats';
+import { ALL_HATS, dayWords, SCHOOL_HATS } from './hats';
 import { blocksFor } from './schedule';
 import type { AppData, Block, DayLog, HatId, HatsEvent, KeyDate, Settings, Student, Task } from './types';
 
@@ -69,9 +69,9 @@ export function anchors(s: Settings, date: string): Anchor[] {
   const work = s.workdays.includes(weekday(date));
   const out: Anchor[] = [];
   if (work) {
-    if (!blocksFor(s, date).length) out.push({ time: s.schoolStart, title: 'School day', kind: 'school' });
+    if (!blocksFor(s, date).length) out.push({ time: s.schoolStart, title: `${dayWords().Day} day`, kind: 'school' });
     out.push({ time: s.shutdown, title: 'Shutdown', kind: 'shutdown' });
-    out.push({ time: s.pickups, title: 'Pickups', kind: 'pickups' });
+    out.push({ time: s.pickups, title: 'Home time', kind: 'pickups' });
   }
   out.push({ time: s.bedtime, title: 'Bedtime', kind: 'bedtime' });
   out.push({ time: s.gym, title: 'Me time', kind: 'gym' });

@@ -44,7 +44,7 @@ export function ClaudeSection() {
           </>
         ) : (
           <>
-            <Txt v="sub">Add a Claude API key and Say anything understands what you mean, not just keywords. It reads what you say against your bell schedule, your Hats calendar, tasks and caseload.</Txt>
+            <Txt v="sub">Add a Claude API key and Say anything understands what you mean, not just keywords. It reads what you say against your schedule, your Hats calendar, your tasks and your packs.</Txt>
             <Field value={draft} onChangeText={setDraft} placeholder="sk-ant-…" secureTextEntry autoCapitalize="none" autoCorrect={false} accessibilityLabel="Claude API key" />
             <Btn title={busy ? 'Checking…' : 'Save key'} disabled={!draft.trim() || busy} onPress={save} />
             <Pressable accessibilityRole="link" onPress={() => Linking.openURL('https://platform.claude.com/settings/keys').catch(() => {})} hitSlop={6}>

@@ -1,6 +1,6 @@
 /** What each home-screen widget shows, worked out from AppData and the clock. No UI here. */
 import { dayName, fmtTime } from './dates';
-import { hatName } from './hats';
+import { dayWords, hatName } from './hats';
 import { queue, winsOn } from './plan';
 import { currentBlock, isTeaching, minutesLeft, nextFree, sectionNow } from './schedule';
 import type { AppData, HatId } from './types';
@@ -27,7 +27,7 @@ export function nowView(data: AppData, today: string, nowMin: number): NowView {
   const block = currentBlock(s, today, nowMin);
   if (block && isTeaching(block)) {
     const free = nextFree(s, today, nowMin);
-    const when = free ? `${free.label.split(' · ')[0]} at ${fmtTime(free.start)}` : 'After school';
+    const when = free ? `${free.label.split(' · ')[0]} at ${fmtTime(free.start)}` : dayWords(data.hats).after;
     return { mode: 'class', status: `until ${fmtTime(block.end)}`, title: block.label, waiting: task ? `${when}: ${task.title}` : undefined, wins };
   }
   if (block && block.kind === 'meeting') {
