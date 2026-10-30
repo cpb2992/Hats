@@ -144,11 +144,11 @@ export default function PackScreen() {
             {open.map((p, i) => (
               <View key={p.id}>
                 {editing === p.id ? <View style={{ marginVertical: 8 }}>{form}</View> : (
-                  <Row last={i === open.length - 1} minHeight={66} onPress={() => startEdit(p)} accessibilityLabel={`${p.title}. Edit`}>
-                    <View style={{ flex: 1, gap: 3 }}>
+                  <Row last={i === open.length - 1} minHeight={66}>
+                    <Pressable accessibilityRole="button" accessibilityLabel={`${p.title}. Edit`} onPress={() => { tap(); startEdit(p); }} style={({ pressed }) => [{ flex: 1, gap: 3, paddingVertical: 10 }, pressed && { opacity: 0.7 }]}>
                       <Txt v="semi">{p.title}</Txt>
                       {sub(p) ? <Txt v="fine" color={p.date && p.date < today ? C.gold : undefined}>{sub(p)}</Txt> : null}
-                    </View>
+                    </Pressable>
                     <Pressable accessibilityRole="button" accessibilityLabel={`${list.doneLabel}: ${p.title}`} onPress={() => { tap(); finish(p); }} style={({ pressed }) => [{ paddingHorizontal: 14, height: 38, borderRadius: 19, borderWidth: 1, borderColor: C.line2, justifyContent: 'center' }, pressed && { opacity: 0.7 }]}>
                       <Txt v="fine" color={C.ink}>{list.doneLabel}</Txt>
                     </Pressable>
