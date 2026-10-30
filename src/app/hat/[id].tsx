@@ -16,6 +16,7 @@ import {
 import { amount, required, useEditor } from "../../personal/Editor";
 import { hangUpHat, id, isBuiltInHat, isCustomHatId, type PersonalHat, type Spending, hatDef } from "../../personal/model";
 import { usePersonal } from "../../personal/Store";
+import { HatPacks } from "../../personal/Packs";
 import { Streaks } from "../../personal/Streaks";
 import {
   Button,
@@ -898,15 +899,17 @@ export default function HatPage() {
           let day = today;
           for (let i = 0; i < 8 && !schoolBlocks(data, day).length; i++) day = addDays(today, i + 1);
           const blocks = schoolBlocks(data, day);
+          // Teachers see a school day; everyone else a work day.
+          const place = def.name === "Teacher" ? "school" : "work";
           return (
             <>
               <Panel dark>
                 <T size={21} display color="#FFFDFA">
                   {!schoolOn(data)
-                    ? "Your school day is off."
+                    ? `Your ${place} day is off.`
                     : day === today
-                      ? "Today at school"
-                      : `Next school day · ${fmtRelative(day, today)}`}
+                      ? `Today at ${place}`
+                      : `Next ${place} day · ${fmtRelative(day, today)}`}
                 </T>
                 {blocks.map((b) => (
                   <View key={b.start} style={{ flexDirection: "row", gap: 10, alignItems: "baseline" }}>
@@ -922,9 +925,9 @@ export default function HatPage() {
                   </View>
                 ))}
                 <Button
-                  title={schoolOn(data) ? "Change your classes" : "Turn on your school day"}
+                  title={schoolOn(data) ? (place === "school" ? "Change your classes" : "Change your work hours") : `Turn on your ${place} day`}
                   quiet
-                  hat="mortarboard"
+                  hat={def.art}
                   onPress={() => router.push("/settings")}
                 />
               </Panel>
@@ -1060,6 +1063,7 @@ export default function HatPage() {
           ))}
         </>
       ) : null}
+      <HatPacks hat={hat} />
       <Streaks hat={hat} />
       <Section
         hat={def.art}

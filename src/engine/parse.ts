@@ -217,3 +217,10 @@ export function splitCapture(raw: string): string[] {
 export function parseMany(raw: string, today: string, known: string[] = []): Parsed[] {
   return splitCapture(raw).map(item => parseCapture(item, today, known));
 }
+
+/** Reads a date and time out of short text like "Friday", "Nov 12 at 3", "tomorrow 4pm". */
+export function parseWhen(text: string, today: string): { date: string | null; time: string | null } {
+  const d = findDate(text, today);
+  const t = findTime(text);
+  return { date: d?.date ?? null, time: t?.time ?? null };
+}

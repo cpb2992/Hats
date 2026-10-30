@@ -13,6 +13,7 @@ import { AppState, Platform } from "react-native";
 import { nowMinutes, todayISO } from "../engine/dates";
 import { currentSession, readRemote, writeRemote, type Remote } from "./cloud";
 import { finishStep, materialize, reschedule } from "./engine";
+import { syncPacks } from "./packs";
 import { freshPersonal, setCustomHats, type PersonalData } from "./model";
 import { syncPersonalReminders } from "./reminders";
 import { router } from "expo-router";
@@ -361,6 +362,17 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
         materialize(d, today);
       });
   }, [today, ready, error, mutate]);
+  // Pack lists and their to-dos stay in step: a check-in finished on Today books the next one.
+  const packKey = `${JSON.stringify(data.packItems ?? [])}|${JSON.stringify(data.packs ?? {})}|${data.tasks
+    .filter((t) => t.source?.startsWith("pack:"))
+    .map((t) => `${t.source}${t.doneAt ? "+" : ""}`)
+    .join(",")}`;
+  useEffect(() => {
+    if (ready && !error && syncPacks(clone(ref.current)))
+      mutate((d) => {
+        for (let i = 0; i < 20 && syncPacks(d); i++);
+      });
+  }, [packKey, ready, error, mutate]);
   useEffect(() => {
     if (!ready || error) return;
     const timer = setTimeout(() => {

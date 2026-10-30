@@ -1,6 +1,7 @@
 import { HAT_ART_IDS, type HatArtId } from "./hatArt";
 import { libraryHat } from "./hatLibrary";
 import { validRule } from "./repeat";
+import type { PackItem, PackKind } from "./packs";
 export type BuiltInHat =
   "husband" | "dad" | "pets" | "home" | "friends" | "myself" | "work";
 /** A hat you added yourself: "my-" and a short slug. */
@@ -145,6 +146,13 @@ export function hangUpHat(d: PersonalData, id: CustomHatId) {
   d.moments?.forEach(home);
   d.habits?.forEach(home);
   d.log?.forEach(home);
+  d.packItems?.forEach(home);
+  // Its packs move to Home with their lists.
+  const moving = d.packs?.[id] ?? [];
+  if (moving.length) {
+    const homePacks = d.packs?.home ?? [];
+    d.packs = { ...d.packs, home: [...new Set([...homePacks, ...moving])], [id]: [] };
+  }
   d.customHats = (d.customHats ?? []).filter((h) => h.id !== id);
 }
 /** The hat you added whose name is in `text` ("water the garden" → Garden). */
@@ -425,6 +433,10 @@ export interface PersonalData {
   autoDeclined?: Record<string, string[]>;
   /** The family you share with (set up in Settings → Family sharing). */
   household?: Household;
+  /** Packs added to each hat (1:1s on Work, Jobs and invoices on a side-hustle hat). */
+  packs?: Partial<Record<PersonalHat, PackKind[]>>;
+  /** Everything kept in packs. */
+  packItems?: PackItem[];
 }
 export interface Household {
   id: string;
