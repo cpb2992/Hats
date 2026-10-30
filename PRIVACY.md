@@ -10,7 +10,7 @@ Everything you put in Hats is saved on your phone, encrypted: your hats, to-dos,
 
 ## Optional: an account and sync
 
-If you sign in (with your email), Hats keeps a copy of your data on Hats' sync server so you can restore it or use it on another device. It travels over an encrypted connection and each account can only read its own data, but it is **not end-to-end encrypted**: it's stored by our database provider (Supabase) and protected by their security. You can stop syncing and sign out at any time, and you can ask us to delete your account and synced data (see Contact).
+If you sign in (with your email), Hats keeps a copy of your data on Hats' sync server so you can restore it or use it on another device. It travels over an encrypted connection and each account can only read its own data, but it is **not end-to-end encrypted**: it's stored by our database provider (Supabase) and protected by their security. You can stop syncing and sign out at any time, and delete your account and synced data from inside the app (see Deleting your data).
 
 ## Optional: family sharing
 
@@ -38,8 +38,9 @@ Hats is made for adults. It isn't directed to children under 13 and doesn't know
 
 ## Deleting your data
 
-- On the phone: uninstall Hats, or use Settings to erase it.
-- Synced and shared data: sign in and delete your account in Settings, or email us and we'll delete it.
+- **Your account and everything Hats keeps on its server for it:** in the app, Settings → Account and sync → **Delete my account**. This deletes the account, the synced copy of your plan, your WHOOP connection and your place in family sharing. A family you started passes to another member, so their shared lists stay. It happens right away and can't be undone.
+- **Can't open the app?** Email us from the address on your account (see Contact) and ask us to delete it. We'll delete it within 30 days and confirm.
+- **On the phone:** uninstall Hats, or erase it in Settings.
 
 ## Changes
 

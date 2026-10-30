@@ -66,10 +66,10 @@ Take them from a made-up family set up through the normal setup (no real names o
 
 ## Before you submit: things Google will check
 
-- **Account deletion (required).** Hats lets people make an account (sign-in for sync and family sharing), so Google requires a way to delete the account from inside the app **and** a web page or email route to request it. The app doesn't have in-app account deletion yet. This is the one real blocker; it needs a small server function that deletes the account and its synced data.
+- **Account deletion: done.** Settings → Account and sync → Delete my account calls the `delete-account` server function (in `supabase/functions/`, live on the Hats server). In the Play Console's Data safety form, give this as the web link for deletion requests: https://github.com/cpb2992/Hats/blob/public/PRIVACY.md#deleting-your-data (it explains the in-app route and the email route). Test it once with a throwaway account before submitting.
 - **Accessibility service.** The public build leaves out "Protected family time" (the Android accessibility service), because Google only approves those for real accessibility needs. Personal builds keep it.
 - **Google Calendar.** The read-only Calendar scopes need Google's OAuth consent screen verified for public users (it shows "unverified app" otherwise, and has a 100-user cap). Start that early: it can take a few weeks.
-- **WHOOP.** Using WHOOP's API with the public needs WHOOP's developer approval for a production app. Until then, hide or label it as coming soon.
+- **WHOOP: hidden in the public build** until WHOOP approves Hats as a production app. When they do, set `WHOOP_IN_PUBLIC = true` in `src/personal/flavor.ts`.
 - **Privacy policy:** `PRIVACY.md` (add your contact email). URL: https://github.com/cpb2992/Hats/blob/public/PRIVACY.md
 
 ## Data safety form answers
@@ -79,8 +79,8 @@ Because of the optional account, sync and family sharing, Hats **does collect** 
 - **Personal info → Email address:** collected, optional, for account management. Not shared.
 - **App activity / Other user-generated content** (to-dos, notes, plans): collected only when sync or family sharing is on, optional, for app functionality. Not shared with third parties.
 - **Calendar → Calendar events:** collected when Google Calendar is connected, optional, app functionality, read-only.
-- **Health and fitness:** WHOOP recovery and sleep, only if connected, optional, app functionality.
-- Encrypted in transit: **Yes.** Users can request deletion: **Yes** (once account deletion is in).
+- **Health and fitness:** not in the public build while WHOOP is hidden. Add it (WHOOP recovery and sleep, optional) when WHOOP is turned on.
+- Encrypted in transit: **Yes.** Users can request deletion: **Yes** (in the app, and by email).
 - Speech is processed by the phone's own speech service, not sent to Hats.
 
 **Target audience:** 18 and over. This keeps Hats out of the Families program.
@@ -116,7 +116,6 @@ Save every channel for **one launch week** instead of trickling.
 
 ## Next features that would help it grow
 
-- In-app account deletion (needed before submitting; see above).
 - Say anything that adds straight to packs ("1:1 with Priya every other Tuesday").
 - Pack widgets (next 1:1, money owed this month, next deadline).
 - iPhone (the family web app covers iPhones for now).

@@ -6,3 +6,10 @@ export const ANDROID_PACKAGE = "com.hatsplanner.app";
 export const STORE_URL = `https://play.google.com/store/apps/details?id=${ANDROID_PACKAGE}`;
 export const PRIVACY_URL = "https://github.com/cpb2992/Hats/blob/public/PRIVACY.md";
 export const SHARE_MESSAGE = `I've been using Hats to juggle family, home, work and everything else: every role gets its own space, and it plans one calm day. Free on Android: ${STORE_URL}`;
+
+/**
+ * WHOOP in the public app. Off until WHOOP approves Hats as a production app (their developer
+ * program); personal builds always have it. Flip to true once approved.
+ */
+export const WHOOP_IN_PUBLIC = false;
+export const SHOW_WHOOP = !PUBLIC_BUILD || WHOOP_IN_PUBLIC;

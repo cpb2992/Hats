@@ -344,6 +344,33 @@ export async function readGoogleEvents(
   return collected;
 }
 
+// ---- Deleting the account (Google Play requires it in the app) ----
+/**
+ * Deletes the Hats account and everything stored for it on the server (the synced copy, WHOOP
+ * tokens, family membership), then signs out on this phone. What's on the phone stays until the
+ * person erases it too.
+ */
+export async function deleteAccount() {
+  const config = await getConfig();
+  const s = await currentSession();
+  if (!config || !s) throw new Error("Sign in first, then you can delete your account.");
+  const response = await fetch(`${config.url}/functions/v1/delete-account`, {
+    method: "POST",
+    headers: {
+      apikey: config.key,
+      Authorization: `Bearer ${s.access_token}`,
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify({ confirm: "DELETE" }),
+    signal: AbortSignal.timeout(25000),
+  });
+  const body = await response.json().catch(() => null);
+  if (!response.ok || !body?.deleted)
+    throw new Error(body?.error || `Deleting the account failed (${response.status}).`);
+  await secretSet(WHOOP_CACHE, null);
+  await signOut().catch(() => {});
+}
+
 // ---- WHOOP (read-only, through the private `whoop` server function) ----
 const WHOOP_CACHE = "hats.whoop.summary";
 async function whoopCall(

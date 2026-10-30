@@ -31,6 +31,10 @@ Hats connects to its own hosted Supabase project by default (`HOSTED` in `src/pe
 
 Data is encrypted on the native device using Expo Crypto AES-GCM; the key is held in SecureStore. Cloud synchronization uses account authorization, RLS, TLS, and the provider's storage protection. It is **not end-to-end encryption**. The web app keeps its plan and sign-in in the browser's storage. Exported JSON is readable, private data. Photo attachments currently remain local; their text notes can sync.
 
+## Deleting an account
+
+Settings → Account and sync → Delete my account calls the `delete-account` Edge Function (`supabase/functions/delete-account`). It checks the caller's session, hands any family they started to another member, then deletes the auth user; synced state, WHOOP tokens and memberships go with it (`on delete cascade`). Deploy it to your own project if you use one.
+
 ## Family sharing
 
 Settings → Family sharing: one person starts a household and sends the 8-character invite code; others join with it (Android app or the web app at `https://hats-family.expo.app`, which iPhones can add to the Home Screen). Shared: groceries, what's in the kitchen, the dinner plan, date nights (unless marked a surprise), events under the partner/parent/home/pets hats (or any event you put on the family calendar), and to-dos you choose to share, with an optional person whose job it is. Everything else stays private.

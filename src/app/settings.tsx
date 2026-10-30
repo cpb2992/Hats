@@ -8,11 +8,12 @@ import {
   googleSignIn,
   readGoogleEvents,
   signOut,
+  deleteAccount,
 } from "../personal/cloud";
 import { FamilySettings } from "../personal/FamilyShare";
 import { SignIn } from "../personal/SignIn";
 import { WhoopSettings } from "../personal/WhoopCard";
-import { PRIVACY_URL, PUBLIC_BUILD, SHARE_MESSAGE, STORE_URL } from "../personal/flavor";
+import { PRIVACY_URL, PUBLIC_BUILD, SHARE_MESSAGE, SHOW_WHOOP, STORE_URL } from "../personal/flavor";
 import { ThisCopy } from "../personal/UpdateReady";
 import { hatDef } from "../personal/model";
 import { routinePrefs } from "../personal/routine";
@@ -51,6 +52,7 @@ import {
   Panel,
   Row,
   T,
+  ask,
 } from "../personal/ui";
 
 function confirm(title: string, message: string, onConfirm: () => void) {
@@ -725,6 +727,26 @@ export default function Settings() {
               />
             </Row>
           )}
+          {account ? (
+            <Button
+              title="Delete my account"
+              quiet
+              disabled={busy}
+              onPress={() =>
+                ask(
+                  "Delete your Hats account?",
+                  "This deletes your account and everything Hats keeps on its server for it: the synced copy of your plan, WHOOP connection and your place in family sharing (a family you started passes to another member). Your plan on this phone stays until you erase it. This can’t be undone.",
+                  "Delete account",
+                  () =>
+                    run(async () => {
+                      await deleteAccount();
+                      setAccount("");
+                      say("Your account is deleted. Your plan on this phone is still here.");
+                    }),
+                )
+              }
+            />
+          ) : null}
           {conflict ? (
             <>
               <T bold>Both versions are preserved until you choose.</T>
@@ -827,13 +849,15 @@ export default function Settings() {
           </T>
         </Panel>
       </Group>
-      <Group
-        hat="bandana"
-        title="Health"
-        summary="WHOOP recovery and sleep"
-      >
-        <WhoopSettings signedIn={!!account} />
-      </Group>
+      {SHOW_WHOOP ? (
+        <Group
+          hat="bandana"
+          title="Health"
+          summary="WHOOP recovery and sleep"
+        >
+          <WhoopSettings signedIn={!!account} />
+        </Group>
+      ) : null}
       {Platform.OS !== "web" && !PUBLIC_BUILD ? (
         <Group
           hat="propeller"
