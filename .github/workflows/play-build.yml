@@ -1,0 +1,65 @@
+# Builds the signed app bundle (.aab) for Google Play and attaches it to a release.
+# Run it from Actions → "Play Store build" → Run workflow (on the public branch).
+#
+# EAS signs it with the app's upload key, which it keeps for you (made on the first run).
+# The very first upload of a new app has to be done by hand in Play Console (Google's rule);
+# after that, uploads can go through `eas submit` with a Play service account.
+name: Play Store build
+on:
+  workflow_dispatch:
+    inputs:
+      note:
+        description: What's in this build (for the release notes)
+        required: false
+        default: ''
+permissions:
+  contents: write
+concurrency:
+  group: play-build
+  cancel-in-progress: false
+jobs:
+  aab:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+      - uses: expo/expo-github-action@v9
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Build the app bundle on EAS
+        id: build
+        run: |
+          set -o pipefail
+          eas build --platform android --profile production --non-interactive --wait --json > build.json 2> build.log || {
+            echo "::error title=EAS build failed::$(tail -n 25 build.log | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          }
+          url=$(node -p "require('./build.json')[0].artifacts.buildUrl")
+          vc=$(node -p "require('./build.json')[0].appBuildVersion")
+          ver=$(node -p "require('./build.json')[0].appVersion")
+          echo "url=$url" >> "$GITHUB_OUTPUT"
+          echo "versionCode=$vc" >> "$GITHUB_OUTPUT"
+          echo "version=$ver" >> "$GITHUB_OUTPUT"
+          curl -sSL "$url" -o Hats-play.aab
+          ls -l Hats-play.aab
+      - uses: softprops/action-gh-release@v2
+        with:
+          tag_name: play-${{ steps.build.outputs.version }}-${{ steps.build.outputs.versionCode }}
+          target_commitish: ${{ github.sha }}
+          name: Play Store build · Hats ${{ steps.build.outputs.version }} (version code ${{ steps.build.outputs.versionCode }})
+          prerelease: true
+          make_latest: false
+          body: |
+            Upload Hats-play.aab in Play Console → your app → Testing → Internal testing (or Closed testing) → Create new release.
+            This is the store bundle (it doesn't install directly on a phone; use the Public Hats test build APK for that).
+            ${{ inputs.note }}
+          files: Hats-play.aab
