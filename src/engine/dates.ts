@@ -63,7 +63,7 @@ export function nowMinutes(d: Date = new Date()): number {
 export function fmtTime(time: string, ampm = false): string {
   const [h, m] = time.split(':').map(Number);
   const h12 = h % 12 === 0 ? 12 : h % 12;
-  return `${h12}:${pad(m)}${ampm ? (h < 12 ? ' AM' : ' PM') : ''}`;
+  return `${h12}:${pad(m)}${ampm ? (h % 24 < 12 ? ' AM' : ' PM') : ''}`;
 }
 
 const DAY = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];

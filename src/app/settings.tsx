@@ -10,6 +10,7 @@ import {
   signOut,
   deleteAccount,
 } from "../personal/cloud";
+import { WorkScheduleSettings } from "../personal/WorkSchedule";
 import { FamilySettings } from "../personal/FamilyShare";
 import { SignIn } from "../personal/SignIn";
 import { WhoopSettings } from "../personal/WhoopCard";
@@ -25,7 +26,6 @@ import {
   daySummary,
   schoolOn,
   isSimpleWeek,
-  simpleWeek,
 } from "../personal/school";
 import { fmtTime } from "../engine/dates";
 import { parseClock } from "../personal/clock";
@@ -401,7 +401,7 @@ export default function Settings() {
       >
         <Panel>
           <Check
-            title="Show my school day on Today"
+            title="Show my work schedule on Today"
             done={schoolOn(data)}
             onPress={() =>
               mutate((d) => {
@@ -413,55 +413,14 @@ export default function Settings() {
             }
           />
           <T muted>
-            Homeroom, each class, your off periods, lunch and dismissal show on
+            {isSimpleWeek(data.preferences.school?.week) ? "Your shifts show on Today and stay free of home to-dos. Change hours, add another job, or leave out a weekly schedule if your hours vary." : <>Homeroom, each class, your off periods, lunch and dismissal show on
             Today, and whatever’s happening now is the big card. A calendar
             meeting during an off period (like CPT during Specials) takes its
-            place. Days you don’t work and confirmed closures have no school day.
+            place. Days you don’t work and confirmed closures have no school day.</>}
           </T>
         </Panel>
-        {schoolOn(data) && isSimpleWeek(data.preferences.school?.week) ? (
-          <Panel>
-            {WEEKDAYS.map((name, i) => {
-              const key = String(i + 1);
-              const b = data.preferences.school?.week?.[key]?.[0];
-              return (
-                <Button
-                  key={key}
-                  title={`${name} · ${b ? `${fmtTime(b.start, true)}–${fmtTime(b.end, true)}` : "Off"}`}
-                  quiet
-                  onPress={() =>
-                    editor.open({
-                      title: `${name}’s hours`,
-                      detail: "Leave both empty for a day off.",
-                      fields: [
-                        { key: "start", label: "Starts", value: b ? fmtTime(b.start, true) : "", placeholder: "8:00 AM" },
-                        { key: "end", label: "Ends", value: b ? fmtTime(b.end, true) : "", placeholder: "3:00 PM" },
-                      ],
-                      onSave: (v) => {
-                        const off = !v.start.trim() && !v.end.trim();
-                        const start = parseClock(v.start);
-                        const end = parseClock(v.end);
-                        if (!off && (!start || !end || start >= end))
-                          throw new Error("Use times like 8:00 AM and 3:00 PM, start before end.");
-                        mutate((d) => {
-                          const cur = d.preferences.school ?? { on: true };
-                          const week = { ...(cur.week ?? {}) };
-                          if (off) delete week[key];
-                          else week[key] = simpleWeek([i + 1], start!, end!, b?.title ?? "Work")[key];
-                          d.preferences.school = { ...cur, week };
-                          const days = new Set(d.preferences.unavailableDays);
-                          if (off) days.delete(i + 1);
-                          else days.add(i + 1);
-                          d.preferences.unavailableDays = [...days].sort();
-                        });
-                        say(`${name} updated.`);
-                      },
-                    })
-                  }
-                />
-              );
-            })}
-          </Panel>
+        {isSimpleWeek(data.preferences.school?.week) ? (
+          <WorkScheduleSettings />
         ) : schoolOn(data) ? (
           <Panel>
             {WEEKDAYS.map((name, i) => {

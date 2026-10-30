@@ -4,7 +4,7 @@
  */
 import { installRoutines } from "./engine";
 import type { HatArtId } from "./hatArt";
-import { HAT_IDS, id, type BuiltInHat, type PersonalData } from "./model";
+import { HAT_IDS, id, type BuiltInHat, type PersonalData, type SchoolBlock } from "./model";
 import { simpleWeek } from "./school";
 
 export interface SetupAnswers {
@@ -16,7 +16,7 @@ export interface SetupAnswers {
   pets: string[];
   /** Built-in hats you wear. */
   hats: BuiltInHat[];
-  work?: { name: string; art: HatArtId; title: string; days: number[]; start: string; end: string };
+  work?: { name: string; art: HatArtId; title: string; days: number[]; start: string; end: string; week?: Record<string, SchoolBlock[]> };
   dinner: string;
   stories?: string;
   bedtime?: string;
@@ -41,8 +41,9 @@ export function applySetup(d: PersonalData, a: SetupAnswers, today: string) {
   if (kids && a.stories) p.storyTime = a.stories;
   if (kids && a.bedtime) p.bedtime = a.bedtime;
   if (a.work && a.hats.includes("work")) {
-    p.school = { on: true, week: simpleWeek(a.work.days, a.work.start, a.work.end, a.work.title) };
-    p.unavailableDays = [...a.work.days].sort();
+    const week = a.work.week ?? simpleWeek(a.work.days, a.work.start, a.work.end, a.work.title);
+    p.school = { on: Object.values(week).some((blocks) => blocks.length > 0), week };
+    p.unavailableDays = Object.keys(week).filter((day) => week[day].length > 0).map(Number).sort();
   } else {
     p.school = { on: false };
     p.unavailableDays = [];

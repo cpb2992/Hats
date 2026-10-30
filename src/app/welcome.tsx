@@ -8,6 +8,8 @@ import { Hat } from "../personal/Hat";
 import type { HatArtId } from "../personal/hatArt";
 import { HATS, HAT_IDS, type BuiltInHat } from "../personal/model";
 import { applySetup } from "../personal/setup";
+import { WorkScheduleFields } from "../personal/WorkSchedule";
+import { newWorkShift, workWeek, type WorkShift } from "../personal/workSchedule";
 import { Button, Chip, Field, P, Page, Panel, Row, T, sticker , tone } from "../personal/ui";
 
 type Step = "start" | "you" | "hats" | "work" | "evening";
@@ -18,7 +20,6 @@ const WORK: Record<Work, { label: string; art: HatArtId; name: string; title: st
   "hands-on": { label: "Hands-on", art: "hardhat", name: "Work", title: "Work", start: "7:00 AM", end: "3:30 PM" },
   other: { label: "Something else", art: "captain", name: "Work", title: "Work", start: "9:00 AM", end: "5:00 PM" },
 };
-const DAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 const list = (s: string) =>
   s
     .split(/[,\n]+|\s+and\s+/i)
@@ -37,9 +38,8 @@ export default function Welcome() {
   const [pets, setPets] = useState("");
   const [wear, setWear] = useState<BuiltInHat[]>(["home", "friends", "myself", "work"]);
   const [work, setWork] = useState<Work>("office");
-  const [days, setDays] = useState([1, 2, 3, 4, 5]);
-  const [start, setStart] = useState(WORK.office.start);
-  const [end, setEnd] = useState(WORK.office.end);
+  const [workName, setWorkName] = useState("Work");
+  const [shifts, setShifts] = useState<WorkShift[]>([newWorkShift()]);
   const [dinner, setDinner] = useState("5:45 PM");
   const [stories, setStories] = useState("7:15 PM");
   const [bed, setBed] = useState("7:45 PM");
@@ -53,17 +53,17 @@ export default function Welcome() {
     (h) => (h !== "husband" || hasPartner) && (h !== "dad" || hasKids) && (h !== "pets" || hasPets),
   );
   const label = (h: BuiltInHat) =>
-    h === "husband" ? partnerWord : h === "dad" ? parentWord : h === "work" ? WORK[work].name : HATS[h].name;
+    h === "husband" ? partnerWord : h === "dad" ? parentWord : h === "work" ? workName.trim() || "Work" : HATS[h].name;
   const art = (h: BuiltInHat) => (h === "work" ? WORK[work].art : HATS[h].art);
   const toggle = (h: BuiltInHat) =>
     setWear((w) => (w.includes(h) ? w.filter((x) => x !== h) : [...w, h]));
 
   const finish = () => {
     const times = [dinner, ...(hasKids ? [stories, bed] : [])].map(parseClock);
-    const hours = [parseClock(start), parseClock(end)];
+    let week;
+    try { week = workWeek(wear.includes("work") ? shifts : []); }
+    catch (error) { return setProblem(error instanceof Error ? error.message : "Check your hours."); }
     if (times.some((t) => !t)) return setProblem("Use times like 5:45 PM.");
-    if (wear.includes("work") && (!hours[0] || !hours[1] || hours[0] >= hours[1]))
-      return setProblem("Work hours need a start before the end, like 9:00 AM and 5:00 PM.");
     const chosen = offered.filter((h) => wear.includes(h));
     mutate((d) =>
       applySetup(
@@ -77,7 +77,7 @@ export default function Welcome() {
           pets: list(pets),
           hats: chosen,
           work: chosen.includes("work")
-            ? { name: WORK[work].name, art: WORK[work].art, title: WORK[work].title, days, start: hours[0]!, end: hours[1]! }
+            ? { name: workName.trim() || "Work", art: WORK[work].art, title: workName.trim() || "Work", days: Object.keys(week).map(Number), start: "09:00", end: "17:00", week }
             : undefined,
           dinner: times[0]!,
           stories: times[1] ?? undefined,
@@ -264,9 +264,11 @@ export default function Welcome() {
       {step === "work" ? (
         <>
           <T display size={26} header>
-            Your work day
+            Work, on your terms
           </T>
-          <T muted>It shows on Today, and Hats keeps those hours free of home to-dos.</T>
+          <T muted>Name this space however you like. Your schedule can include weekends, different hours each day, or more than one job.</T>
+          <Field label="Name your work hat" value={workName} onChangeText={setWorkName} maxLength={30} placeholder="Nursing, study, freelance…" />
+          <T muted size={13}>Optional look for your work hat</T>
           <Row>
             {(Object.keys(WORK) as Work[]).map((k) => (
               <Chip
@@ -275,33 +277,12 @@ export default function Welcome() {
                 selected={work === k}
                 onPress={() => {
                   setWork(k);
-                  setStart(WORK[k].start);
-                  setEnd(WORK[k].end);
                 }}
               />
             ))}
           </Row>
-          <T size={13} bold>
-            Days
-          </T>
-          <Row>
-            {DAYS.map((d, i) => (
-              <Chip
-                key={d}
-                title={d}
-                selected={days.includes(i)}
-                onPress={() => setDays((x) => (x.includes(i) ? x.filter((y) => y !== i) : [...x, i]))}
-              />
-            ))}
-          </Row>
-          <Row>
-            <View style={{ flex: 1, minWidth: 130 }}>
-              <Field label="Starts" value={start} onChangeText={setStart} />
-            </View>
-            <View style={{ flex: 1, minWidth: 130 }}>
-              <Field label="Ends" value={end} onChangeText={setEnd} />
-            </View>
-          </Row>
+          <WorkScheduleFields shifts={shifts} onChange={(next) => { setShifts(next); setProblem(""); }} />
+          {problem ? <T bold color={P.orange}>{problem}</T> : null}
           {work === "teacher" ? (
             <T size={12} muted>
               You can switch to your full bell schedule, period by period, in Settings.
@@ -309,7 +290,11 @@ export default function Welcome() {
           ) : null}
           <Row>
             {back("hats")}
-            {next("evening")}
+            <Button title="Next" onPress={() => {
+              try { workWeek(shifts); setProblem(""); setStep("evening"); }
+              catch (error) { setProblem(error instanceof Error ? error.message : "Check your hours."); }
+            }} />
+            <Button title="No fixed hours / set up later" quiet onPress={() => { setShifts([]); setProblem(""); setStep("evening"); }} />
           </Row>
         </>
       ) : null}

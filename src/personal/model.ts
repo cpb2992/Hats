@@ -638,7 +638,7 @@ export function validData(value: unknown): value is PersonalData {
                   (b) =>
                     b &&
                     time(b.start) &&
-                    time(b.end) &&
+                    (time(b.end) || b.end === "24:00") &&
                     b.start < b.end &&
                     text(b.title) &&
                     (b.note === undefined || text(b.note)),

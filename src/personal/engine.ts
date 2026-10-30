@@ -1,3 +1,4 @@
+import { isWorkWeek } from "./workSchedule";
 import { routineBlocks } from "./routine";
 import { dinnerFor, missingFor } from "./meals";
 import { eventsOn, lastBetween, taskRule } from "./repeat";
@@ -101,12 +102,15 @@ export function dayWindows(
   const p = data.preferences;
   const dayOff = eventsOn(data, date).some((e) => e.closure);
   const weekdayBusy = p.unavailableDays.includes(weekday(date)) && !dayOff;
-  const start = minutesOf(weekdayBusy ? p.homeTime : p.weekendStart);
-  const end = minutesOf(weekdayBusy ? p.endTime : p.weekendEnd);
+  const customHours = p.school?.on && isWorkWeek(p.school.week);
+  const start = minutesOf(customHours ? p.weekendStart : weekdayBusy ? p.homeTime : p.weekendStart);
+  const end = minutesOf(customHours ? p.weekendEnd : weekdayBusy ? p.endTime : p.weekendEnd);
   let windows = end > start ? [{ start, end }] : [];
   const blocked = eventsOn(data, date)
     .filter((e) => !e.allDay)
     .map((e) => ({ start: minutesOf(e.start), end: minutesOf(e.end) }));
+  if (customHours && !dayOff)
+    blocked.push(...(p.school?.week?.[String(weekday(date))] ?? []).map((b) => ({ start: minutesOf(b.start), end: minutesOf(b.end) })));
   // Keep the family's evening rhythm free (dinner, bath night, stories, bedtime).
   blocked.push(...routineBlocks(data, date));
   // Date night: getting ready and the date itself.

@@ -4,6 +4,7 @@
  */
 import { weekday } from "../engine/dates";
 import type { PersonalData, SchoolBlock } from "./model";
+import { isWorkWeek } from "./workSchedule";
 import { isWorkday } from "./routine";
 
 const block = (
@@ -141,5 +142,4 @@ export function simpleWeek(days: number[], start: string, end: string, title: st
   return week;
 }
 /** Whether a schedule is plain hours (one block a day) rather than class periods. */
-export const isSimpleWeek = (week: Record<string, SchoolBlock[]> | undefined) =>
-  !!week && Object.values(week).every((b) => b.length <= 1);
+export const isSimpleWeek = isWorkWeek;
