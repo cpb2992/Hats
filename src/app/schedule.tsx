@@ -1,4 +1,4 @@
-import { router } from 'expo-router';
+import { router, useLocalSearchParams } from 'expo-router';
 import { useState } from 'react';
 import { Alert, Pressable, Text, View } from 'react-native';
 import { fmtTime, minutesOf, timeOf, weekday } from '../engine/dates';
@@ -31,6 +31,8 @@ const KIND_NOTE: Record<BlockKind, string> = {
 
 export default function ScheduleScreen() {
   const { data, today, mutate } = useApp();
+  // First run: arrived from the welcome screen, so there's no Settings to go back to.
+  const setup = useLocalSearchParams<{ setup?: string }>().setup === '1';
   const wd = weekday(today);
   const [day, setDay] = useState(wd >= 1 && wd <= 5 ? String(wd) : '1');
   const [editing, setEditing] = useState<string | null>(null);
@@ -51,12 +53,29 @@ export default function ScheduleScreen() {
     setEditing(blk.id);
   };
 
+  /** Moves every block on this day earlier or later, for matching the first bell quickly. */
+  /** During first-run setup every day moves together, since they all start as the same typical day. */
+  const shift = (min: number) => mutate(d => {
+    const move = (list: Block[]) => list.map(x => ({ ...x, start: timeOf(minutesOf(x.start) + min), end: timeOf(minutesOf(x.end) + min) }));
+    const next = { ...d.settings.schedule };
+    for (const key of setup ? Object.keys(next) : [day]) next[key] = move(next[key] ?? []);
+    d.settings.schedule = next;
+  });
+  const copyToAll = () => mutate(d => {
+    const src = d.settings.schedule[day] ?? [];
+    const next: Record<string, Block[]> = {};
+    for (const x of DAYS) next[x.value] = src.map(b => ({ ...b }));
+    d.settings.schedule = next;
+  });
+
   return (
     <Screen tabBar={false}>
-      <BackLink label="Settings" onPress={() => router.back()} />
+      {setup ? null : <BackLink label="Settings" onPress={() => router.back()} />}
       <View style={{ gap: 6 }}>
-        <Txt v="display">Bell schedule</Txt>
-        <Txt v="sub">Hats uses this to know when you’re teaching and when your time is free.</Txt>
+        <Txt v="display">{setup ? 'Your bell schedule' : 'Bell schedule'}</Txt>
+        <Txt v="sub">{setup
+          ? 'This is what makes Hats different: it waits while you teach and hands you the next thing in your planning period. Start from this typical day, slide it to your first bell, and tap any block to change it.'
+          : 'Hats uses this to know when you’re teaching and when your time is free.'}</Txt>
       </View>
       <Segmented label="Day" value={day} onChange={v => { setDay(v); setEditing(null); }} options={DAYS} />
 
@@ -97,13 +116,25 @@ export default function ScheduleScreen() {
         })}
       </View>
 
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Label>{setup ? 'Slide every day' : 'Slide the whole day'}</Label>
+        <Stepper label="whole day" value={blocks[0] ? fmtTime(blocks[0].start) : '–'} onMinus={() => shift(-5)} onPlus={() => shift(5)} />
+      </View>
       <Btn title="Add a block" kind="quiet" small icon="plus" onPress={add} />
+      <Btn title={`Use ${DAYS.find(x => x.value === day)?.label}’s schedule every day`} kind="quiet" small icon="calendar" onPress={copyToAll} />
+      {setup ? (
+        <View style={{ gap: 10 }}>
+          <Btn title="Looks right" onPress={() => router.replace('/morning')} />
+          <Btn title="I don’t have a bell schedule" kind="ghost" small onPress={() => { mutate(d => { d.settings.schedule = { '1': [], '2': [], '3': [], '4': [], '5': [] }; }); router.replace('/morning'); }} />
+          <Txt v="fine" center>You can change it any time in Settings → Bell schedule.</Txt>
+        </View>
+      ) : null}
       <Btn
-        title="Reset to my bell schedule"
+        title="Reset to a typical school day"
         kind="ghost"
         small
         onPress={() =>
-          Alert.alert('Reset the schedule?', 'All five days go back to the original bell schedule.', [
+          Alert.alert('Reset the schedule?', 'All five days go back to a typical six-period day.', [
             { text: 'Cancel', style: 'cancel' },
             { text: 'Reset', style: 'destructive', onPress: () => mutate(d => { d.settings.schedule = defaultSchedule(); }) },
           ])

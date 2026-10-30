@@ -1,7 +1,7 @@
 import { router } from 'expo-router';
 import { useState } from 'react';
 import { Pressable, View } from 'react-native';
-import { ALL_HATS, hatName, HATS } from '../engine/hats';
+import { ALL_HATS, hatName, HATS, SCHOOL_HATS } from '../engine/hats';
 import type { HatId } from '../engine/types';
 import { notificationsAllowed } from '../services/notifications';
 import { useApp } from '../store/AppStore';
@@ -24,6 +24,8 @@ export default function Welcome() {
     });
     await notificationsAllowed(true).catch(() => false);
     if (demo) { startDemo(); router.replace('/'); }
+    // Anyone with a school hat sets up their bells next; that's what makes Now work.
+    else if (on.some(id => SCHOOL_HATS.includes(id))) router.replace('/schedule?setup=1');
     else router.replace('/morning');
   };
 
