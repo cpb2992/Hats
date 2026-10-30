@@ -74,7 +74,7 @@ export function anchors(s: Settings, date: string): Anchor[] {
     out.push({ time: s.pickups, title: 'Pickups', kind: 'pickups' });
   }
   out.push({ time: s.bedtime, title: 'Bedtime', kind: 'bedtime' });
-  out.push({ time: s.gym, title: 'Gym window', kind: 'gym' });
+  out.push({ time: s.gym, title: 'Me time', kind: 'gym' });
   return out.sort((a, b) => minutesOf(a.time) - minutesOf(b.time));
 }
 

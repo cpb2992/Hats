@@ -26,7 +26,7 @@ export const HATS: Record<HatId, HatDef> = {
     keywords: ['iep', '504', 'progress note', 'progress report', 'accommodation', 'para', 'team meeting', 'eval', 'evaluation meeting', 'sped', 'service', 'goal', 'caseload', 'data point'],
   },
   lead: {
-    id: 'lead', name: 'Team lead', meaning: 'Department or grade team', color: '#7B5A9E', school: true,
+    id: 'lead', name: 'Team lead', meaning: 'Dept or grade team', color: '#7B5A9E', school: true,
     glyph: 'M12 3 3 8l9 5 9-5-9-5zM3 12.5l9 5 9-5M3 17l9 5 9-5',
     keywords: ['department', 'dept', 'grade team', 'team agenda', 'budget', 'supply', 'supplies', 'ilt', 'plc', 'curriculum map', 'pd', 'staff meeting', 'site council', 'data meeting'],
   },
@@ -36,12 +36,12 @@ export const HATS: Record<HatId, HatDef> = {
     keywords: ['union', 'coverage', 'grievance', 'contract', 'member', 'building rep', 'steward', 'class size', 'bargaining'],
   },
   mentor: {
-    id: 'mentor', name: 'Mentor', meaning: 'New teachers and coaching', color: '#C08F2E', school: true,
+    id: 'mentor', name: 'Mentor', meaning: 'New teachers', color: '#C08F2E', school: true,
     glyph: 'M12 3a9 9 0 1 0 0 18 9 9 0 0 0 0-18zM15.5 8.5l-2 5-5 2 2-5z',
     keywords: ['observation', 'mentee', 'practicum', 'student teacher', 'feedback', 'coaching', 'mentoring', 'candidate', 'walkthrough'],
   },
   coach: {
-    id: 'coach', name: 'Coach', meaning: 'Team, practices and games', color: '#2E7FA8', school: true,
+    id: 'coach', name: 'Coach', meaning: 'Practices and games', color: '#2E7FA8', school: true,
     glyph: 'M7 4h10v5a5 5 0 0 1-10 0zM7 6H4.5a2.5 2.5 0 0 0 2.6 3M17 6h2.5a2.5 2.5 0 0 1-2.6 3M12 14v3M8.5 21h7M9.5 17h5v4h-5z',
     keywords: ['practice', 'game', 'tournament', 'roster', 'uniforms', 'bus for', 'scrimmage', 'tryouts', 'team parents', 'meet'],
   },
@@ -51,17 +51,17 @@ export const HATS: Record<HatId, HatDef> = {
     keywords: ['club', 'student council', 'yearbook', 'dance', 'fundraiser', 'bake sale', 'spirit week', 'robotics', 'drama'],
   },
   grad: {
-    id: 'grad', name: 'Grad school', meaning: 'Courses and licensure', color: '#5A6FB0', school: false,
+    id: 'grad', name: 'Grad school', meaning: 'Courses and license', color: '#5A6FB0', school: false,
     glyph: 'M2 9.5 12 5l10 4.5L12 14zM6 11.5V16c3.2 2.4 8.8 2.4 12 0v-4.5M22 9.5V15',
     keywords: ['course', 'credits', 'thesis', 'paper', 'professor', 'license', 'licensure', 'praxis', 'mtel', 'certification', 'pdp', 'canvas', 'discussion post'],
   },
   creative: {
-    id: 'creative', name: 'Creative', meaning: 'Writing, art and making', color: '#B85C7C', school: false,
+    id: 'creative', name: 'Creative', meaning: 'Writing and art', color: '#B85C7C', school: false,
     glyph: 'M3 5.5c3-1.5 6-1.5 9 0v14c-3-1.5-6-1.5-9 0zM21 5.5c-3-1.5-6-1.5-9 0v14c3-1.5 6-1.5 9 0z',
     keywords: ['book', 'cover', 'illustration', 'manuscript', 'chapter', 'draft', 'canva', 'publisher', 'blog', 'podcast', 'painting', 'sketch', 'novel', 'poem'],
   },
   gig: {
-    id: 'gig', name: 'Side gig', meaning: 'Tutoring and extra work', color: '#3F8A5C', school: false,
+    id: 'gig', name: 'Side gig', meaning: 'Tutoring, extra work', color: '#3F8A5C', school: false,
     glyph: 'M3.5 8h17v11h-17zM9 8V5.5h6V8M3.5 13h17M12 12v2',
     keywords: ['tutor', 'tutoring', 'client', 'invoice', 'summer school', 'etsy', 'tpt', 'teachers pay teachers', 'shift', 'side gig'],
   },
@@ -71,7 +71,7 @@ export const HATS: Record<HatId, HatDef> = {
     keywords: ['dinner', 'vet', 'laundry', 'bath', 'daycare', 'groceries', 'grocery', 'dentist', 'doctor', 'pickup', 'birthday', 'kids', 'house', 'dog', 'cat', 'amazon', 'order', 'bill', 'rent', 'mortgage', 'car', 'oil change'],
   },
   wellness: {
-    id: 'wellness', name: 'Me time', meaning: 'Rest, health and fun', color: '#4F9A94', school: false,
+    id: 'wellness', name: 'Me time', meaning: 'Rest and fun', color: '#4F9A94', school: false,
     glyph: 'M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z',
     keywords: ['gym', 'workout', 'run', 'walk', 'yoga', 'meditate', 'therapy', 'haircut', 'nap', 'read for fun', 'friends', 'date night'],
   },

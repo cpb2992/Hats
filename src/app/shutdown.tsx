@@ -4,6 +4,7 @@ import { Pressable, Text, View } from 'react-native';
 import { markShutdown, moveTask } from '../engine/actions';
 import { weekday } from '../engine/dates';
 import { moveDate, openAtShutdown, winsOn, type Move } from '../engine/plan';
+import { maybeAskForReview } from '../services/review';
 import { useApp } from '../store/AppStore';
 import { Icon } from '../ui/icons';
 import { Btn, Card, CircleBtn, Label, Patch, Screen, success, tap, Txt } from '../ui/kit';
@@ -11,7 +12,7 @@ import { C, F } from '../ui/theme';
 
 /** 4:45 · two minutes to close the school day: see what got done, give each open item a date. */
 export default function Shutdown() {
-  const { data, today, mutate } = useApp();
+  const { data, today, mutate, demo } = useApp();
   const wins = winsOn(data, today);
   const [open] = useState(() => openAtShutdown(data, today));
   const [moves, setMoves] = useState<Record<string, Move>>({});
@@ -27,6 +28,8 @@ export default function Shutdown() {
     success();
     if (friday) router.replace('/recap');
     else router.replace('/home');
+    // Right after a finished day is the moment people are happiest with the app.
+    if (!demo) setTimeout(() => { maybeAskForReview(data, today); }, 1200);
   };
 
   return (

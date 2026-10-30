@@ -1,7 +1,8 @@
 import Constants from 'expo-constants';
 import { router } from 'expo-router';
 import { useState, type ReactNode } from 'react';
-import { Alert, Pressable, Switch, Text, TextInput, View } from 'react-native';
+import { Alert, Linking, Pressable, Share, Switch, Text, TextInput, View } from 'react-native';
+import { PRIVACY_URL, SHARE_MESSAGE, STORE_URL } from '../engine/links';
 import { fmtTime, minutesOf, timeOf } from '../engine/dates';
 import { hatName, HATS } from '../engine/hats';
 import { choreTime } from '../engine/rhythm';
@@ -22,9 +23,9 @@ const TIMES: { key: keyof Pick<Settings, 'morning' | 'schoolStart' | 'shutdown' 
   { key: 'morning', label: 'Morning plan nudge' },
   { key: 'schoolStart', label: 'School day starts' },
   { key: 'shutdown', label: 'Shutdown' },
-  { key: 'pickups', label: 'Pickups' },
-  { key: 'bedtime', label: 'Kids’ bedtime' },
-  { key: 'gym', label: 'Gym window' },
+  { key: 'pickups', label: 'Home by / pickups' },
+  { key: 'bedtime', label: 'Bedtime routine' },
+  { key: 'gym', label: 'Me time' },
 ];
 const COLORS: KidColor[] = ['rose', 'teal', 'plum', 'ochre'];
 
@@ -236,6 +237,12 @@ export default function SettingsScreen() {
             ])
           }
         />
+      </View>
+      <View style={{ gap: 12 }}>
+        <Label>Spread the word</Label>
+        <Btn title="Tell a teacher about Hats" kind="quiet" icon="share" onPress={() => { Share.share({ message: SHARE_MESSAGE }).catch(() => {}); }} />
+        <Btn title="Rate Hats" kind="quiet" icon="star" onPress={() => { Linking.openURL(STORE_URL).catch(() => {}); }} />
+        <Btn title="Privacy policy" kind="quiet" icon="lock" onPress={() => { Linking.openURL(PRIVACY_URL).catch(() => {}); }} />
       </View>
       <Txt v="fine" center>Hats {Constants.expoConfig?.version ?? '1.0.0'}</Txt>
     </Screen>

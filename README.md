@@ -1,8 +1,19 @@
-# Hats
+# Hats (public version)
 
-One thing at a time, for everyone who wears a lot of hats. Hats sorts everything you capture into the hats you wear (Teacher, SPED, Dept Head, BTU, Mentor, Author, Home), knows your bell schedule, and shows only what's Now.
+**This is the `public` branch: the version of Hats headed for the Google Play Store.** Your personal Hats stays on `main`. This version has its own package name (`com.hatsplanner.app`), so a test copy installs beside your personal one.
 
-Built with Expo (React Native), the same way as Pace. Everything is stored on the phone. Student details are initials only.
+One thing at a time, for teachers who wear a lot of hats. Pick the roles you juggle (Teacher, Special ed, Team lead, Union, Mentor, Coach, Club advisor, Grad school, Side gig, Creative, Home, Me time) and rename any of them. Hats sorts everything you capture into those hats, knows your bell schedule, and shows only what's Now.
+
+What's different from personal Hats:
+
+- Hats are picked at first launch from 12, and can be renamed in Settings. Caseload, Pulse and Home tabs only show when that hat is worn.
+- A generic six-period bell schedule to edit, a light weekly rhythm, and a made-up sample week.
+- Say anything works for anyone; the optional Claude key is the person's own.
+- The Play rating prompt appears after a shutdown once someone has 5+ planned days and 15+ finished tasks (at most every 4 months).
+- Settings has Tell a teacher, Rate Hats and the privacy policy.
+- Store listing, Data safety answers and the launch plan are in [`store/LISTING.md`](store/LISTING.md). Privacy policy: [`PRIVACY.md`](PRIVACY.md).
+
+Built with Expo (React Native). Everything is stored on the phone. Student details are initials only.
 
 ## What's in the app
 
@@ -24,9 +35,9 @@ The bell schedule is in `src/engine/schedule.ts` and editable in Settings → Be
 
 ### Android, no computer
 
-Every push to `main` builds `Hats.apk` with GitHub Actions and posts it at github.com/cpb2992/Hats/releases.
+Every push to `public` builds `Hats-public.apk` with GitHub Actions and posts it as a pre-release at github.com/cpb2992/Hats/releases.
 
-1. On the phone, open the Releases page and tap **Hats.apk** under the newest build.
+1. On the phone, open the Releases page and tap **Hats-public.apk** under the newest "Public Hats test build".
 2. Open the download. If Android asks, allow your browser to install unknown apps.
 3. If Play Protect warns about an unknown developer, tap **More details → Install anyway**. On Samsung phones, if Auto Blocker stops the install, turn it off in Settings → Security and privacy → Auto Blocker, install, then turn it back on.
 4. To update, install the newest build over the old one. Your data stays on the phone.

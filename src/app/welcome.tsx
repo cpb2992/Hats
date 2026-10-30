@@ -45,7 +45,7 @@ export default function Welcome() {
               accessibilityState={{ checked: sel }}
               accessibilityLabel={hatName(id)}
               onPress={() => { tap(); setOn(o => (sel ? o.filter(x => x !== id) : [...o, id])); }}
-              style={({ pressed }) => [{ width: wide ? '23%' : '47.5%', flexGrow: 1, height: 116, borderRadius: 24, backgroundColor: C.raised, padding: 16, justifyContent: 'space-between', borderWidth: 1.5, borderColor: sel ? C.gold : 'transparent', opacity: sel ? 1 : 0.55 }, pressed && { transform: [{ scale: 0.97 }] }]}>
+              style={({ pressed }) => [{ width: wide ? '23%' : '47.5%', flexGrow: 1, minHeight: 116, borderRadius: 24, backgroundColor: C.raised, padding: 16, justifyContent: 'space-between', borderWidth: 1.5, borderColor: sel ? C.gold : 'transparent', opacity: sel ? 1 : 0.55 }, pressed && { transform: [{ scale: 0.97 }] }]}>
               <Patch hat={id} size={44} />
               <View style={{ gap: 1 }}>
                 <Txt v="semi">{hatName(id)}</Txt>

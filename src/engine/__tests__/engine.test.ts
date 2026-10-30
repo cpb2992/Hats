@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict';
 import { test } from 'node:test';
-import { addParsed, completeTask, logPoint, notNow, toggleKidStep, toggleThree, undoPoint, boardFor } from '../actions';
+import { addParsed, completeTask, newTask, logPoint, notNow, toggleKidStep, toggleThree, undoPoint, boardFor } from '../actions';
 import { addDays, fmtTime, weekStart } from '../dates';
 import { normalizeData } from '../normalize';
 import { morningBody, planNotifications } from '../notify';
@@ -10,6 +10,7 @@ import { comingDue, draftReport, summarize } from '../progress';
 import { currentBlock, isTeaching, nextBoost, nextFree, openTime, sectionNow, sections } from '../schedule';
 import { evidenceMonths, monthSummary } from '../pulse';
 import { defaultHat, hatName, setHatPrefs, wornHats } from '../hats';
+import { shouldAskForReview } from '../review';
 import { teacherData, teacherDemo } from './fixture';
 import type { AppData } from '../types';
 import { logView, nowView } from '../widgets';
@@ -298,4 +299,16 @@ test('a new install starts with a few hats worn and a generic school day', () =>
   const mon = d.settings.schedule['1'];
   assert.ok(mon.some(x => x.kind === 'free'));
   assert.deepEqual(mon.filter(x => x.kind === 'class').map(x => x.section), ['P1', 'P2', 'P3', 'P4', 'P5', 'P6']);
+});
+
+test('rating prompt: only after real use, and not again for four months', () => {
+  const d = teacherData();
+  assert.equal(shouldAskForReview(d, TODAY, null), false);
+  for (let i = 0; i < 15; i++) newTask(d, { id: `r${i}`, title: `Task ${i}`, hat: 'teacher' }, NOW);
+  for (const t of d.tasks) { t.done = true; t.doneAt = NOW; }
+  assert.equal(shouldAskForReview(d, TODAY, null), false);
+  for (let i = 0; i < 5; i++) d.days[addDays(TODAY, -i)] = { date: addDays(TODAY, -i), recovery: null, three: [], planned: true, shutdown: false };
+  assert.equal(shouldAskForReview(d, TODAY, null), true);
+  assert.equal(shouldAskForReview(d, TODAY, addDays(TODAY, -30)), false);
+  assert.equal(shouldAskForReview(d, TODAY, addDays(TODAY, -121)), true);
 });

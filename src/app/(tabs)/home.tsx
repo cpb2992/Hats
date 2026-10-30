@@ -30,7 +30,7 @@ export default function HomeBase() {
   const evening = [
     { time: s.pickups, title: 'Pickups', target: null as string | null, work: true },
     { time: s.bedtime, title: 'Bedtime', target: '/kids', work: false },
-    { time: s.gym, title: 'Gym window', target: null, work: false },
+    { time: s.gym, title: 'Me time', target: null, work: false },
   ].filter(x => !x.work || s.workdays.includes(weekday(today))).sort((a, b) => minutesOf(a.time) - minutesOf(b.time));
 
   const dinnerCard = (

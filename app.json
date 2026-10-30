@@ -1,7 +1,7 @@
 {
   "expo": {
     "name": "Hats",
-    "slug": "hats-focus",
+    "slug": "hats-planner",
     "scheme": "hats",
     "version": "1.0.0",
     "orientation": "default",
@@ -10,20 +10,26 @@
     "backgroundColor": "#0D110F",
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.hatsfocus.app",
+      "bundleIdentifier": "com.hatsplanner.app",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false
       }
     },
     "android": {
-      "package": "com.hatsfocus.app",
+      "package": "com.hatsplanner.app",
       "adaptiveIcon": {
         "backgroundColor": "#F3F1EA",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 1,
+      "blockedPermissions": [
+        "android.permission.READ_EXTERNAL_STORAGE",
+        "android.permission.WRITE_EXTERNAL_STORAGE",
+        "android.permission.SYSTEM_ALERT_WINDOW"
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -73,7 +79,7 @@
           "widgets": [
             {
               "name": "HatsNow",
-              "label": "Hats · Now",
+              "label": "Hats \u00b7 Now",
               "description": "Your one thing, with Focus and Done. Shows your class when you're teaching.",
               "minWidth": "250dp",
               "minHeight": "110dp",
@@ -85,7 +91,7 @@
             },
             {
               "name": "HatsLog",
-              "label": "Hats · Caseload +1",
+              "label": "Hats \u00b7 Caseload +1",
               "description": "Tap a student to log a data point. The class in front of you comes first.",
               "minWidth": "250dp",
               "minHeight": "110dp",
@@ -97,7 +103,7 @@
             },
             {
               "name": "HatsSay",
-              "label": "Hats · Say anything",
+              "label": "Hats \u00b7 Say anything",
               "description": "One tap to capture a thought out loud.",
               "minWidth": "110dp",
               "minHeight": "50dp",
@@ -122,6 +128,7 @@
     ],
     "experiments": {
       "typedRoutes": false
-    }
+    },
+    "description": "One thing at a time, for teachers who wear a lot of hats."
   }
 }
