@@ -1,5 +1,6 @@
 # Builds the signed app bundle (.aab) for Google Play and attaches it to a release.
-# Run it from Actions → "Play Store build" → Run workflow (on the public branch).
+# Run it from Actions → "Play Store build" → Run workflow. It always builds the public branch
+# (the Play Store version), whichever branch you start it from.
 #
 # EAS signs it with the app's upload key, which it keeps for you (made on the first run).
 # The very first upload of a new app has to be done by hand in Play Console (Google's rule);
@@ -23,6 +24,11 @@ jobs:
     timeout-minutes: 90
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: public
+      - name: Which commit is being built
+        id: src
+        run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
       - uses: actions/setup-node@v4
         with:
           node-version: 22
@@ -54,7 +60,7 @@ jobs:
       - uses: softprops/action-gh-release@v2
         with:
           tag_name: play-${{ steps.build.outputs.version }}-${{ steps.build.outputs.versionCode }}
-          target_commitish: ${{ github.sha }}
+          target_commitish: ${{ steps.src.outputs.sha }}
           name: Play Store build · Hats ${{ steps.build.outputs.version }} (version code ${{ steps.build.outputs.versionCode }})
           prerelease: true
           make_latest: false
