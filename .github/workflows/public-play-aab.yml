@@ -1,0 +1,53 @@
+name: Hats 2.0 — Google Play AAB
+
+on:
+  push:
+    branches: [public]
+    paths:
+      - '.github/workflows/public-play-aab.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hats-public-play-aab
+  cancel-in-progress: false
+
+jobs:
+  build:
+    name: Request signed Google Play bundle
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      EXPO_TOKEN: ${{ secrets.EXPO_TOKEN || secrets.EAS_TOKEN }}
+      CI: '1'
+    steps:
+      - name: Check out the public edition
+        uses: actions/checkout@v4
+        with:
+          ref: public
+      - name: Verify Expo credentials
+        run: |
+          test -n "${EXPO_TOKEN}" || { echo "::error::Set EXPO_TOKEN (or EAS_TOKEN) in repository Actions secrets."; exit 1; }
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install dependencies
+        run: npm ci
+      - name: Check TypeScript
+        run: npm run typecheck
+      - name: Run tests
+        run: npm test
+      - name: Set up EAS CLI
+        uses: expo/expo-github-action@v8
+        with:
+          eas-version: latest
+          token: ${{ env.EXPO_TOKEN }}
+      - name: Build signed Play Store AAB with EAS
+        run: eas build --platform android --profile production --non-interactive --wait
+      - name: Build location
+        if: always()
+        run: echo 'See https://expo.dev/accounts/cpb2992/projects/hats-focus/builds for the AAB build and status.'
