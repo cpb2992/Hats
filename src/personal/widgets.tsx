@@ -42,10 +42,10 @@ const SEMI = 'InterTight-SemiBold';
 const BOLD = 'InterTight-Bold';
 const BODY = 'InterTight-Medium';
 
-const STAR = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16 2.5 19.2 11l8.9 1.6-7 5.9 1.6 9-6.7-4.5-7 4.5 1.6-9-7-5.9 8.8-1.6z" fill="${C.sun}" stroke="${C.ink}" stroke-width="2.1" stroke-linejoin="round"/></svg>`;
-const SPARK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><path d="M16 2v9M16 21v9M2 16h9M21 16h9M6 6l6 6M20 20l6 6M26 6l-6 6M12 20l-6 6" stroke="${C.coral}" stroke-width="2.6" stroke-linecap="round"/></svg>`;
-const CHECK = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28"><path d="m5 14 6 6L23 7" fill="none" stroke="${C.ink}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
-const ARROW = `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28"><path d="M5 14h17m-6-6 6 6-6 6" fill="none" stroke="${C.ink}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const STAR = `<${"svg"} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><${"path"} d="M16 2.5 19.2 11l8.9 1.6-7 5.9 1.6 9-6.7-4.5-7 4.5 1.6-9-7-5.9 8.8-1.6z" fill="${C.sun}" stroke="${C.ink}" stroke-width="2.1" stroke-linejoin="round"/></svg>`;
+const SPARK = `<${"svg"} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><${"path"} d="M16 2v9M16 21v9M2 16h9M21 16h9M6 6l6 6M20 20l6 6M26 6l-6 6M12 20l-6 6" stroke="${C.coral}" stroke-width="2.6" stroke-linecap="round"/></svg>`;
+const CHECK = `<${"svg"} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28"><${"path"} d="m5 14 6 6L23 7" fill="none" stroke="${C.ink}" stroke-width="3.2" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
+const ARROW = `<${"svg"} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28"><${"path"} d="M5 14h17m-6-6 6 6-6 6" fill="none" stroke="${C.ink}" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"/></svg>`;
 
 /** Only home-related tasks belong in the Home Life widget. */
 const HOME_HATS = new Set(['home', 'dad', 'husband', 'pets', 'friends']);
