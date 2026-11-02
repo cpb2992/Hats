@@ -4,10 +4,26 @@ import {
   AndroidNotificationVisibility,
 } from "expo-notifications";
 import { Platform } from "react-native";
-import { addDays, todayISO, nowMinutes } from "../engine/dates";
-import { planDay } from "./engine";
+import { addDays, todayISO, nowMinutes, fmtTime } from "../engine/dates";
+import { planDay, type PlannedTask } from "./engine";
 import { dinnerNudge, eveningDigest, morningDigest } from "./digest";
-import type { PersonalData } from "./model";
+import { HATS, type BuiltInHat, type PersonalData } from "./model";
+
+/** Keep the action visible in the notification, not hidden behind opening Hats. */
+function notificationCopy(data: PersonalData, item: PlannedTask, pinned = false) {
+  const task = item.task;
+  const hatName =
+    data.customHats?.find((hat) => hat.id === task.hat)?.name ??
+    (task.hat in HATS ? HATS[task.hat as BuiltInHat].name : "Hats");
+  const nextStep = task.steps.find((step) => !step.done)?.title;
+  const action = nextStep ? task.title + ": " + nextStep : task.title;
+  const time = pinned && item.time ? fmtTime(item.time, true) + " · " : "";
+  const duration = task.minutes > 0 ? " · " + task.minutes + " min" : "";
+  return {
+    title: (pinned ? "Up next" : "Time to start") + " · " + hatName,
+    body: time + action + duration,
+  };
+}
 
 const channel = "hats-personal";
 if (Platform.OS !== "web")
@@ -117,11 +133,12 @@ export async function syncPersonalReminders(data: PersonalData) {
     const at = new Date(`${item.date}T${item.time}:00`);
     if (at.getTime() <= Date.now() + 60000) continue;
     if (count++ >= 12) break;
+    const copy = notificationCopy(data, item);
     await Notifications.scheduleNotificationAsync({
       identifier: `personal-task-${item.task.id}`,
       content: {
-        title: "A personal commitment is ready",
-        body: "Open Hats to see your next step.",
+        title: copy.title,
+        body: copy.body,
         categoryIdentifier: "personal-task",
         data: { url: "/", taskId: item.task.id },
       },
@@ -134,11 +151,12 @@ export async function syncPersonalReminders(data: PersonalData) {
   }
   const next = plan.find((x) => x.time);
   if (next) {
+    const copy = notificationCopy(data, next, true);
     await Notifications.scheduleNotificationAsync({
       identifier: "personal-now",
       content: {
-        title: "Hats · your personal plan",
-        body: "A next step is ready when you are.",
+        title: copy.title,
+        body: copy.body,
         sticky: true,
         autoDismiss: false,
         categoryIdentifier: "personal-task",
