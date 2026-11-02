@@ -1,0 +1,24 @@
+# No updates, releases, or production deploys run in this review workflow.
+name: Review personal Hats changes safely
+on:
+  pull_request:
+    branches: [codex/hats-personal-life]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check TypeScript
+        run: npm run typecheck
+      - name: Check lint
+        run: npm run lint
+      - name: Run all app tests
+        run: npm test
