@@ -429,6 +429,9 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
         mutate((d) => {
           reschedule(d, taskId, todayISO(), nowMinutes());
         });
+      else
+        // Tapping a task reminder should open that task, not silently open Home.
+        router.push({ pathname: "/task/[id]", params: { id: taskId } });
       Notifications.clearLastNotificationResponse();
     };
     const sub = Notifications.addNotificationResponseReceivedListener(handle);
