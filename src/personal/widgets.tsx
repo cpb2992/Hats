@@ -7,9 +7,10 @@ import {
   requestWidgetUpdate,
   type WidgetTaskHandlerProps,
 } from "react-native-android-widget";
-import { nowMinutes, todayISO } from "../engine/dates";
+import { nowMinutes, todayISO, fmtTime } from "../engine/dates";
 import { finishStep, nextStep, planDay, reschedule } from "./engine";
 import { type PersonalData, hatDef } from "./model";
+import { chooseWidgetNext } from "./nextUp";
 import { hatSvg } from "./hatArt";
 import { loadPersonal, savePersonal } from "./storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -21,11 +22,24 @@ export function PersonalWidget({
   data: PersonalData | null;
   name: string;
 }) {
-  const task = data
-    ? planDay(data, todayISO(), nowMinutes()).find((x) => x.time)?.task
-    : null;
+  const clock = new Date();
+  const now = nowMinutes(clock);
+  const today = todayISO(clock);
   const say = name === "HatsSay";
+  const selection = chooseWidgetNext(data && !say ? planDay(data, today, now) : [], today, now);
+  const task = selection.item?.task ?? null;
+  const timeLabel = selection.item?.time ? fmtTime(selection.item.time, true) : "";
   const home = name === "HatsLog";
+  const nextHeader =
+    selection.phase === "now"
+      ? "HATS · HAPPENING NOW"
+      : selection.phase === "upcoming"
+        ? "HATS · UP NEXT"
+        : selection.phase === "flexible"
+          ? "HATS · FREE WINDOW"
+          : selection.phase === "waiting"
+            ? "HATS · ROOM TO BREATHE"
+            : "HATS · ALL CLEAR";
   return (
     <FlexWidget
       clickAction="OPEN_APP"
@@ -62,7 +76,7 @@ export function PersonalWidget({
               ? "HATS · CAPTURE"
               : home
                 ? "HATS · HOME LIFE"
-                : "HATS · NEXT STEP"
+                : nextHeader
           }
           style={{
             fontSize: 12,
@@ -75,9 +89,13 @@ export function PersonalWidget({
         text={
           say
             ? "A thought worth keeping."
-            : task
-              ? nextStep(task)
-              : "A little room for what matters."
+            : !data
+              ? "Open Hats to get started."
+              : task
+                ? nextStep(task)
+                : selection.phase === "clear"
+                  ? "You're caught up for now."
+                  : "Nothing scheduled next."
         }
         maxLines={2}
         style={{
@@ -96,7 +114,9 @@ export function PersonalWidget({
           }}
         >
           <TextWidget
-            text={hatDef(task.hat, data?.customHats).name}
+            text={`${hatDef(task.hat, data?.customHats).name}${timeLabel ? ` · ${timeLabel}` : ""}`}
+            maxLines={1}
+            truncate="END"
             style={{ fontSize: 12, color: "#566476" }}
           />
           <FlexWidget
@@ -116,7 +136,8 @@ export function PersonalWidget({
               style={{ fontSize: 13, color: "#1D2D45" }}
             />
           </FlexWidget>
-          <FlexWidget
+          {!task.fixed ? (
+            <FlexWidget
             clickAction="PERSONAL_LATER"
             clickActionData={{ id: task.id }}
             accessibilityLabel="Move to the next available time"
@@ -126,11 +147,20 @@ export function PersonalWidget({
               text="Later"
               style={{ fontSize: 13, color: "#192A41" }}
             />
-          </FlexWidget>
+            </FlexWidget>
+          ) : null}
         </FlexWidget>
       ) : (
         <TextWidget
-          text={say ? "Open Hats to talk or type." : "Open your personal plan."}
+          text={
+            say
+              ? "Open Hats to talk or type."
+              : !data
+                ? "Your plan will appear here."
+                : selection.phase === "clear"
+                  ? "Enjoy the breathing room."
+                  : "Other tasks can wait for an opening."
+          }
           style={{ fontSize: 13, color: "#566476" }}
         />
       )}
