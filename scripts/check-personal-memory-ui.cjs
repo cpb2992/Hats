@@ -41,6 +41,8 @@ async function main() {
     await page.getByRole("button", { name: "Save", exact: true }).click();
     await page.getByText("Used in planning", { exact: false }).waitFor();
     await page.waitForFunction(() => JSON.parse(localStorage.getItem("hats.personal.v2"))?.memory?.items?.[0]?.rule?.kind === "window");
+    // React Native Web keeps the closing sheet mounted until its exit animation ends.
+    await page.locator('[aria-modal="true"]').filter({ visible: true }).waitFor({ state: "hidden" });
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem("hats.personal.v2")));
     assert.equal(stored.memory.items[0].rule.kind, "window");
     mkdirSync("/tmp/hats-memory-ui", { recursive: true });
