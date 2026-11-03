@@ -28,6 +28,7 @@ import {
   type TimelineItem,
 } from "../../personal/timeline";
 import { NowCard, Timeline } from "../../personal/TodayParts";
+import { PrepCard } from "../../personal/PrepCard";
 import { Button, Empty, P, T, sticker , tone } from "../../personal/ui";
 import { useWhoop } from "../../personal/WhoopCard";
 import { band, whoopToday } from "../../personal/whoop";
@@ -482,6 +483,7 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
           </View>
         ) : null}
 
+        {isToday ? <PrepCard /> : null}
         {isToday ? <NowCard items={items} /> : null}
 
         <Timeline items={items} allDay={allDay} date={date} />

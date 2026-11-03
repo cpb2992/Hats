@@ -324,6 +324,7 @@ export interface SchoolPrefs {
   week?: Record<string, SchoolBlock[]>;
 }
 export interface Preferences {
+  mealPreferences?: import("./mealPreferences").MealPreferences;
   name: string;
   partner: string;
   city: string;
@@ -525,6 +526,12 @@ export function validData(value: unknown): value is PersonalData {
     const optional = (x: unknown, type: "string" | "boolean") =>
       x === undefined || typeof x === type;
     const h = v.household;
+    if (p.mealPreferences !== undefined) {
+      const meal = p.mealPreferences;
+      const terms = (x: unknown) => Array.isArray(x) && x.length <= 20 && x.every((s) => typeof s === "string" && s.trim().length > 0 && s.length <= 80);
+      if (!meal || !terms(meal.likes) || !terms(meal.avoid) || typeof meal.ownFirst !== "boolean" ||
+        (meal.maxActiveMinutes !== undefined && (!Number.isInteger(meal.maxActiveMinutes) || meal.maxActiveMinutes < 1 || meal.maxActiveMinutes > 240))) return false;
+    }
     if (v.memory !== undefined) {
       const m = v.memory;
       if (!m || typeof m.learnFromCompletions !== "boolean" ||

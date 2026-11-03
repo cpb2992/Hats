@@ -26,6 +26,7 @@ import {
 import { RecipeFlipCard, timeLabel } from "../personal/RecipeCard";
 import { byAisle, recipeById, sameItem, type Recipe } from "../personal/recipes";
 import { usePersonal } from "../personal/Store";
+import { MealPreferences, useMealEditor } from "../personal/MealInput";
 import {
   Button,
   Chip,
@@ -57,6 +58,7 @@ const dayLabel = (date: string, today: string) =>
 
 export default function Meals() {
   const { data, today, mutate, say } = usePersonal();
+  const mealEditor = useMealEditor();
   const { width } = useWindowDimensions();
   const [filter, setFilter] = useState<MealFilter>("all");
   const [at, setAt] = useState(0);
@@ -128,6 +130,9 @@ export default function Meals() {
         hat="chef"
         back
       />
+      <MealPreferences />
+      <Button title="Add my own meal" hat="chef" quiet onPress={() => mealEditor.open()} />
+      {mealEditor.node}
 
       {/* Tonight */}
       {tonight.meal ? (
@@ -332,7 +337,7 @@ export default function Meals() {
           <T muted>
             {filter === "pantry"
               ? "Add a few staples you usually keep, and Hats will find dinners that use them."
-              : "Try a different filter."}
+              : "Try a different filter or adjust Meal preferences above."}
           </T>
           {(data.hiddenRecipes ?? []).length ? (
             <Button
@@ -581,7 +586,7 @@ export default function Meals() {
       </Panel>
 
       {/* Your go-tos */}
-      <Section hat="crown" title="Your go-to dinners" action="Add your own" onPress={() => router.push("/hat/home")} />
+      <Section hat="crown" title="Your go-to dinners" action="Add your own" onPress={() => mealEditor.open()} />
       {data.meals.length ? (
         <ScrollView
           horizontal

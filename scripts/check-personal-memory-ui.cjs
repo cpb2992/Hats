@@ -95,6 +95,60 @@ async function main() {
     assert.equal(imported.preferences.school.week["4"][1].section, "8X");
     assert.deepEqual(errors, []);
     console.log("Class schedule UI: selected JSON file, confirmed and merged school periods without replacing profile.");
+
+    await page.goto("http://127.0.0.1:8765/meals");
+    await page.getByRole("button", { name: "Meal preferences", exact: true }).click();
+    await page.getByRole("textbox", { name: "Enjoy more of · comma-separated", exact: true }).fill("rice");
+    await page.getByRole("textbox", { name: "Skip in suggestions · comma-separated", exact: true }).fill("mushrooms");
+    await page.getByRole("textbox", { name: "Maximum active cooking minutes · blank for any", exact: true }).fill("30");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.locator('[aria-modal="true"]').filter({ visible: true }).waitFor({ state: "hidden" });
+    await page.getByRole("button", { name: "Add my own meal", exact: true }).click();
+    await page.getByRole("textbox", { name: "Meal name", exact: true }).fill("Test rice bowl");
+    await page.getByRole("textbox", { name: "Ingredients · commas or one per line", exact: true }).fill("Rice\nTomatoes");
+    await page.getByRole("textbox", { name: "Active cooking minutes", exact: true }).fill("15");
+    await page.getByRole("textbox", { name: "Your directions and prep notes · one step per line", exact: true }).fill("Cook rice\nAdd tomatoes");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.getByRole("button", { name: "Edit my meal", exact: true }).waitFor();
+    await page.locator('[aria-modal="true"]').filter({ visible: true }).waitFor({ state: "hidden" });
+    await page.getByRole("button", { name: "Edit my meal", exact: true }).click();
+    await page.getByRole("textbox", { name: "Active cooking minutes", exact: true }).fill("10");
+    await page.getByRole("button", { name: "Save", exact: true }).click();
+    await page.locator('[aria-modal="true"]').filter({ visible: true }).waitFor({ state: "hidden" });
+    await page.waitForFunction(() => JSON.parse(localStorage.getItem("hats.personal.v2"))?.meals?.some((m) => m.name === "Test rice bowl" && m.minutes === 10));
+    await page.goto("http://127.0.0.1:8765/meals");
+    await page.getByRole("button", { name: /^Idea for tonight: Test rice bowl/ }).waitFor();
+    const mealPrefs = await page.evaluate(() => JSON.parse(localStorage.getItem("hats.personal.v2")).preferences.mealPreferences);
+    assert.deepEqual(mealPrefs, { likes: ["rice"], avoid: ["mushrooms"], maxActiveMinutes: 30, ownFirst: true });
+    await page.screenshot({ path: "/tmp/hats-memory-ui/meal-input.png", fullPage: true });
+    console.log("Meal input UI: preferences persist, custom meal saves/edits and one saved dinner leads suggestions.");
+
+    const prepPage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    await prepPage.clock.install({ time: new Date("2026-11-05T08:10:00") });
+    const prepData = freshPersonal();
+    prepData.preferences.onboarded = true;
+    prepData.preferences.unavailableDays = [4];
+    prepData.preferences.school = { on: true, week: { "4": [
+      { start: "08:00", end: "08:40", title: "Prep", kind: "off", note: "Planning", period: 1 },
+      { start: "08:45", end: "09:25", title: "8X Science", kind: "class", section: "8X", period: 2 },
+    ] } };
+    const { makeTask } = require("../src/personal/engine.ts");
+    prepData.tasks = [makeTask("Print lab packets", "work", "2026-11-05", { id: "print", minutes: 15, createdAt: "2026-11-01T08:00:00Z" }),
+      makeTask("Reply to a message", "work", "2026-11-05", { id: "reply", minutes: 10, createdAt: "2026-11-01T09:00:00Z" })];
+    await prepPage.addInitScript((fixture) => localStorage.setItem("hats.personal.v2", JSON.stringify(fixture)), prepData);
+    await prepPage.goto("http://127.0.0.1:8765/");
+    const card = prepPage.getByTestId("prep-mode");
+    await card.getByText("25 usable minutes.", { exact: true }).waitFor();
+    await card.getByText("Print lab packets", { exact: true }).waitFor();
+    await card.scrollIntoViewIfNeeded();
+    await prepPage.screenshot({ path: "/tmp/hats-memory-ui/prep-mode.png", fullPage: true });
+    await card.getByRole("button", { name: "Another fit", exact: true }).click();
+    await card.getByText("Reply to a message", { exact: true }).waitFor();
+    await card.getByRole("button", { name: "Done", exact: true }).click();
+    await prepPage.waitForFunction(() => !!JSON.parse(localStorage.getItem("hats.personal.v2")).tasks.find((t) => t.id === "reply").doneAt);
+    await prepPage.clock.fastForward(31 * 60 * 1000);
+    await card.waitFor({ state: "hidden" });
+    console.log("Prep Mode UI: actual time window, alternative fit, real task completion and automatic end at bell passed.");
   } finally {
     await browser.close();
     server.close();

@@ -131,3 +131,27 @@ and explicit Start recording button. Navigation and legacy `listen` parameters n
 start audio. Leaving Capture aborts recording; returning defaults to typing and preserves
 an unsaved draft. Voice transcription appends to text already present. The pending
 permission result is ignored/aborted if the user leaves or switches back to typing.
+
+## Prep Mode and personal meal input
+
+Prep Mode appears on Today only during a configured `off` school block. It calculates
+remaining minutes from the actual bell window and keeps five minutes clear for wrap-up.
+Calendar meetings, fixed commitments and date plans can shorten or suppress the window;
+meeting/class blocks, closures and protected personal sessions are not prep. Suggestions
+use unfinished flexible Work tasks due by today, respecting explicit future times and
+assignment ownership. Durations are the user's estimates, not invented. Essential/overdue
+work, saved small-task preferences and lighter-day settings inform the order. Another fit
+cycles candidates; Done/Step done uses the existing task completion and Undo path. The
+minute clock ends the card at the bell. This is foreground assistance, not a background
+focus timer or an additional notification stream.
+
+Meals now has direct preferences and Add my own meal controls. Optional private
+`mealPreferences` contains likes, skip terms, active cooking minutes and saved/library
+priority. Matching is literal whole-word/phrase matching in names and listed ingredients;
+it is not semantic interpretation or an allergen checker. Slow-cooker waiting time is
+separate from active minutes. All new suggestions, swaps and automatic planning honor
+skip/time limits. Existing planned meals are preserved. A single saved dinner can lead
+suggestions; the user can choose recipe ideas first. Own dinners can be edited directly,
+with ingredient lists, timing and directions/prep notes. Missing ingredients for future
+planned edits are added without deleting existing groceries. Preferences stay out of
+household sharing and use existing personal backup/account sync.

@@ -8,7 +8,8 @@ import {
   type UndoOp,
 } from "./model";
 import { shoppingFor } from "./engine";
-import { suggestRecipes } from "./meals";
+import { mealAllowed, mealLikeScore } from "./mealPreferences";
+import { nextDinner } from "./meals";
 import { sameItem } from "./recipes";
 import { routineSteps } from "./timeline";
 
@@ -198,9 +199,9 @@ export function didToday(data: PersonalData, today: string, nowMin: number) {
  * quicker meals on lighter days. Missing ingredients go on the grocery list.
  */
 export function planWeek(d: PersonalData, today: string, fromLibrary = false): number {
-  // On its own, Hats only plans from dinners you saved. When you ask it to plan the week and
-  // you have fewer than three, the recipe library fills in.
-  const library = fromLibrary && d.meals.length < 3;
+  // Automatic planning uses saved dinners; explicit week planning can fill gaps with
+  // library ideas. Both routes honor the same meal preferences.
+  const library = fromLibrary;
   if (!library && !d.meals.length) return 0;
   const dates: string[] = [];
   const added: string[] = [];
@@ -214,7 +215,7 @@ export function planWeek(d: PersonalData, today: string, fromLibrary = false): n
     }
     if (i < 0 || declined(d, date, "dinner")) continue;
     if (library) {
-      const pick = suggestRecipes(d, date, "all", 1)[0];
+      const pick = nextDinner(d, date, recent);
       if (!pick) continue;
       d.dinners[date] = pick.id;
       recent.push(pick.id);
@@ -228,9 +229,11 @@ export function planWeek(d: PersonalData, today: string, fromLibrary = false): n
     }
     const low = d.lowEnergyDays.includes(date);
     const pool = d.meals
+      .filter((m) => mealAllowed(d, m) && !(d.hiddenRecipes ?? []).includes(m.id))
       .map((m, n) => ({
         m,
         score:
+          mealLikeScore(d, m) +
           (m.favorite ? 3 : 0) -
           // The more recently it was eaten, the less likely again.
           Math.max(0, 6 - (recent.length - recent.lastIndexOf(m.id))) *
@@ -240,6 +243,7 @@ export function planWeek(d: PersonalData, today: string, fromLibrary = false): n
           ((n + i) % d.meals.length) * 0.01,
       }))
       .sort((a, b) => b.score - a.score);
+    if (!pool.length) continue;
     const meal = pool[0].m;
     d.dinners[date] = meal.id;
     recent.push(meal.id);
