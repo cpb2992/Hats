@@ -1,5 +1,6 @@
 import { HAT_ART_IDS, type HatArtId } from "./hatArt";
 import { libraryHat } from "./hatLibrary";
+import { packageById } from "./packageCatalog";
 import { validRule } from "./repeat";
 export type BuiltInHat =
   "husband" | "dad" | "pets" | "home" | "friends" | "myself" | "work";
@@ -146,6 +147,7 @@ export function hangUpHat(d: PersonalData, id: CustomHatId) {
   d.habits?.forEach(home);
   d.log?.forEach(home);
   d.customHats = (d.customHats ?? []).filter((h) => h.id !== id);
+  if (d.hatPackages) delete d.hatPackages[id];
 }
 /** The hat you added whose name is in `text` ("water the garden" → Garden). */
 export function customHatFor(text: string, list: CustomHat[]): CustomHatId | undefined {
@@ -254,6 +256,8 @@ export interface PersonalEvent {
   allDay: boolean;
   source: "hats" | "google";
   externalId?: string;
+  /** Segments of one shift across midnight. */
+  packageGroup?: string;
   location?: string;
   closure?: boolean;
   /** Which hat this belongs to (shown as a tag). */
@@ -416,6 +420,7 @@ export interface PersonalData {
   habits?: Habit[];
   /** Hats you added yourself, in the order you added them. */
   customHats?: CustomHat[];
+  hatPackages?: Partial<Record<PersonalHat, string>>;
   /** Library recipes you said aren't for your family. */
   hiddenRecipes?: string[];
   /** Routine steps checked off, by day: { "2026-10-28": ["dinner", "bath"] }. */
@@ -665,6 +670,8 @@ export function validData(value: unknown): value is PersonalData {
       (!Array.isArray(v.hiddenRecipes) || !v.hiddenRecipes.every(text))
     )
       return false;
+    if (v.hatPackages !== undefined && (!v.hatPackages || typeof v.hatPackages !== "object" || Array.isArray(v.hatPackages) ||
+      !Object.entries(v.hatPackages).every(([hat, pack]) => isHatId(hat) && (isBuiltInHat(hat) || v.customHats?.some((h) => h.id === hat)) && (pack === "none" || !!packageById(pack))))) return false;
     if (
       v.customHats !== undefined &&
       (!Array.isArray(v.customHats) ||
@@ -773,7 +780,8 @@ export function validData(value: unknown): value is PersonalData {
           text(e.title) &&
           validDate(e.date) &&
           time(e.start) &&
-          time(e.end) &&
+          (time(e.end) || (e.end === "24:00" && typeof e.packageGroup === "string")) &&
+          optional(e.packageGroup, "string") &&
           typeof e.allDay === "boolean" &&
           ["hats", "google"].includes(e.source) &&
           (e.repeat === undefined || validRule(e.repeat)) &&

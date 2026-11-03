@@ -166,6 +166,7 @@ export default function NewHat() {
         subtitle="Name it, then pick a hat that fits."
         back
       />
+      {!editing ? <Button title="Choose a job package with tools" quiet hat="hardhat" onPress={() => router.push("/hat-packages")} /> : null}
       <View
         style={{
           backgroundColor: tone(preview.tint),

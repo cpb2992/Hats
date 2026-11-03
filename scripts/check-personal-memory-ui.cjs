@@ -152,6 +152,58 @@ async function main() {
     await prepPage.clock.fastForward(31 * 60 * 1000);
     await card.waitFor({ state: "hidden" });
     console.log("Prep Mode UI: actual time window, alternative fit, real task completion and automatic end at bell passed.");
+    // Job packages use a separate disposable profile with no real household data.
+    const packagePage = await browser.newPage({ viewport: { width: 390, height: 844 } });
+    const packageErrors = [];
+    packagePage.on("pageerror", (error) => packageErrors.push(error.message));
+    const packageData = freshPersonal();
+    packageData.preferences.onboarded = true;
+    await packagePage.addInitScript((fixture) => {
+      if (!localStorage.getItem("hats.personal.v2")) localStorage.setItem("hats.personal.v2", JSON.stringify(fixture));
+    }, packageData);
+    await packagePage.goto("http://127.0.0.1:8765/hat-packages");
+    await packagePage.getByRole("button", { name: "Skip the intro", exact: true }).click();
+    for (const name of ["Teacher", "Chef", "Police Officer", "Firefighter", "Driver", "Tradesperson", "Nurse", "Business Owner", "Coach", "Creative"]) {
+      await packagePage.getByRole("button", { name: `Explore ${name} package`, exact: true }).waitFor();
+    }
+    await packagePage.screenshot({ path: "/tmp/hats-memory-ui/packages-phone.png", fullPage: true });
+    await packagePage.setViewportSize({ width: 768, height: 900 });
+    await packagePage.screenshot({ path: "/tmp/hats-memory-ui/packages-fold.png", fullPage: true });
+    await packagePage.setViewportSize({ width: 390, height: 844 });
+    await packagePage.getByRole("button", { name: "Explore Chef package", exact: true }).click();
+    await packagePage.getByRole("button", { name: "Add Chef package", exact: true }).click();
+    await packagePage.getByRole("button", { name: "Open recipes, meals & groceries", exact: true }).click();
+    await packagePage.getByRole("button", { name: "Meal preferences", exact: true }).waitFor();
+    await packagePage.goto("http://127.0.0.1:8765/hat-packages");
+    await packagePage.getByRole("button", { name: "Explore Police Officer package", exact: true }).click();
+    await packagePage.getByRole("button", { name: "Add Police Officer package", exact: true }).click();
+    await packagePage.getByRole("button", { name: "Plan a duty shift", exact: true }).click();
+    for (const [label, value] of [["Block title", "Test night duty"], ["Start date · YYYY-MM-DD", "2026-11-05"], ["End date · YYYY-MM-DD", "2026-11-06"], ["Start time · 24-hour", "19:00"], ["End time · 24-hour", "07:00"]]) {
+      await packagePage.getByRole("textbox", { name: label, exact: true }).fill(value);
+    }
+    await packagePage.getByRole("button", { name: "Save", exact: true }).click();
+    await packagePage.locator('[aria-modal="true"]').filter({ visible: true }).waitFor({ state: "hidden" });
+    await packagePage.waitForFunction(() => JSON.parse(localStorage.getItem("hats.personal.v2")).events.filter((e) => e.title === "Test night duty").length === 2);
+    const policeHat = await packagePage.evaluate(() => JSON.parse(localStorage.getItem("hats.personal.v2")).customHats.find((h) => h.name === "Police Officer").id);
+    await packagePage.screenshot({ path: "/tmp/hats-memory-ui/package-tools.png", fullPage: true });
+    await packagePage.getByRole("button", { name: "Get ready for duty", exact: true }).click();
+    await packagePage.getByRole("textbox", { name: "Checklist title", exact: true }).fill("My duty preparation");
+    await packagePage.getByRole("textbox", { name: "Steps · one per line", exact: true }).fill("Pack my bag\nCheck my calendar");
+    await packagePage.getByRole("button", { name: "Add checklist", exact: true }).click();
+    await packagePage.getByRole("textbox", { name: "Task", exact: true }).waitFor();
+    assert.equal(await packagePage.getByRole("textbox", { name: "Task", exact: true }).inputValue(), "My duty preparation");
+    await packagePage.getByRole("checkbox", { name: "Pack my bag", exact: true }).click();
+    await packagePage.getByRole("checkbox", { name: "Check my calendar", exact: true }).click();
+    await packagePage.waitForFunction(() => !!JSON.parse(localStorage.getItem("hats.personal.v2")).tasks.find((t) => t.title === "My duty preparation").doneAt);
+    await packagePage.goto(`http://127.0.0.1:8765/hat/${policeHat}`);
+    await packagePage.getByRole("button", { name: "Remove package tools", exact: true }).click();
+    await packagePage.getByRole("button", { name: "Add a job package", exact: true }).waitFor();
+    const kept = await packagePage.evaluate(() => JSON.parse(localStorage.getItem("hats.personal.v2")));
+    assert.equal(kept.events.filter((e) => e.title === "Test night duty").length, 2);
+    assert.ok(kept.tasks.find((t) => t.title === "My duty preparation").doneAt);
+    assert.equal(kept.hatPackages[policeHat], "none");
+    assert.deepEqual(packageErrors, []);
+    console.log("Hat packages UI: ten packages, phone/fold layout, Chef tools, overnight duty, custom checklist completion and removal without losing work passed.");
   } finally {
     await browser.close();
     server.close();

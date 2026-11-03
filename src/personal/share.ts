@@ -114,6 +114,7 @@ export function sharedFromLocal(d: PersonalData): Map<string, SharedItem> {
         date: e.date,
         start: e.start,
         end: e.end,
+        packageGroup: e.packageGroup,
         allDay: e.allDay,
         location: e.location || undefined,
         hat: wireHat(e.hat),
@@ -241,7 +242,8 @@ const okEvent = (p: P) =>
   str(p.title) &&
   validDate(p.date) &&
   time(p.start) &&
-  time(p.end) &&
+  (time(p.end) || (p.end === "24:00" && str(p.packageGroup, 100))) &&
+  (p.packageGroup === undefined || str(p.packageGroup, 100)) &&
   typeof p.allDay === "boolean" &&
   (p.location === undefined || str(p.location)) &&
   (p.hat === undefined || isBuiltInHat(p.hat)) &&
@@ -339,6 +341,7 @@ function applyOne(d: PersonalData, r: RemoteRow & { kind: SharedKind; payload: P
         date: p.date as string,
         start: p.start as string,
         end: p.end as string,
+        packageGroup: p.packageGroup as string | undefined,
         allDay: p.allDay as boolean,
         location: (p.location as string) ?? "",
         repeat: p.repeat as PersonalEvent["repeat"],
