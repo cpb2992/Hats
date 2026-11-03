@@ -139,6 +139,7 @@ function CaptureForm({
   useSpeechRecognitionEvent("end", () => setListening(false));
   useSpeechRecognitionEvent("error", () => {
     setListening(false);
+    if (!focused.current) return;
     say("Voice capture stopped. You can keep typing or try again.");
   });
   const understood = understand(text, data, today, hat, nowMin).map((u, i) => ({

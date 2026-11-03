@@ -59,7 +59,7 @@ async function main() {
     await page.getByRole("tab", { name: "Capture", exact: true }).click();
     await page.getByText("Capture.", { exact: true }).waitFor();
     assert.equal(await page.getByRole("button", { name: "Start recording", exact: true }).count(), 0);
-    assert.equal(await page.getByRole("button", { name: /Type$/ }).getAttribute("aria-selected"), "true");
+    await page.getByRole("button", { name: /^✓\s*Type$/ }).waitFor();
     const draft = page.getByPlaceholder("A task, a promise, a song, or a useful link…");
     await draft.fill("Keep this typed draft");
     await page.setViewportSize({ width: 390, height: 844 });
@@ -70,12 +70,12 @@ async function main() {
     assert.equal(await draft.inputValue(), "Keep this typed draft");
     await page.getByRole("tab", { name: "Today", exact: true }).click();
     await page.getByRole("tab", { name: "Capture", exact: true }).click();
-    assert.equal(await page.getByRole("button", { name: /Type$/ }).getAttribute("aria-selected"), "true");
+    await page.getByRole("button", { name: /^✓\s*Type$/ }).waitFor();
     assert.equal(await draft.inputValue(), "Keep this typed draft");
     await page.goto("http://127.0.0.1:8765/capture?listen=old-shortcut");
     await page.getByText("Capture.", { exact: true }).waitFor();
     assert.equal(await page.getByRole("button", { name: "Start recording", exact: true }).count(), 0);
-    assert.equal(await page.getByRole("button", { name: /Type$/ }).getAttribute("aria-selected"), "true");
+    await page.getByRole("button", { name: /^✓\s*Type$/ }).waitFor();
     console.log("Capture UI: typing by default, explicit recording, draft preserved and legacy auto-listen ignored.");
 
     // A generic fixture verifies the real file picker and targeted import, without private schedule data.
