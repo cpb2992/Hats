@@ -1,4 +1,5 @@
 import { routineBlocks } from "./routine";
+import { memoryPriority, preferredWindow, taskMemories } from "./memory";
 import { dinnerFor, missingFor } from "./meals";
 import { eventsOn, lastBetween, taskRule } from "./repeat";
 import {
@@ -147,6 +148,7 @@ export function planDay(
       Number(b.fixed) - Number(a.fixed) ||
       Number(b.essential) - Number(a.essential) ||
       a.date.localeCompare(b.date) ||
+      memoryPriority(data, b, date) - memoryPriority(data, a, date) ||
       a.deferred - b.deferred ||
       a.createdAt.localeCompare(b.createdAt),
   );
@@ -179,7 +181,14 @@ export function planDay(
       continue;
     }
     let placed: number | null = null;
-    for (const w of windows) {
+    const preferred = preferredWindow(data, task, date);
+    const preferredWindows = preferred ? windows.map((w) => ({
+      start: Math.max(w.start, minutesOf(preferred.start)),
+      end: Math.min(w.end, minutesOf(preferred.end)),
+    })).filter((w) => w.end > w.start) : [];
+    // Essentials take the earliest safe opening. Preferences never erase availability.
+    const choices = task.essential ? windows : [...preferredWindows, ...windows];
+    for (const w of choices) {
       let start = Math.max(
         w.start,
         nowMin,
@@ -215,6 +224,14 @@ export function planDay(
               ? "A smaller plan for a low-energy day"
               : "Fits around your commitments",
     });
+    if (placed != null) {
+      const rules = taskMemories(data, task, date).filter((m) => m.rule);
+      const matching = rules.find((m) => m.rule?.kind === "window" && !task.essential &&
+        placed! >= minutesOf(m.rule.start) && placed! + task.minutes <= minutesOf(m.rule.end)) ??
+        rules.find((m) => m.rule?.kind === "priority" || (m.rule?.kind === "small" && task.minutes <= m.rule.minutes));
+      if (matching) output[output.length - 1].reason += ` · Your preference: ${matching.text}`;
+      else if (preferred && !task.essential) output[output.length - 1].reason += " · Preferred time unavailable; using another safe opening";
+    }
   }
   return output.sort(
     (a, b) =>

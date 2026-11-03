@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { voiceBus } from "../../personal/voiceBus";
+import { keepMemory } from "../../personal/memory";
 import { Image, Pressable, ScrollView, View } from "react-native";
 import { Hat } from "../../personal/Hat";
 import { Icon } from "../../ui/icons";
@@ -45,7 +46,7 @@ const endOf = (t: string, m: number) => {
   return `${String(Math.floor(n / 60)).padStart(2, "0")}:${String(n % 60).padStart(2, "0")}`;
 };
 
-type Kind = "task" | "idea" | "gift" | "reflection" | "groceries" | "pantry";
+type Kind = "task" | "idea" | "gift" | "reflection" | "groceries" | "pantry" | "memory";
 export default function Capture() {
   const params = useLocalSearchParams<{
     hat?: PersonalHat;
@@ -70,7 +71,7 @@ function CaptureForm({
   const [text, setText] = useState(params.text ?? "");
   const [kind, setKind] = useState<Kind>(
     params.kind &&
-      ["task", "idea", "gift", "reflection", "groceries", "pantry"].includes(
+      ["task", "idea", "gift", "reflection", "groceries", "pantry", "memory"].includes(
         params.kind,
       )
       ? params.kind
@@ -172,6 +173,18 @@ function CaptureForm({
       stopListening();
       setListening(false);
     }
+    if (kind === "memory") {
+      if (!text.trim() || text.trim().length > 2000) {
+        say("Add a text memory of up to 2,000 characters.");
+        return;
+      }
+      const at = new Date().toISOString();
+      mutate((d) => keepMemory(d, { id: id(), text: text.trim(), hat, source: "you", createdAt: at, updatedAt: at }));
+      setText("");
+      say("Remembered. Choose a planning preference to put it to work.");
+      router.push({ pathname: "/memory", params: { hat } });
+      return;
+    }
     if (shopping) {
       let added = 0;
       mutate((d) => {
@@ -262,6 +275,7 @@ function CaptureForm({
         {(
           [
             "task",
+            "memory",
             "idea",
             "gift",
             "reflection",
@@ -274,6 +288,7 @@ function CaptureForm({
             title={
               {
                 task: "To do",
+                memory: "Remember about me",
                 idea: "Idea / link",
                 gift: "Gift idea",
                 reflection: "Private reflection",
@@ -299,6 +314,10 @@ function CaptureForm({
           </T>
         </Panel>
       ) : null}
+      {kind === "memory" ? <Panel>
+        <T bold>Something you shouldn’t have to explain again.</T>
+        <T muted>Kept in personal memory for reference. Open “What Hats knows” to turn it into a timing, priority or task-size preference. Photos aren’t interpreted.</T>
+      </Panel> : null}
       <Pressable
         accessibilityRole="button"
         accessibilityLabel={listening ? "Stop listening" : "Tap to talk"}
@@ -383,7 +402,7 @@ function CaptureForm({
         </View>
       ) : null}
       <Row>
-        {!["task", "pantry", "groceries"].includes(kind) ? (
+        {!["task", "pantry", "groceries", "memory"].includes(kind) ? (
           <Button title="Keep a photo" hat="chef" quiet onPress={choosePhoto} />
         ) : null}
       </Row>
@@ -410,7 +429,7 @@ function CaptureForm({
             contentContainerStyle={{ gap: 8, paddingRight: 4 }}
           >
             {allHats(data.customHats).map((h) => {
-              const on = (manual ? hat : draft.hat) === h;
+              const on = (manual || kind === "memory" ? hat : draft.hat) === h;
               return (
                 <Pressable
                   key={h}

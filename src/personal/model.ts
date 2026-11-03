@@ -385,6 +385,8 @@ export const ROUTINE_DEFAULTS = {
 };
 export interface PersonalData {
   version: 2;
+  /** Private, user-reviewable context and planning preferences. Never family-shared. */
+  memory?: import("./memory").MemoryState;
   preferences: Preferences;
   tasks: PersonalTask[];
   people: Person[];
@@ -523,6 +525,23 @@ export function validData(value: unknown): value is PersonalData {
     const optional = (x: unknown, type: "string" | "boolean") =>
       x === undefined || typeof x === type;
     const h = v.household;
+    if (v.memory !== undefined) {
+      const m = v.memory;
+      if (!m || typeof m.learnFromCompletions !== "boolean" ||
+        !strings(m.dismissed) || !Array.isArray(m.items) ||
+        !m.items.every((item) => item && text(item.id) && item.id.length > 0 &&
+          text(item.text) && item.text.trim().length > 0 && item.text.length <= 2000 &&
+          isHatId(item.hat) && ["you", "pattern"].includes(item.source) &&
+          text(item.createdAt) && Number.isFinite(Date.parse(item.createdAt)) &&
+          text(item.updatedAt) && Number.isFinite(Date.parse(item.updatedAt)) &&
+          (item.expiresOn === undefined || validDate(item.expiresOn)) &&
+          (item.rule === undefined || (item.rule && (
+            item.rule.kind === "priority" ||
+            (item.rule.kind === "small" && Number.isInteger(item.rule.minutes) && item.rule.minutes >= 5 && item.rule.minutes <= 120) ||
+            (item.rule.kind === "window" && time(item.rule.start) && time(item.rule.end) && item.rule.start < item.rule.end)
+          )))) || new Set(m.items.map((item) => item.id)).size !== m.items.length)
+        return false;
+    }
     if (
       h !== undefined &&
       (!h ||

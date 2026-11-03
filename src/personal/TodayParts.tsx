@@ -6,11 +6,13 @@ import { haptic } from "./haptics";
 import {
   finishStep,
   mealFor,
+  planDay,
   nextStep,
   reschedule,
   shoppingFor,
 } from "./engine";
 import { Hat } from "./Hat";
+import { taskMemories } from "./memory";
 import { type Habit, type PersonalData, hatDef } from "./model";
 import { recipeById } from "./recipes";
 import { usePersonal } from "./Store";
@@ -283,6 +285,15 @@ export function NowCard({ items }: { items: TimelineItem[] }) {
           ) : null}
         </View>
       </View>
+      {task ? <View style={{ gap: 6 }}>
+        <T size={13} color="#D5DDE8">
+          {planDay(a.data, a.today, a.nowMin).find((p) => p.task.id === task.id)?.reason}
+        </T>
+        {taskMemories(a.data, task, a.today).filter((m) => !m.rule).slice(-2).map((m) =>
+          <T key={m.id} size={13} color="#D5DDE8">Keep in mind · {m.text}</T>,
+        )}
+        <Button title="Adjust what Hats knows" small quiet onPress={() => router.push({ pathname: "/memory", params: { hat: task.hat } })} />
+      </View> : null}
       {work && started && length > 0 ? (
         <View
           accessibilityLabel={`${left} of ${length} minutes left`}
