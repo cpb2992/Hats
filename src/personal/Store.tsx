@@ -372,7 +372,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
       updatePersonalWidgets(data).catch(() => {});
     }, 1200);
     return () => clearTimeout(timer);
-  }, [data, ready, today, error, say]);
+  }, [data, ready, today, nowMin, error, say]);
   useEffect(() => {
     if (!ready || error) return;
     const timer = setTimeout(() => {
