@@ -1,6 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { router, useLocalSearchParams } from "expo-router";
-import { voiceBus } from "../../personal/voiceBus";
+import { router, useFocusEffect, useLocalSearchParams } from "expo-router";
 import { keepMemory } from "../../personal/memory";
 import { Image, Pressable, ScrollView, View } from "react-native";
 import { Hat } from "../../personal/Hat";
@@ -52,11 +51,10 @@ export default function Capture() {
     hat?: PersonalHat;
     kind?: Kind;
     text?: string;
-    listen?: string;
   }>();
   return (
     <CaptureForm
-      key={`${params.hat ?? ""}:${params.kind ?? ""}:${params.text ?? ""}:${params.listen ?? ""}`}
+      key={`${params.hat ?? ""}:${params.kind ?? ""}:${params.text ?? ""}`}
       params={params}
     />
   );
@@ -64,7 +62,7 @@ export default function Capture() {
 function CaptureForm({
   params,
 }: {
-  params: { hat?: PersonalHat; kind?: Kind; text?: string; listen?: string };
+  params: { hat?: PersonalHat; kind?: Kind; text?: string };
 }) {
   const { data, mutate, today, nowMin, say, celebrate } = usePersonal();
   const [flipped, setFlipped] = useState<Record<number, boolean>>({});
@@ -83,58 +81,60 @@ function CaptureForm({
   const [manual, setManual] = useState(!!params.hat);
   const [listening, setListening] = useState(false);
   const [photo, setPhoto] = useState("");
-  useEffect(() => () => abortListening(), []);
+  const [inputMode, setInputMode] = useState<"type" | "record">("type");
+  const [requestingMic, setRequestingMic] = useState(false);
+  const voicePrefix = useRef("");
+  const focused = useRef(false);
+  const voiceRequest = useRef(0);
+  useFocusEffect(useCallback(() => {
+    focused.current = true;
+    setInputMode("type");
+    return () => {
+      focused.current = false;
+      voiceRequest.current++;
+      abortListening();
+      setListening(false);
+      setRequestingMic(false);
+    };
+  }, []));
   const listeningRef = useRef(false);
   useEffect(() => {
     listeningRef.current = listening;
   }, [listening]);
   const begin = useCallback(async () => {
-    if (listeningRef.current) return;
+    if (listeningRef.current || requestingMic || !focused.current) return;
     if (!speechAvailable()) {
       say(
         "Speech recognition isn’t available here. Use your keyboard microphone or type.",
       );
       return;
     }
-    const asked = Date.now();
+    const request = ++voiceRequest.current;
+    voicePrefix.current = text.trim();
+    setRequestingMic(true);
     try {
-      const ok = await startListening();
-      setListening(ok);
-      if (!ok) say("Microphone permission is off. Turn it on to talk to Hats.");
-      // Released the mic button before listening began: stop right away.
-      else if (voiceBus.stoppedAt > asked) {
-        stopListening();
-        setListening(false);
+      const ok = await startListening(() => focused.current && request === voiceRequest.current);
+      if (!focused.current || request !== voiceRequest.current) {
+        abortListening();
+        return;
       }
+      setListening(ok);
+      if (!ok) say("Microphone permission is off. Turn it on to record.");
     } catch {
-      say("Microphone unavailable. Check phone permissions.");
+      if (focused.current) say("Microphone unavailable. Check phone permissions.");
+    } finally {
+      if (request === voiceRequest.current) setRequestingMic(false);
     }
-  }, [say]);
+  }, [say, text, requestingMic]);
   const end = useCallback(() => {
+    voiceRequest.current++;
     stopListening();
     setListening(false);
+    setRequestingMic(false);
   }, []);
-  // The mic button in the tab bar: tap to talk, or hold and speak.
-  useEffect(
-    () =>
-      voiceBus.on((c) => {
-        if (c === "stop") end();
-        else if (c === "start") begin();
-        else if (listeningRef.current) end();
-        else begin();
-      }),
-    [begin, end],
-  );
-  const autoStarted = useRef(false);
-  useEffect(() => {
-    if (params.listen && !autoStarted.current) {
-      autoStarted.current = true;
-      begin();
-    }
-  }, [params.listen, begin]);
   useSpeechRecognitionEvent("result", (event) => {
     const transcript = event.results[0]?.transcript;
-    if (transcript) setText(transcript);
+    if (transcript && focused.current) setText([voicePrefix.current, transcript].filter(Boolean).join(" "));
   });
   useSpeechRecognitionEvent("end", () => setListening(false));
   useSpeechRecognitionEvent("error", () => {
@@ -263,10 +263,14 @@ function CaptureForm({
   return (
     <Page>
       <Header
-        title="A thought worth keeping."
-        subtitle="Say it or type it. Then get back to life."
+        title="Capture."
+        subtitle="Type a thought or choose Record."
         hat="wizard"
       />
+      <Row>
+        <Chip title="Type" selected={inputMode === "type"} onPress={() => { end(); setInputMode("type"); }} />
+        <Chip title="Record" selected={inputMode === "record"} onPress={() => setInputMode("record")} />
+      </Row>
       <ScrollView
         horizontal
         showsHorizontalScrollIndicator={false}
@@ -318,9 +322,10 @@ function CaptureForm({
         <T bold>Something you shouldn’t have to explain again.</T>
         <T muted>Kept in personal memory for reference. Open “What Hats knows” to turn it into a timing, priority or task-size preference. Photos aren’t interpreted.</T>
       </Panel> : null}
-      <Pressable
+      {inputMode === "record" ? <Pressable
         accessibilityRole="button"
-        accessibilityLabel={listening ? "Stop listening" : "Tap to talk"}
+        accessibilityLabel={listening ? "Stop recording" : "Start recording"}
+        disabled={requestingMic}
         onPress={() => (listening ? end() : begin())}
         style={({ pressed }) => ({
           flexDirection: "row",
@@ -349,15 +354,15 @@ function CaptureForm({
         </View>
         <View style={{ flex: 1 }}>
           <T bold size={17} color={listening ? P.onDark : P.onSun}>
-            {listening ? "Listening… tap to stop" : "Tap to talk"}
+            {listening ? "Recording… tap to stop" : requestingMic ? "Checking microphone…" : "Start recording"}
           </T>
           <T size={13} color={listening ? "#D5DDE8" : P.onSun}>
             {listening
               ? "Speak naturally. Hats writes it down."
-              : "Hats sorts it into the right hat."}
+              : "Recording starts only when you tap here."}
           </T>
         </View>
-      </Pressable>
+      </Pressable> : null}
       <Field
         label={
           kind === "groceries" || kind === "pantry"
@@ -368,6 +373,7 @@ function CaptureForm({
         }
         value={text}
         onChangeText={setText}
+        editable={!listening && !requestingMic}
         multiline
         style={{ minHeight: 110 }}
         placeholder={

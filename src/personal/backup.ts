@@ -5,6 +5,7 @@ import { Platform } from "react-native";
 import { todayISO } from "../engine/dates";
 import type { PersonalData } from "./model";
 import { parseBackup } from "./profile";
+import { parseSchoolSchedule } from "./schoolImport";
 
 export { parseBackup };
 
@@ -38,4 +39,12 @@ export async function pickBackup(): Promise<PersonalData | null> {
   if ((file.size ?? 0) > 5 * 1024 * 1024)
     throw new Error("This file is too large for a Hats setup file.");
   return parseBackup(await new File(file.uri).text());
+}
+export async function pickSchoolSchedule() {
+  const result = await DocumentPicker.getDocumentAsync({ type: ["application/json", "text/plain"], copyToCacheDirectory: true });
+  if (result.canceled) return null;
+  const asset = result.assets[0];
+  if ((asset.size ?? 0) > 100 * 1024) throw new Error("Choose a class schedule file under 100 KB.");
+  const text = Platform.OS === "web" && asset.file ? await asset.file.text() : await new File(asset.uri).text();
+  return parseSchoolSchedule(text);
 }

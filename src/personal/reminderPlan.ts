@@ -19,8 +19,11 @@ export const noticeRevision = (n: Notice) => JSON.stringify([n.title, n.body, n.
 /** A real item and its time, never an empty "ready when you are" placeholder. */
 export function currentPlanNotice(data: PersonalData, date: string, now: number): Notice | null {
   const { items } = dayTimeline(data, date, now, date);
+  const classPeriodNow = items.some((i) => i.kind === "work" && i.period &&
+    minutesOfDay(i.time) <= now && minutesOfDay(i.end ?? i.time) > now);
   // Finished windows, including old fixed tasks, must not masquerade as current.
   const open = items.filter((i) => !i.done && minutesOfDay(i.end ?? i.time) > now &&
+    !(classPeriodNow && i.kind !== "work" && /^(?:work|school|work day|school day)$/i.test(i.title.trim())) &&
     !(i.fixed && data.tasks.find((t) => t.id === i.taskId)?.date !== date));
   const rank = (i: TimelineItem) => i.kind === "date" ? 4 : i.kind === "event" || i.fixed ? 3 : i.kind === "work" ? 2 : 1;
   const active = open.filter((i) => minutesOfDay(i.time) <= now)
