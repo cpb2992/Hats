@@ -98,3 +98,19 @@ No automatic document/photo interpretation, conversational AI, ChatGPT memory im
 background agent or new provider integration is included in this first version.
 Deploy only after review: merging into `codex/hats-personal-life` triggers personal OTA and
 web publication. The review branch and pull-request workflow do not deploy an update.
+
+## Notification repetition fix
+
+Personal task alerts now contain the actual task title, time, duration and next unfinished
+step. The Android pinned plan card uses the current school block, calendar event, routine
+or task rather than generic text. Unchanged schedules and card content are compared with
+native notification metadata and left alone, including after restarting the JS runtime.
+Legacy generic notices are retired, and native reconciliation is serialized so saves do
+not race. The plan card uses a separate silent LOW-importance channel with PRIVATE lock
+screen visibility. Task controls are attached only to notifications that refer to a task.
+
+The card refreshes on the existing foreground minute clock, data changes and app resume.
+This OTA fix does not add an Android background service; the pinned card is a snapshot
+while the app is suspended. Already-scheduled task/digest alerts can still fire in the
+background and now show specific text. Expired fixed commitments are excluded from the
+card. Notification-off removes owned notifications without touching focus timer notices.
