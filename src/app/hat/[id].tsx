@@ -1,3 +1,4 @@
+import { PackageTools } from "../../personal/PackageTools";
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image, Linking, Pressable, View } from "react-native";
@@ -283,6 +284,7 @@ export default function HatPage() {
           onPress={() => capture("idea")}
         />
       </Row>
+      <PackageTools hat={hat} />
       {mine ? (
         <Panel tint={def.tint}>
           <T bold>A hat you added.</T>

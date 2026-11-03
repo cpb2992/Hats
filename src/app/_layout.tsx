@@ -106,6 +106,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="task/[id]" options={{ presentation: "modal" }} />
         <Stack.Screen name="hat/[id]" />
         <Stack.Screen name="hat-new" />
+        <Stack.Screen name="hat-packages" />
         <Stack.Screen name="recipe/[id]" />
         <Stack.Screen name="settings" />
         <Stack.Screen name="memory" />

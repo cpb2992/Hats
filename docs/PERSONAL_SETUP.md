@@ -155,3 +155,26 @@ suggestions; the user can choose recipe ideas first. Own dinners can be edited d
 with ingredient lists, timing and directions/prep notes. Missing ingredients for future
 planned edits are added without deleting existing groceries. Preferences stay out of
 household sharing and use existing personal backup/account sync.
+
+## Job packages
+
+Hats → Explore job packages previews ten toolkits: Teacher, Chef, Police Officer,
+Firefighter, Driver, Tradesperson, Nurse, Business Owner, Coach, and Creative.
+Adding one creates or reuses a hat without adding sample tasks. Each hat also offers
+Add a job package / Change package, so an existing custom hat can use a toolkit.
+
+Packages provide editable checklist templates and real calendar blocks. Teacher links
+to the saved school schedule and existing Today Prep Mode; Chef links to meals,
+preferences, recipes, and groceries. Other job packages provide role-specific task
+checklists and shift/session/job scheduling. These are personal planning tools; they
+do not connect to employer systems, provide navigation, or send messages.
+
+Start and end dates support overnight, 24-hour, and up to 48-hour blocks. They are
+split at midnight into grouped events, so daily planners reserve all occupied time.
+Conflicting timed calendar events prevent saving the entire block. Removing a block
+removes every segment; Undo restores it. Package tasks and blocks start private.
+Choosing to share a grouped block shares all segments together.
+
+Removing or changing package tools keeps the hat, tasks, notes, and blocks. Backups
+retain package assignments. Existing Teacher tools remain available by default.
+No new native dependencies, payment gates, or notifications are introduced.

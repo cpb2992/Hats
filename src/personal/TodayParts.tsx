@@ -1,3 +1,4 @@
+import { removePackageBlock } from "./hatPackages";
 import { router } from "expo-router";
 import { useState } from "react";
 import { Linking, Pressable, ScrollView, View } from "react-native";
@@ -453,7 +454,7 @@ function EventOptions({
   const shared = !!a.data.household && eventShared(e);
   const remove = () => {
     a.mutate((d) => {
-      d.events = d.events.filter((x) => x.id !== eventId);
+      removePackageBlock(d, e);
     });
     a.say(
       `${e.repeat ? `Removed every ${e.title}` : `Removed ${e.title}`}${shared ? " for everyone" : ""}`,
@@ -476,7 +477,9 @@ function EventOptions({
         onPress={() => {
           a.mutate((d) => {
             const x = d.events.find((y) => y.id === eventId);
-            if (x) x.shared = !shared;
+            if (x) {
+              for (const part of d.events) if (x.packageGroup ? part.packageGroup === x.packageGroup : part.id === x.id) part.shared = !shared;
+            }
           });
           a.say(
             shared

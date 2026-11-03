@@ -21,6 +21,7 @@ import { usePersonal } from "../../personal/Store";
 import { StreakStrip } from "../../personal/TodayParts";
 import { dateTime } from "../../personal/timeline";
 import {
+  Button,
   Header,
   P,
   Page,
@@ -69,6 +70,7 @@ export default function Hats() {
         subtitle="What’s next under each one."
         hat="stack"
       />
+      <Button title="Explore job packages" hat="hardhat" tone="sun" onPress={() => router.push("/hat-packages")} />
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
         {allHats(data.customHats).map((id, index) => {
           const hat = hatDef(id, data.customHats);
