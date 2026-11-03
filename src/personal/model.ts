@@ -310,7 +310,7 @@ export interface SchoolBlock {
   start: string;
   end: string;
   title: string;
-  kind: "class" | "boost" | "homeroom" | "advisory" | "off" | "break";
+  kind: "class" | "boost" | "homeroom" | "advisory" | "off" | "break" | "meeting";
   period?: number;
   /** What's happening in an off period, e.g. "Specials" or "RBR". */
   note?: string;

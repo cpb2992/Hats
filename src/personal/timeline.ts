@@ -35,7 +35,7 @@ export interface TimelineItem {
   section?: string;
   period?: number;
   /** School blocks: what kind of block (class, off period, lunch...). */
-  block?: "class" | "boost" | "homeroom" | "advisory" | "off" | "break";
+  block?: "class" | "boost" | "homeroom" | "advisory" | "off" | "break" | "meeting";
 }
 
 /** When a date night starts: its time, or 7:00 PM. */

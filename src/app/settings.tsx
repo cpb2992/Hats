@@ -19,7 +19,7 @@ import {
   STANDARD_WEEK,
   WEEKDAYS,
   dayFields,
-  dayFrom,
+  editDayAssignments,
   daySummary,
   schoolOn,
   isSimpleWeek,
@@ -27,7 +27,8 @@ import {
 } from "../personal/school";
 import { fmtTime } from "../engine/dates";
 import { parseClock } from "../personal/clock";
-import { exportPersonal, pickBackup } from "../personal/backup";
+import { exportPersonal, pickBackup, pickSchoolSchedule } from "../personal/backup";
+import { applySchoolSchedule } from "../personal/schoolImport";
 import { useEditor, required } from "../personal/Editor";
 import { makeTask } from "../personal/engine";
 import { usePersonal } from "../personal/Store";
@@ -420,6 +421,19 @@ export default function Settings() {
             meeting during an off period (like CPT during Specials) takes its
             place. Days you don’t work and confirmed closures have no school day.
           </T>
+          <Button title="Import class schedule" quiet disabled={busy} onPress={() => run(async () => {
+            const file = await pickSchoolSchedule();
+            if (!file) return;
+            const summary = WEEKDAYS.map((name, i) => {
+              const blocks = file.week[String(i + 1)] ?? [];
+              const meetings = blocks.filter((b) => b.kind === "meeting").map((b) => b.title);
+              return `${name}: ${[daySummary(blocks), ...meetings].filter(Boolean).join(" · ") || "Off"}`;
+            }).join("\n");
+            confirm("Use this class schedule?", `${summary}\n\nThis updates your school periods and workdays. Your tasks and notes stay.`, () => {
+              mutate((d) => applySchoolSchedule(d, file));
+              say("Class schedule loaded. Your notification and Today use these periods.");
+            });
+          })} />
         </Panel>
         {schoolOn(data) && isSimpleWeek(data.preferences.school?.week) ? (
           <Panel>
@@ -488,7 +502,7 @@ export default function Settings() {
                         { key: "p7", label: "Period 7 · 2:11", value: f.p7, placeholder: "7D" },
                       ],
                       onSave: (v) => {
-                        const next = dayFrom(v as Record<"p2" | "p3" | "p4" | "p5" | "p6" | "p7", string>);
+                        const next = editDayAssignments(blocks, v as Record<"p2" | "p3" | "p4" | "p5" | "p6" | "p7", string>);
                         mutate((d) => {
                           const cur = d.preferences.school ?? { on: true };
                           d.preferences.school = {

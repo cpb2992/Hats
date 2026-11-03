@@ -114,3 +114,20 @@ This OTA fix does not add an Android background service; the pinned card is a sn
 while the app is suspended. Already-scheduled task/digest alerts can still fire in the
 background and now show specific text. Expired fixed commitments are excluded from the
 card. Notification-off removes owned notifications without touching focus timer notices.
+
+## Class schedule imports and Capture
+
+Settings → Work day / School day → Import class schedule accepts a private
+`hats-school-schedule` version 1 JSON file. `week` uses weekday keys 0–6 and arrays of
+blocks with `start`, `end`, `title`, `kind` and optional `period`, `section`, `note`.
+The file is validated, previewed and merged into school preferences/workdays only.
+Existing tasks, notes, account configuration and family data are preserved. Meeting
+blocks are distinct from prep; class edits preserve first-period meetings and imported
+bell times. A broad Work/School calendar block no longer hides a current class period.
+Private schedule contents belong in the user's file, not in repository source or builds.
+
+Capture is a normal labeled tab. It opens in Type mode, with a separate Record option
+and explicit Start recording button. Navigation and legacy `listen` parameters never
+start audio. Leaving Capture aborts recording; returning defaults to typing and preserves
+an unsaved draft. Voice transcription appends to text already present. The pending
+permission result is ignored/aborted if the user leaves or switches back to typing.

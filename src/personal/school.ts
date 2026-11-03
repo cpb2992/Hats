@@ -107,7 +107,7 @@ export function dayFields(blocks: SchoolBlock[]) {
     p2: sec("09:31"),
     p3: sec("10:27"),
     p4: p4?.kind === "boost" ? `${p4.section} Boost` : "RBR",
-    p5: at("12:19")?.title === "Advisory" ? "Advisory" : "Recess",
+    p5: /^Advisory\b/i.test(at("12:19")?.title ?? "") ? "Advisory" : "Recess",
     p6: sec("13:15"),
     p7: sec("14:11"),
   };
@@ -132,6 +132,24 @@ export function dayFrom(f: Record<"p2" | "p3" | "p4" | "p5" | "p6" | "p7", strin
     section(f.p6, "Period 6"),
     section(f.p7, "Period 7"),
   );
+}
+
+/** Change class assignments while preserving imported bell times and other commitments. */
+export function editDayAssignments(blocks: SchoolBlock[], fields: Parameters<typeof dayFrom>[0]) {
+  const edited = dayFrom(fields);
+  if (!blocks.length) return edited;
+  return blocks.map((b) => {
+    if (b.period && [2, 3, 4, 6, 7].includes(b.period)) {
+      const replacement = edited.find((x) => x.period === b.period)!;
+      return { ...replacement, start: b.start, end: b.end,
+        ...(b.kind === "off" && replacement.kind === "off" ? { title: b.title } : {}) };
+    }
+    if (b.period === 5 && b.title !== "Lunch") {
+      const replacement = edited.find((x) => x.period === 5)!;
+      return { ...b, title: `${replacement.title}${/Lunch/i.test(b.title) ? " / Lunch" : ""}`, kind: replacement.kind };
+    }
+    return { ...b };
+  });
 }
 
 /** A plain work day, the same hours on each chosen weekday ("Work 9–5", "School 8–3"). */

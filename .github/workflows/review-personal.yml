@@ -28,7 +28,7 @@ jobs:
         run: |
           npm install --no-save --package-lock=false playwright@1.62.1
           npx playwright install --with-deps chromium
-      - name: Check personal memory on a narrow and wide screen
+      - name: Check memory, Capture and class schedule import
         run: node --import tsx scripts/check-personal-memory-ui.cjs
       - uses: actions/upload-artifact@v4
         if: always()
