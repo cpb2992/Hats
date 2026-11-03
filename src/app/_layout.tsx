@@ -108,6 +108,7 @@ function Shell({ fontsReady }: { fontsReady: boolean }) {
         <Stack.Screen name="hat-new" />
         <Stack.Screen name="recipe/[id]" />
         <Stack.Screen name="settings" />
+        <Stack.Screen name="memory" />
         <Stack.Screen name="log" />
         <Stack.Screen name="meals" />
       </Stack>

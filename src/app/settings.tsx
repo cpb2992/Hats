@@ -234,6 +234,11 @@ export default function Settings() {
   return (
     <Page tabs={false}>
       <Header title="Your life, your settings." back hat="hardhat" />
+      <Panel>
+        <T bold>What Hats knows about you</T>
+        <T muted>Keep useful context, correct a preference, and review what Hats is learning.</T>
+        <Button title="Open personal memory" hat="wizard" onPress={() => router.push("/memory")} />
+      </Panel>
       {error ? (
         <Panel>
           <T>{error}</T>

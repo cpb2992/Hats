@@ -66,3 +66,35 @@ Enable notifications inside Hats. Current tasks remain in the app and widget aft
 ## Meaningful checks
 
 Personal tests cover unfinished laundry steps, collision-free scheduling, fixed commitments, next-opening deferral, low-energy capacity, recurrence de-duplication, confirmed closures, daily and weekly streak boundaries, shopping lists, budget unknowns, capture, and activity variation. Existing engine tests remain as regression coverage. Typecheck, lint, web export, native autolinking, and Android compilation are separate checks; do not report device behavior as tested from a TypeScript build.
+
+## Personal memory (review version)
+
+Settings → Open personal memory, or Capture → Remember about me, keeps text under a hat.
+Context memories appear beside that hat's current task. They do not undergo AI interpretation.
+Choose an explicit planning preference to prioritize a hat, prefer a same-day time window,
+or start with tasks under a chosen duration. Priority and task-size preferences apply among
+otherwise equal tasks due the same day; older tasks and essential care retain precedence.
+Preferred time windows are soft: existing availability, events, family routines and fixed
+commitments remain constraints, and Hats falls back to another safe opening if necessary.
+Task estimates and deadlines are not rewritten. Only one preference of each kind is kept
+per hat; a correction replaces its predecessor. Optional expiry dates stop use after that day.
+
+Timing suggestions are off until enabled. The calculation runs locally over existing task
+completion history from the previous 28 days (today's partial
+sample is excluded). Four completions across three distinct days, with at least 70% in one
+time band, are required. Tasks assigned to other household members and fixed appointments
+are ignored. A suggestion does not change planning until confirmed, and confirmation creates
+an editable, expiring two-week preference. Skips/deferrals never infer dislikes or preferences.
+Dismissed timing patterns remain suppressed until memory is cleared.
+
+The optional `memory` field is backward compatible with version 2 data and validated on
+restore/cloud read. It uses existing personal persistence (encrypted on native phones,
+browser storage on web), backup and private account sync. It is excluded from household
+sharing; no memory is embedded in source, APKs, widget text or an AI request. Forget/clear
+removes current records and syncs that change through the existing personal-state mechanism;
+old backups, recovery copies and Undo can retain earlier copies. This is not secure erasure.
+
+No automatic document/photo interpretation, conversational AI, ChatGPT memory import,
+background agent or new provider integration is included in this first version.
+Deploy only after review: merging into `codex/hats-personal-life` triggers personal OTA and
+web publication. The review branch and pull-request workflow do not deploy an update.
