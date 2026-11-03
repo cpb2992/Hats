@@ -117,7 +117,11 @@ async function main() {
     await page.locator('[aria-modal="true"]').filter({ visible: true }).waitFor({ state: "hidden" });
     await page.waitForFunction(() => JSON.parse(localStorage.getItem("hats.personal.v2"))?.meals?.some((m) => m.name === "Test rice bowl" && m.minutes === 10));
     await page.goto("http://127.0.0.1:8765/meals");
-    await page.getByRole("button", { name: /^Idea for tonight: Test rice bowl/ }).waitFor();
+    await page.getByRole("button", { name: /^Idea for tonight: Test rice bowl/ }).waitFor({ timeout: 10000 }).catch(async (error) => {
+      console.log("Meal debug", await page.evaluate(() => ({ text: document.body.innerText, data: JSON.parse(localStorage.getItem("hats.personal.v2")) })));
+      await page.screenshot({ path: "/tmp/hats-memory-ui/meal-failure.png", fullPage: true });
+      throw error;
+    });
     const mealPrefs = await page.evaluate(() => JSON.parse(localStorage.getItem("hats.personal.v2")).preferences.mealPreferences);
     assert.deepEqual(mealPrefs, { likes: ["rice"], avoid: ["mushrooms"], maxActiveMinutes: 30, ownFirst: true });
     await page.screenshot({ path: "/tmp/hats-memory-ui/meal-input.png", fullPage: true });
