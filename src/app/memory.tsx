@@ -5,7 +5,7 @@ import { required, useEditor } from "../personal/Editor";
 import { allHats, hatDef, id, isHatId, validDate, type PersonalHat } from "../personal/model";
 import { emptyMemory, keepMemory, memorySuggestions, type PersonalMemory, type MemoryRule } from "../personal/memory";
 import { usePersonal } from "../personal/Store";
-import { Button, Check, Chip, Field, Header, Page, Panel, Row, T } from "../personal/ui";
+import { Button, Check, Chip, Field, Group, Header, Page, Panel, Row, T } from "../personal/ui";
 
 const TYPES = ["Context to remember", "Give this hat priority", "Prefer a time window", "Start with smaller tasks"];
 export default function Memory() {
@@ -63,8 +63,7 @@ export default function Memory() {
     <Header title="What Hats knows." subtitle="Less explaining. A day that fits you better." back hat="wizard" />
     <Panel>
       <T bold>Your words, your control.</T>
-      <T muted>Memories stay in your personal data and backups, including your private account sync if connected. They are excluded from family sharing and aren’t sent to an AI service.</T>
-      <T muted>This first version remembers text and applies the preferences you choose. It does not interpret documents, photos or every note automatically.</T>
+      <T muted>Keep useful context or choose a preference to shape your day.</T>
     </Panel>
     <T bold>Which part of life?</T>
     <Row>{allHats(data.customHats).map((h) => <Chip key={h} title={hatDef(h).name} selected={hat === h} onPress={() => setHat(h)} />)}</Row>
@@ -111,6 +110,10 @@ export default function Memory() {
       }} /><Button title="Dismiss" small quiet onPress={() => mutate((d) => { d.memory ??= emptyMemory(); d.memory.dismissed.push(s.key); })} /></Row>
     </Panel>)}
     {memory.learnFromCompletions && !suggestions.length ? <T muted>New patterns will appear here when there’s enough evidence. Your saved preferences stay in charge.</T> : null}
+    <Group title="Your data and control" summary="Private memory, backups and how planning works" hat="wizard">
+      <T muted>Memories stay in your personal data and backups, including your private account sync if connected. They are excluded from family sharing and aren’t sent to an AI service.</T>
+      <T muted>This first version remembers text and applies the preferences you choose. It does not interpret documents, photos or every note automatically.</T>
+    </Group>
     <Button title="Clear all memories and stop learning" quiet onPress={() => {
       editor.open({ title: "Clear personal memory?", detail: "This removes your current memories and preferences and turns off timing suggestions. Your tasks and notes stay. Existing backups retain their copies.", fields: [], saveTitle: "Clear memories", onSave: () => {
         mutate((d) => { d.memory = emptyMemory(); });
