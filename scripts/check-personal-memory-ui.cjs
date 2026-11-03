@@ -138,6 +138,8 @@ async function main() {
       makeTask("Reply to a message", "work", "2026-11-05", { id: "reply", minutes: 10, createdAt: "2026-11-01T09:00:00Z" })];
     await prepPage.addInitScript((fixture) => localStorage.setItem("hats.personal.v2", JSON.stringify(fixture)), prepData);
     await prepPage.goto("http://127.0.0.1:8765/");
+    await prepPage.getByRole("button", { name: "Skip the intro", exact: true }).click();
+    await prepPage.getByRole("button", { name: "Skip the intro", exact: true }).waitFor({ state: "hidden" });
     const card = prepPage.getByTestId("prep-mode");
     await card.getByText("25 usable minutes.", { exact: true }).waitFor();
     await card.getByText("Print lab packets", { exact: true }).waitFor();
