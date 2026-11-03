@@ -118,7 +118,7 @@ async function main() {
     await page.waitForFunction(() => JSON.parse(localStorage.getItem("hats.personal.v2"))?.meals?.some((m) => m.name === "Test rice bowl" && m.minutes === 10));
     await page.goto("http://127.0.0.1:8765/meals");
     // Reopening runs the existing saved-dinner automation, which can plan this meal.
-    await page.getByRole("button", { name: /^(Idea for tonight|Tonight): Test rice bowl/ }).waitFor();
+    await page.getByRole("button", { name: /^(Idea for tonight|Tonight): Test rice bowl\. Open the recipe\.$/ }).waitFor();
     const mealPrefs = await page.evaluate(() => JSON.parse(localStorage.getItem("hats.personal.v2")).preferences.mealPreferences);
     assert.deepEqual(mealPrefs, { likes: ["rice"], avoid: ["mushrooms"], maxActiveMinutes: 30, ownFirst: true });
     await page.screenshot({ path: "/tmp/hats-memory-ui/meal-input.png", fullPage: true });
