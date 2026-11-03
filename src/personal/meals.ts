@@ -4,6 +4,7 @@
  */
 import { daysBetween } from "../engine/dates";
 import type { Meal, PersonalData } from "./model";
+import { mealAllowed, mealLikeScore, mealPreferences } from "./mealPreferences";
 import {
   RECIPES,
   isStaple,
@@ -99,6 +100,7 @@ export function suggestRecipes(
     .map(([, id]) => id);
   const nearbyArt = nearby.map((id) => recipeById(id)?.art).filter(Boolean);
   return RECIPES.filter((r) => !hidden.has(r.id))
+    .filter((r) => mealAllowed(data, asMeal(r)))
     .filter((r) => {
       if (filter === "all") return true;
       if (filter === "pantry") {
@@ -110,6 +112,7 @@ export function suggestRecipes(
     .map((r) => {
       const h = haveCount(data, r);
       let score = (h.of ? h.have / h.of : 0) * 6;
+      score += mealLikeScore(data, asMeal(r));
       if (isGoTo(data, r.id)) score += 4;
       if (kids && r.tags.includes("kid-friendly")) score += 2.5;
       if (low && (r.tags.includes("quick") || r.tags.includes("low-effort"))) score += 4;
@@ -131,9 +134,11 @@ export function dinnerFor(data: PersonalData, date: string): { meal: Meal | null
   if (planned) return { meal: planned, planned: true };
   const mine = [...data.meals]
     .filter((m) => !(data.hiddenRecipes ?? []).includes(m.id))
+    .filter((m) => mealAllowed(data, m))
     .sort((a, b) => {
       const score = (m: Meal) =>
         m.ingredients.filter((i) => inPantry(data, i)).length * 4 +
+        mealLikeScore(data, m) +
         (m.favorite ? 2 : 0) -
         (data.lowEnergyDays.includes(date) ? m.minutes / 10 : 0) -
         (Object.entries(data.dinners).some(
@@ -143,23 +148,24 @@ export function dinnerFor(data: PersonalData, date: string): { meal: Meal | null
           : 0);
       return score(b) - score(a);
     });
-  // Your own dinners first when you have a few; otherwise the library fills in.
-  if (mine.length >= 3) return { meal: mine[0], planned: false };
+  // A single saved dinner counts; the user's priority choice decides what leads.
+  if (mine.length && mealPreferences(data).ownFirst) return { meal: mine[0], planned: false };
   const lib = suggestRecipes(data, date, "all", 1)[0];
   return { meal: lib ? asMeal(lib) : (mine[0] ?? null), planned: false };
 }
 
 /**
- * The next dinner to try for a date when you swap: your own go-tos first if you have a few,
+ * The next dinner to try for a date when you swap: follows your own/library priority,
  * then library ideas, skipping anything in `exclude` (tonight's pick, the rest of the week).
  */
 export function nextDinner(data: PersonalData, date: string, exclude: string[]): Meal | null {
   const hidden = new Set(data.hiddenRecipes ?? []);
-  const mine = data.meals.filter((m) => !hidden.has(m.id) && !exclude.includes(m.id));
+  const mine = data.meals.filter((m) => !hidden.has(m.id) && !exclude.includes(m.id) && mealAllowed(data, m))
+    .sort((a, b) => mealLikeScore(data, b) - mealLikeScore(data, a) || Number(b.favorite) - Number(a.favorite));
   const lib = suggestRecipes(data, date, "all", 40)
     .filter((r) => !exclude.includes(r.id) && !data.meals.some((m) => m.id === r.id))
     .map(asMeal);
-  const order = data.meals.length >= 3 ? [...mine, ...lib] : [...lib, ...mine];
+  const order = mealPreferences(data).ownFirst ? [...mine, ...lib] : [...lib, ...mine];
   return order[0] ?? null;
 }
 

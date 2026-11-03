@@ -20,12 +20,14 @@ import {
 import { PantryMeter, timeLabel } from "../../personal/RecipeCard";
 import { TAG_LABEL, recipeById, sameItem } from "../../personal/recipes";
 import { usePersonal } from "../../personal/Store";
+import { useMealEditor } from "../../personal/MealInput";
 import { Button, Header, P, Page, Panel, Row, T, sticker , tone } from "../../personal/ui";
 
 /** A recipe, from the library or one of your own dinners: plan it, shop for it, cook it. */
 export default function RecipePage() {
   const { id, cook } = useLocalSearchParams<{ id: string; cook?: string }>();
   const { data, today, mutate, say, celebrate } = usePersonal();
+  const mealEditor = useMealEditor();
   const insets = useSafeAreaInsets();
   const r = recipeById(id);
   const meal = findMeal(data, id);
@@ -61,7 +63,7 @@ export default function RecipePage() {
   const hidden = (data.hiddenRecipes ?? []).includes(meal.id);
   const label = (d: string) =>
     d === today ? "Tonight" : d === addDays(today, 1) ? "Tomorrow" : `${dayShort(d)} ${fromISO(d).getDate()}`;
-  const steps = r?.steps ?? (meal.prep ? [meal.prep] : []);
+  const steps = r?.steps ?? meal.prep.split(/\n+/).map((s) => s.trim()).filter(Boolean);
   const ingredients = r?.ingredients ?? meal.ingredients.map((item) => ({ amount: "", item, aisle: "Other" as const }));
 
   const plan = (date: string) => {
@@ -91,6 +93,7 @@ export default function RecipePage() {
     <View style={{ flex: 1, backgroundColor: P.bg }}>
       <Page tabs={false}>
         <Header title={name} subtitle={r?.blurb ?? "One of your dinners."} back />
+        {mealEditor.node}
         <View
           style={{
             backgroundColor: tone(r?.tint ?? "#FFF0C2"),
@@ -124,6 +127,7 @@ export default function RecipePage() {
         </View>
 
         <Row>
+          {!r ? <Button title="Edit my meal" quiet onPress={() => mealEditor.open(meal)} /> : null}
           {steps.length ? (
             <Button title="Cook it" icon="play" tone="sun" onPress={() => { setStep(0); setCooking(true); }} />
           ) : null}
