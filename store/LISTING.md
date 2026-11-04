@@ -19,9 +19,9 @@ The positioning: **You wear a lot of hats. Keep them all in one place.** Most pl
 
 > You wear a lot of hats: partner, parent, pet person, the one who keeps the house running, the one at work, a friend, and somewhere in there, yourself. Hats keeps them all in one place and turns them into one calm plan for the day.
 >
-> **A space for every hat.** Setup asks who's at home and which hats you wear, then builds your hats, work hours and evenings from your answers. Add your own from a library of 42 hats: Coach, Garden, Band, Side hustle, Grad school, anything.
+> **A space for every hat.** Setup asks who's at home and which hats you wear, then builds your hats, your work schedule and your evenings from your answers. Weekends, split shifts, nights or a second job all work, and so does "no fixed hours." Add your own from a library of 42 hats: Coach, Garden, Band, Side hustle, Grad school, anything.
 >
-> **One calm day.** Today lays out what's next across every hat, keeps your work hours clear of home to-dos, protects dinner and bedtime, and makes a low-energy day lighter with one tap.
+> **One calm day.** Today lays out what's next across every hat, keeps your actual work hours clear of home to-dos, protects dinner and bedtime, and makes a low-energy day lighter with one tap.
 >
 > **Packs: tools for each hat.** Add the tools a hat needs:
 > • 1:1s and check-ins for the people you lead or mentor
