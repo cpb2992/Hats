@@ -7,9 +7,15 @@ failures=[]
 def adb(*args):
     return subprocess.check_output(['adb',*map(str,args)],text=True,stderr=subprocess.STDOUT)
 def dump():
-    adb('shell','uiautomator','dump','/sdcard/hats-ui.xml')
-    text=adb('exec-out','cat','/sdcard/hats-ui.xml');(OUT/'last-ui.xml').write_text(text)
-    return ET.fromstring(text)
+    # Right after boot or a screen change, uiautomator can return an error line
+    # instead of XML. Treat that as "nothing on screen yet" so wait_for keeps polling.
+    try:
+        adb('shell','uiautomator','dump','/sdcard/hats-ui.xml')
+        text=adb('exec-out','cat','/sdcard/hats-ui.xml');(OUT/'last-ui.xml').write_text(text)
+        return ET.fromstring(text)
+    except (subprocess.CalledProcessError, ET.ParseError):
+        time.sleep(1)
+        return ET.Element('hierarchy')
 def find(pattern):
     for node in dump().iter('node'):
         if re.search(pattern,node.get('text','')+'|'+node.get('content-desc',''),re.I):
