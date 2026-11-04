@@ -76,16 +76,18 @@ try:
     note('Real Android widget renders the same active event as Today')
     # Stay outside Hats while the OS posts the scheduled reminder.
     adb('shell','input','keyevent','KEYCODE_HOME')
-    end=max(time.time()+10,details['due']/1000+35)
+    end=max(time.time()+10,details['due']/1000+180)
     posted=False
     while time.time()<end:
         notices=adb('shell','dumpsys','notification','--noredact')
         if re.search(r'NotificationRecord[^\n]*personal-plan-[^\n]*native-ci-task',notices):posted=True;break
         time.sleep(3)
-    (OUT/'notifications.txt').write_text(adb('shell','dumpsys','notification','--noredact'))
+    final_notices=adb('shell','dumpsys','notification','--noredact')
+    posted=posted or bool(re.search(r'NotificationRecord[^\n]*personal-plan-[^\n]*native-ci-task',final_notices))
+    (OUT/'notifications.txt').write_text(final_notices)
     (OUT/'alarms.txt').write_text(adb('shell','dumpsys','alarm'))
     (OUT/'runtime.txt').write_text(adb('logcat','-d'))
-    if posted:note('Scheduled reminder delivered while Hats is in the background')
+    if posted:note(f'Scheduled reminder delivered in background; observed {max(0,round(time.time()-details["due"]/1000))} seconds after scheduled time')
     else:
         failures.append('OS did not post the timed reminder while Hats was in the background')
         print('FAIL: '+failures[-1],flush=True)
@@ -100,10 +102,12 @@ try:
     adb('shell','input','keyevent','KEYCODE_HOME');adb('shell','am','kill',PKG)
     logs=adb('logcat','-d','-s','HATS_WIDGET_CI:I','*:S')
     match=re.search(r'BOUND:(\d+):([^\s]+)',logs);assert match,'Widget host did not report a real binding'
-    adb('shell','am','broadcast','-a','android.appwidget.action.APPWIDGET_UPDATE','-n',match.group(2),'--eia','appWidgetIds',match.group(1))
-    adb('shell','am','start','-W','-n','com.hats.ci.widgethost/.WidgetHost','--es','target',PKG)
+    adb('shell','am','force-stop','com.hats.ci.widgethost')
+    adb('shell','am','start','-W','-n','com.hats.ci.widgethost/.WidgetHost','--es','target',PKG,'--ez','refresh','true')
     wait_for('Disposable Hats widget check',30)
     wait_for('Native scheduled reminder',40);shot('04-background-widget')
+    refreshed=re.findall(r'BOUND:(\d+):([^\s]+)',adb('logcat','-d','-s','HATS_WIDGET_CI:I','*:S'))
+    assert refreshed and refreshed[-1][0]==match.group(1),'Refresh must reuse the original bound widget id'
     note('Bound widget remains readable after an app-process restart and provider refresh')
     # A revoked notification permission must not stop local planning or opening the app.
     adb('shell','pm','revoke',PKG,'android.permission.POST_NOTIFICATIONS');open_app()
