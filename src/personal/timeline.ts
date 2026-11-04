@@ -220,6 +220,8 @@ export function dayTimeline(
     kind: "routine" as const,
   }));
   const allDay: { id: string; title: string; hat?: PersonalHat }[] = [];
+  if (data.workDaysOff?.includes(date))
+    allDay.push({ id: `day-off:${date}`, title: "Day off work" });
   // The school day. A calendar meeting that falls in an off period (CPT during Specials)
   // takes that block's place instead of showing twice.
   const merged = new Set<string>();

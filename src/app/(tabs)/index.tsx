@@ -15,9 +15,11 @@ import {
   daysBetween,
   dayShort,
   fmtLong,
+  fmtTime,
   fromISO,
 } from "../../engine/dates";
 import { didToday, undoEntry } from "../../personal/auto";
+import { useEditor } from "../../personal/Editor";
 import { planDay } from "../../personal/engine";
 import { Hat } from "../../personal/Hat";
 import { type PersonalData, type PersonalHat, hatDef } from "../../personal/model";
@@ -65,7 +67,7 @@ function headline(
   }
   // Events say more about a day than recurring chores do.
   const special = [
-    ...items.filter((i) => i.kind === "event"),
+    ...items.filter((i) => i.kind === "event" || i.kind === "date"),
     ...items.filter((i) => i.kind === "task"),
   ];
   if (special.length >= 2) return say(special);
@@ -378,6 +380,22 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
   const isToday = date === today;
   const { items, allDay } = dayTimeline(data, date, nowMin, today);
   const low = data.lowEnergyDays.includes(date);
+  const editor = useEditor();
+  const off = !!data.workDaysOff?.includes(date);
+  const plans = items.filter((item) => item.kind === "date" || item.kind === "event" || (item.kind === "task" && item.fixed));
+  const editDay = () => editor.open({
+    title: `Edit ${dayShort(date)} ${fromISO(date).getDate()}`,
+    detail: "Only this date changes. A day off removes school blocks and opens daytime for flexible plans. Calendar events and appointments stay in place.",
+    fields: [{ key: "work", label: "Work schedule", value: off ? "Day off work" : "Regular schedule", options: ["Regular schedule", "Day off work"] }],
+    saveTitle: "Save day",
+    onSave: (values) => {
+      mutate((d) => {
+        d.workDaysOff = (d.workDaysOff ?? []).filter((day) => day !== date);
+        if (values.work === "Day off work") d.workDaysOff.push(date);
+      });
+      say(values.work === "Day off work" ? "Day off saved for this date. Your regular week stays the same." : "Regular schedule restored for this date.");
+    },
+  });
   const lighterEntry = (data.log ?? [])
     .slice()
     .reverse()
@@ -444,6 +462,23 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
             </Pressable>
           ))}
         </View>
+
+        <Button title="Edit day" small quiet onPress={editDay} />
+        {off ? <T bold color={P.blue}>Day off work · just this date</T> : null}
+        {plans.length ? (
+          <View style={{ padding: 12, gap: 8, borderRadius: 18, backgroundColor: tone("#DCE9FA") }}>
+            <T bold size={14}>Plans for this day</T>
+            {plans.map((plan) => (
+              <Pressable key={plan.id} disabled={!plan.tag && !plan.taskId} accessibilityRole={plan.tag || plan.taskId ? "button" : undefined} accessibilityLabel={`Plan: ${plan.title}, ${fmtTime(plan.time, true)}`} onPress={() => {
+                if (plan.taskId) router.push({ pathname: "/task/[id]", params: { id: plan.taskId } });
+                else if (plan.tag) router.push({ pathname: "/hat/[id]", params: { id: plan.tag } });
+              }} style={{ minHeight: 44, justifyContent: "center", gap: 2 }}>
+                <T bold size={14}>{fmtTime(plan.time, true)} · {plan.title}</T>
+                {plan.detail ? <T muted size={12}>{plan.detail}</T> : null}
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
         {low ? (
           <View
@@ -564,6 +599,7 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
           </Pressable>
         ) : null}
       </ScrollView>
+      {editor.node}
     </View>
   );
 }

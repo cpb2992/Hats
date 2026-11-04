@@ -404,6 +404,8 @@ export interface PersonalData {
   dates: DatePlan[];
   spending: Spending[];
   wishes: Wish[];
+  /** One-date work exceptions; the regular week stays unchanged. */
+  workDaysOff?: string[];
   lowEnergyDays: string[];
   activities: Record<string, string>;
   finishedActivities: string[];
@@ -531,6 +533,7 @@ export function validData(value: unknown): value is PersonalData {
     const optional = (x: unknown, type: "string" | "boolean") =>
       x === undefined || typeof x === type;
     const h = v.household;
+    if (v.workDaysOff !== undefined && (!Array.isArray(v.workDaysOff) || !v.workDaysOff.every(validDate))) return false;
     if (p.mealPreferences !== undefined) {
       const meal = p.mealPreferences;
       const terms = (x: unknown) => Array.isArray(x) && x.length <= 20 && x.every((s) => typeof s === "string" && s.trim().length > 0 && s.length <= 80);

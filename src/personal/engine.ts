@@ -1,4 +1,4 @@
-import { routineBlocks } from "./routine";
+import { isWorkday, routineBlocks } from "./routine";
 import { memoryPriority, preferredWindow, taskMemories } from "./memory";
 import { dinnerFor, missingFor } from "./meals";
 import { eventsOn, lastBetween, taskRule } from "./repeat";
@@ -100,8 +100,7 @@ export function dayWindows(
   date: string,
 ): { start: number; end: number }[] {
   const p = data.preferences;
-  const dayOff = eventsOn(data, date).some((e) => e.closure);
-  const weekdayBusy = p.unavailableDays.includes(weekday(date)) && !dayOff;
+  const weekdayBusy = isWorkday(data, date);
   const start = minutesOf(weekdayBusy ? p.homeTime : p.weekendStart);
   const end = minutesOf(weekdayBusy ? p.endTime : p.weekendEnd);
   let windows = end > start ? [{ start, end }] : [];
