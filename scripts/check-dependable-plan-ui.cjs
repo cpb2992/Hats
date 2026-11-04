@@ -36,6 +36,7 @@ async function main() {
     // Preview is not a write.
     assert.equal(await page.evaluate(date=>JSON.parse(localStorage.getItem('hats.personal.v2')).dayAdjustments?.[date],date),undefined);
     mkdirSync('/tmp/hats-dependable-ui',{recursive:true});
+    await settled();
     await page.screenshot({path:'/tmp/hats-dependable-ui/phone-day-change.png',fullPage:true});
     await page.getByRole('button',{name:'Apply day change',exact:true}).click();
     await page.waitForFunction(date=>JSON.parse(localStorage.getItem('hats.personal.v2')).dayAdjustments?.[date]?.essentialsOnly===true,date);
@@ -51,10 +52,13 @@ async function main() {
     await page.getByPlaceholder('What was missing, confusing, or still on your mind?').fill('I still had to coordinate a pickup outside Hats.');
     await page.getByRole('button',{name:'Save feedback privately',exact:true}).click();
     await page.getByText('I still had to coordinate a pickup outside Hats.',{exact:true}).waitFor();
+    await settled();
     await page.screenshot({path:'/tmp/hats-dependable-ui/phone-feedback.png',fullPage:true});
-    await page.goto(`${base}/day-change?date=${date}`);await settled();
+    await page.goto(`${base}/day-change?date=${date}`);
+    await page.getByText('My day changed.',{exact:true}).waitFor();await settled();
     await page.setViewportSize({width:768,height:900});
     await page.getByText('Preview for this date',{exact:true}).waitFor();
+    await settled();
     await page.screenshot({path:'/tmp/hats-dependable-ui/fold-day-change.png',fullPage:true});
     assert.deepEqual(errors,[]);
     // Separate first-use context with no private household setup.
@@ -68,6 +72,7 @@ async function main() {
     const stored=await first.evaluate(()=>JSON.parse(localStorage.getItem('hats.personal.v2')));
     assert.equal(stored.preferences.kidsRoutine,false);assert.equal(stored.people.length,0);assert.ok(stored.productUse.firstPlanOn);
     await first.getByRole('button',{name:'Plan: A real first commitment, 6:00 PM',exact:true}).waitFor();
+    await first.getByRole('button',{name:'Skip the intro',exact:true}).waitFor({state:'hidden'});
     await first.screenshot({path:'/tmp/hats-dependable-ui/phone-first-plan.png'});
     const sharedPage = await browser.newPage({viewport:{width:390,height:844}});
     const sharedData = freshPersonal(); sharedData.preferences.onboarded = true;
@@ -81,6 +86,8 @@ async function main() {
     await sharedPage.getByRole('button',{name:'I’ll handle this',exact:true}).click();
     await sharedPage.waitForFunction(()=>JSON.parse(localStorage.getItem('hats.personal.v2')).tasks.find(t=>t.id==='sample-pickup').acceptedBy==='sam');
     await sharedPage.getByText(/You · Accepted/).waitFor();
+    await sharedPage.getByRole('button',{name:'Skip the intro',exact:true}).waitFor({state:'hidden'});
+    await sharedPage.getByText('Who’s handling what?',{exact:true}).scrollIntoViewIfNeeded();
     await sharedPage.screenshot({path:'/tmp/hats-dependable-ui/phone-responsibilities.png',fullPage:true});
     console.log('Dependable planner UI: preview before write, apply, Undo, childcare confirmation, corrections, private feedback, first useful plan and phone/fold screenshots passed.');
   }finally{await browser.close();await new Promise(done=>server.close(done));}
