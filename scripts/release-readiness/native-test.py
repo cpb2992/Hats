@@ -70,6 +70,8 @@ try:
     adb('install','-r',os.environ['RUNNER_TEMP']+'/hats-widget-host/host.apk')
     adb('shell','appwidget','grantbind','--package','com.hats.ci.widgethost','--user','0')
     adb('shell','am','start','-W','-n','com.hats.ci.widgethost/.WidgetHost','--es','target',PKG)
+    wait_for('Disposable Hats widget check',45)
+    assert any(n.get('package')=='com.hats.ci.widgethost' for n in dump().iter('node')),'Widget host is not the visible app'
     wait_for('Native active event',45);shot('02-real-widget')
     note('Real Android widget renders the same active event as Today')
     # Stay outside Hats while the OS posts the scheduled reminder.
@@ -100,6 +102,7 @@ try:
     match=re.search(r'BOUND:(\d+):([^\s]+)',logs);assert match,'Widget host did not report a real binding'
     adb('shell','am','broadcast','-a','android.appwidget.action.APPWIDGET_UPDATE','-n',match.group(2),'--eia','appWidgetIds',match.group(1))
     adb('shell','am','start','-W','-n','com.hats.ci.widgethost/.WidgetHost','--es','target',PKG)
+    wait_for('Disposable Hats widget check',30)
     wait_for('Native scheduled reminder',40);shot('04-background-widget')
     note('Bound widget remains readable after an app-process restart and provider refresh')
     # A revoked notification permission must not stop local planning or opening the app.
