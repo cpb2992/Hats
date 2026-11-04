@@ -7,6 +7,7 @@
  * The art, color and thick sticker outlines intentionally match the public
  * app's hat stickers / Today's dark hero card.
  */
+import { dayTimeline, nowAndNext, type TimelineItem } from './timeline';
 import { Platform } from 'react-native';
 import {
   FlexWidget,
@@ -16,8 +17,8 @@ import {
   requestWidgetUpdate,
   type WidgetTaskHandlerProps,
 } from 'react-native-android-widget';
-import { nowMinutes, todayISO } from '../engine/dates';
-import { finishStep, nextStep, planDay, reschedule } from './engine';
+import { nowMinutes, todayISO, fmtTime } from '../engine/dates';
+import { finishStep, nextStep, reschedule } from './engine';
 import { type PersonalData, type PersonalTask, hatDef } from './model';
 import { hatSvg, type HatArtId } from './hatArt';
 import { loadPersonal, savePersonal } from './storage';
@@ -40,7 +41,6 @@ const C = {
 const DISPLAY = 'BricolageGrotesque-SemiBold';
 const SEMI = 'InterTight-SemiBold';
 const BOLD = 'InterTight-Bold';
-const BODY = 'InterTight-Medium';
 
 const STAR = `<${"svg"} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><${"path"} d="M16 2.5 19.2 11l8.9 1.6-7 5.9 1.6 9-6.7-4.5-7 4.5 1.6-9-7-5.9 8.8-1.6z" fill="${C.sun}" stroke="${C.ink}" stroke-width="2.1" stroke-linejoin="round"/></svg>`;
 const SPARK = `<${"svg"} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32"><${"path"} d="M16 2v9M16 21v9M2 16h9M21 16h9M6 6l6 6M20 20l6 6M26 6l-6 6M12 20l-6 6" stroke="${C.coral}" stroke-width="2.6" stroke-linecap="round"/></svg>`;
@@ -50,13 +50,15 @@ const ARROW = `<${"svg"} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 28 28">
 /** Only home-related tasks belong in the Home Life widget. */
 const HOME_HATS = new Set(['home', 'dad', 'husband', 'pets', 'friends']);
 
-function plannedTask(data: PersonalData | null, homeOnly: boolean): PersonalTask | null {
+function plannedFocus(data: PersonalData | null, homeOnly: boolean): TimelineItem | null {
   if (!data) return null;
-  const plan = planDay(data, todayISO(), nowMinutes());
-  const belongs = (item: (typeof plan)[number]) =>
-    !item.task.doneAt && (!homeOnly || HOME_HATS.has(item.task.hat));
-  // Scheduled first, then a useful unscheduled step instead of an empty widget.
-  return (plan.find((item) => !!item.time && belongs(item)) ?? plan.find(belongs))?.task ?? null;
+  const now = nowMinutes(), today = todayISO();
+  const items = dayTimeline(data, today, now, today).items.filter(i => !homeOnly || (i.tag && HOME_HATS.has(i.tag)));
+  return nowAndNext(items, now).now;
+}
+function plannedTask(data: PersonalData | null, homeOnly: boolean): PersonalTask | null {
+  const focus = plannedFocus(data, homeOnly);
+  return data?.tasks.find(t => t.id === focus?.taskId) ?? null;
 }
 
 function HatSticker({ art, size = 44, tint = C.white }: { art: HatArtId; size?: number; tint?: string }) {
@@ -132,14 +134,15 @@ function LaterButton({ taskId, small, dark }: { taskId: string; small: boolean; 
 }
 
 function NowSticker({ data, width, height }: { data: PersonalData | null; width: number; height: number }) {
+  const focus = plannedFocus(data, false);
   const task = plannedTask(data, false);
   const micro = height < 128;
   const compact = height < 188;
   const roomy = height >= 230;
   const narrow = width < 230;
-  const art = task ? hatDef(task.hat, data?.customHats).art : 'sunhat';
+  const art = focus?.hat ?? 'sunhat';
   const role = task ? hatDef(task.hat, data?.customHats).name : 'Your day';
-  const title = task ? nextStep(task) : 'A little room for what matters.';
+  const title = task ? nextStep(task) : focus?.title ?? 'A little room for what matters.';
   const iconSize = micro ? 22 : compact ? 30 : 43;
   return (
     <FlexWidget
@@ -178,12 +181,12 @@ function NowSticker({ data, width, height }: { data: PersonalData | null; width:
       {task ? (
         <FlexWidget style={{ flexDirection: 'row', alignItems: 'center', flexGap: 7 }}>
           <DoneButton taskId={task.id} small={compact} />
-          <LaterButton taskId={task.id} small={compact} dark />
+          {!task.fixed ? <LaterButton taskId={task.id} small={compact} dark /> : null}
         </FlexWidget>
       ) : (
         <FlexWidget style={{ flexDirection: 'row', alignItems: 'center', flexGap: 6 }}>
           <SvgWidget svg={SPARK} style={{ width: 14, height: 14 }} />
-          <TextWidget text="Open Hats to see your day" maxLines={1} truncate="END" style={{ fontFamily: SEMI, fontSize: 11, color: C.lightInk }} />
+          <TextWidget text={focus ? `${fmtTime(focus.time, true)}${focus.detail ? ` · ${focus.detail}` : ''}` : 'Open Hats to see your day'} maxLines={1} truncate="END" style={{ fontFamily: SEMI, fontSize: 11, color: C.lightInk }} />
         </FlexWidget>
       )}
     </FlexWidget>
@@ -191,13 +194,14 @@ function NowSticker({ data, width, height }: { data: PersonalData | null; width:
 }
 
 function HomeSticker({ data, width, height }: { data: PersonalData | null; width: number; height: number }) {
+  const focus = plannedFocus(data, true);
   const task = plannedTask(data, true);
   const micro = height < 128;
   const compact = height < 188;
   const roomy = height >= 230;
   const narrow = width < 230;
-  const art = task ? hatDef(task.hat, data?.customHats).art : 'cap';
-  const title = task ? nextStep(task) : 'Good things start at home.';
+  const art = focus?.hat ?? 'cap';
+  const title = task ? nextStep(task) : focus?.title ?? 'Good things start at home.';
   const role = task ? hatDef(task.hat, data?.customHats).name : 'All your people. One place.';
   return (
     <FlexWidget
@@ -236,7 +240,7 @@ function HomeSticker({ data, width, height }: { data: PersonalData | null; width
       {task ? (
         <FlexWidget style={{ flexDirection: 'row', alignItems: 'center', flexGap: 7 }}>
           <DoneButton taskId={task.id} small={compact} />
-          <LaterButton taskId={task.id} small={compact} dark={false} />
+          {!task.fixed ? <LaterButton taskId={task.id} small={compact} dark={false} /> : null}
         </FlexWidget>
       ) : (
         <FlexWidget style={{ flexDirection: 'row', alignItems: 'center', flexGap: 6 }}>

@@ -20,6 +20,7 @@ import { syncPersonalReminders } from "./reminders";
 import { router } from "expo-router";
 import { loadPersonal, preserveBeforeImport, savePersonal } from "./storage";
 import { updatePersonalWidgets } from "./widgets";
+import { recordUse } from "./productUse";
 import { configureFocus } from "./focus";
 import type { Celebration } from "./Celebrate";
 
@@ -40,6 +41,8 @@ interface State {
   nowMin: number;
   nowMs: number;
   syncStatus: string;
+  familySyncStatus: string;
+  setFamilySyncStatus: (status: string) => void;
   conflict: Remote | null;
   mutate: (fn: (d: PersonalData) => void) => void;
   /**
@@ -70,6 +73,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
   const [message, setMessage] = useState("");
   const [clock, setClock] = useState(new Date());
   const [syncStatus, setSyncStatus] = useState("On this device");
+  const [familySyncStatus, setFamilySyncStatus] = useState("Family changes waiting to sync");
   const [conflict, setConflict] = useState<Remote | null>(null);
   const [celebration, setCelebration] = useState<Celebration | null>(null);
   const celebrate = useCallback(
@@ -154,8 +158,10 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
               habit.checkins.push(todayISO());
         }
       }
+      if (next.tasks.some(t => !t.source?.startsWith("starter-") && !ref.current.tasks.some(old => old.id === t.id))) recordUse(next, todayISO(), "firstPlan");
       next.updatedAt = new Date().toISOString();
       meta.current.dirty = true;
+      setSyncStatus(meta.current.owner ? "Saved on device · sync pending" : "Saved on this device");
       apply(next);
       persist(next).catch(() =>
         setError(
@@ -174,6 +180,7 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
       undoRef.current = null;
       next.updatedAt = new Date().toISOString();
       meta.current.dirty = true;
+      setSyncStatus(meta.current.owner ? "Saved on device · sync pending" : "Saved on this device");
       apply(next);
       persist(next).catch(() =>
         setError(
@@ -345,6 +352,9 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
   const today = todayISO(clock);
   const nowMin = nowMinutes(clock);
   useEffect(() => {
+    if (ready && !error && data.preferences.onboarded && !data.productUse?.days.includes(today)) mutate(d => recordUse(d, today));
+  }, [ready, error, data.preferences.onboarded, data.productUse, today, mutate]);
+  useEffect(() => {
     if (ready)
       configureFocus(
         data.preferences.focusConsent ? data.protectedUntil : null,
@@ -452,6 +462,8 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
         nowMin,
         nowMs: clock.getTime(),
         syncStatus,
+        familySyncStatus,
+        setFamilySyncStatus,
         conflict,
         mutate,
         absorb,

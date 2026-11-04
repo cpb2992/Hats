@@ -15,6 +15,7 @@ import {
   daysBetween,
   dayShort,
   fmtLong,
+  fmtTime,
   fromISO,
 } from "../../engine/dates";
 import { didToday, undoEntry } from "../../personal/auto";
@@ -64,7 +65,7 @@ function headline(
   }
   // Events say more about a day than recurring chores do.
   const special = [
-    ...items.filter((i) => i.kind === "event"),
+    ...items.filter((i) => i.kind === "event" || i.kind === "date"),
     ...items.filter((i) => i.kind === "task"),
   ];
   if (special.length >= 2) return say(special);
@@ -299,8 +300,12 @@ export default function Home() {
         ) : null}
       </View>
 
+      <Pressable accessibilityRole="button" accessibilityLabel="Check save and sync status" onPress={() => router.push("/settings")} style={{ paddingHorizontal: GUTTER, paddingVertical: 5 }}>
+        <T size={11} muted>{a.syncStatus}{data.household ? ` · ${a.familySyncStatus}` : ""}</T>
+      </Pressable>
       {/* Day cards */}
       <FlatList
+        key={step}
         ref={list}
         data={days}
         horizontal
@@ -309,7 +314,7 @@ export default function Home() {
         snapToInterval={step}
         decelerationRate="fast"
         disableIntervalMomentum
-        initialScrollIndex={BACK}
+        initialScrollIndex={index}
         getItemLayout={(_, i) => ({ length: step, offset: step * i, index: i })}
         onMomentumScrollEnd={onEnd}
         onScrollEndDrag={(e) => {
@@ -377,6 +382,8 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
   const isToday = date === today;
   const { items, allDay } = dayTimeline(data, date, nowMin, today);
   const low = data.lowEnergyDays.includes(date);
+  const off = !!data.workDaysOff?.includes(date);
+  const plans = items.filter((item) => item.kind === "date" || item.kind === "event" || (item.kind === "task" && item.fixed));
   const lighterEntry = (data.log ?? [])
     .slice()
     .reverse()
@@ -443,6 +450,23 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
             </Pressable>
           ))}
         </View>
+
+        <Button title="My day changed" small quiet onPress={() => router.push({ pathname: "/day-change", params: { date } })} />
+        {off ? <T bold color={P.blue}>Day off work · just this date</T> : null}
+        {plans.length ? (
+          <View style={{ padding: 12, gap: 8, borderRadius: 18, backgroundColor: tone("#DCE9FA") }}>
+            <T bold size={14}>Plans for this day</T>
+            {plans.map((plan) => (
+              <Pressable key={plan.id} disabled={!plan.tag && !plan.taskId} accessibilityRole={plan.tag || plan.taskId ? "button" : undefined} accessibilityLabel={`Plan: ${plan.title}, ${fmtTime(plan.time, true)}`} onPress={() => {
+                if (plan.taskId) router.push({ pathname: "/task/[id]", params: { id: plan.taskId } });
+                else if (plan.tag) router.push({ pathname: "/hat/[id]", params: { id: plan.tag } });
+              }} style={{ minHeight: 44, justifyContent: "center", gap: 2 }}>
+                <T bold size={14}>{fmtTime(plan.time, true)} · {plan.title}</T>
+                {plan.detail ? <T muted size={12}>{plan.detail}</T> : null}
+              </Pressable>
+            ))}
+          </View>
+        ) : null}
 
         {low ? (
           <View

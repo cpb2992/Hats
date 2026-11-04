@@ -7,6 +7,8 @@ import { usePersonal } from "../personal/Store";
 import { Hat } from "../personal/Hat";
 import type { HatArtId } from "../personal/hatArt";
 import { HATS, HAT_IDS, type BuiltInHat } from "../personal/model";
+import { useEditor } from "../personal/Editor";
+import { createFirstPlan } from "../personal/firstPlan";
 import { applySetup } from "../personal/setup";
 import { WorkScheduleFields } from "../personal/WorkSchedule";
 import { newWorkShift, workWeek, type WorkShift } from "../personal/workSchedule";
@@ -29,6 +31,7 @@ const list = (s: string) =>
 /** First run: a few questions, and Hats builds your hats, your week, and your evenings from them. */
 export default function Welcome() {
   const { data, mutate, today, replace, say } = usePersonal();
+  const editor = useEditor();
   const [step, setStep] = useState<Step>("start");
   const [name, setName] = useState(data.preferences.name);
   const [partner, setPartner] = useState(data.preferences.partner);
@@ -112,6 +115,24 @@ export default function Welcome() {
               private on this phone.
             </T>
           </View>
+          <Button title="Start with one real plan" hat="cap" onPress={() => editor.open({
+            title: "Your first plan",
+            detail: "Start with Home, Work and Myself. Add your family, work hours and more hats later in Settings.",
+            fields: [
+              { key: "title", label: "One thing you need to remember", placeholder: "Pick up a prescription" },
+              { key: "date", label: "Date · YYYY-MM-DD", value: today },
+              { key: "time", label: "Start time", value: "6:00 PM" },
+              { key: "hat", label: "Which hat?", value: "Home", options: ["Home", "Work", "Myself"] },
+            ],
+            saveTitle: "Show my day",
+            onSave: values => {
+              const time = parseClock(values.time);
+              if (!time) throw new Error("Use a time like 6:00 PM.");
+              mutate(d => createFirstPlan(d, values.title, values.date, time, values.hat === "Work" ? "work" : values.hat === "Myself" ? "myself" : "home", today));
+              router.replace({ pathname: "/", params: { date: values.date } });
+            },
+          })} />
+          <T size={13} muted>One commitment first. No account or calendar connection required.</T>
           <Button title="Set up Hats" hat="cap" onPress={() => setStep("you")} />
           <Panel>
             <T bold size={17}>
@@ -340,6 +361,7 @@ export default function Welcome() {
           </T>
         </>
       ) : null}
+      {editor.node}
     </Page>
   );
 }

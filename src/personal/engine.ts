@@ -1,5 +1,6 @@
 import { isWorkWeek } from "./workSchedule";
-import { routineBlocks } from "./routine";
+import { memoryPriority, preferredWindow, taskMemories } from "./memory";
+import { isWorkday, routineBlocks } from "./routine";
 import { dinnerFor, missingFor } from "./meals";
 import { eventsOn, lastBetween, taskRule } from "./repeat";
 import {
@@ -80,6 +81,7 @@ export function materialize(data: PersonalData, today: string): boolean {
       source,
       date: today,
       doneAt: null,
+      acceptedBy: undefined,
       steps: latest.steps.map((s) => ({ title: s.title, done: false })),
       deferred: 0,
       createdAt: new Date().toISOString(),
@@ -100,10 +102,10 @@ export function dayWindows(
   date: string,
 ): { start: number; end: number }[] {
   const p = data.preferences;
-  const dayOff = eventsOn(data, date).some((e) => e.closure);
-  const weekdayBusy = p.unavailableDays.includes(weekday(date)) && !dayOff;
+  const dayOff = eventsOn(data, date).some(e => e.closure) || !!data.workDaysOff?.includes(date);
+  const weekdayBusy = isWorkday(data, date);
   const customHours = p.school?.on && isWorkWeek(p.school.week);
-  const start = minutesOf(customHours ? p.weekendStart : weekdayBusy ? p.homeTime : p.weekendStart);
+  const start = Math.max(minutesOf(customHours ? p.weekendStart : weekdayBusy ? p.homeTime : p.weekendStart), minutesOf(data.dayAdjustments?.[date]?.availableAfter ?? "00:00"));
   const end = minutesOf(customHours ? p.weekendEnd : weekdayBusy ? p.endTime : p.weekendEnd);
   let windows = end > start ? [{ start, end }] : [];
   const blocked = eventsOn(data, date)
@@ -143,7 +145,7 @@ export function planDay(
   excludeId?: string,
 ): PlannedTask[] {
   const candidates = data.tasks.filter(
-    (t) => !t.doneAt && t.date <= date && t.id !== excludeId,
+    (t) => !t.doneAt && t.date <= date && t.id !== excludeId && (!t.shared || !t.assignee || t.assignee === data.household?.me) && (t.essential || t.fixed || !data.mutedSuggestions?.includes(t.source ?? t.id)),
   );
   const low = data.lowEnergyDays.includes(date);
   const sorted = [...candidates].sort(
@@ -151,11 +153,12 @@ export function planDay(
       Number(b.fixed) - Number(a.fixed) ||
       Number(b.essential) - Number(a.essential) ||
       a.date.localeCompare(b.date) ||
+      memoryPriority(data, b, date) - memoryPriority(data, a, date) ||
       a.deferred - b.deferred ||
       a.createdAt.localeCompare(b.createdAt),
   );
   const used: { start: number; end: number }[] = [];
-  for (const task of sorted.filter((t) => t.fixed && t.time))
+  for (const task of sorted.filter((t) => t.fixed && t.time && t.date === date))
     used.push({
       start: minutesOf(task.time!),
       end: minutesOf(task.time!) + task.minutes,
@@ -173,7 +176,7 @@ export function planDay(
       });
       continue;
     }
-    if (!task.essential && optional >= (low ? 1 : 3)) {
+    if (!task.essential && (data.dayAdjustments?.[date]?.essentialsOnly || data.dayAdjustments?.[date]?.kidsHome || optional >= (low ? 1 : 3))) {
       output.push({
         task,
         date,
@@ -183,7 +186,14 @@ export function planDay(
       continue;
     }
     let placed: number | null = null;
-    for (const w of windows) {
+    const preferred = preferredWindow(data, task, date);
+    const preferredWindows = preferred ? windows.map((w) => ({
+      start: Math.max(w.start, minutesOf(preferred.start)),
+      end: Math.min(w.end, minutesOf(preferred.end)),
+    })).filter((w) => w.end > w.start) : [];
+    // Essentials take the earliest safe opening. Preferences never erase availability.
+    const choices = task.essential ? windows : [...preferredWindows, ...windows];
+    for (const w of choices) {
       let start = Math.max(
         w.start,
         nowMin,
@@ -219,6 +229,14 @@ export function planDay(
               ? "A smaller plan for a low-energy day"
               : "Fits around your commitments",
     });
+    if (placed != null) {
+      const rules = taskMemories(data, task, date).filter((m) => m.rule);
+      const matching = rules.find((m) => m.rule?.kind === "window" && !task.essential &&
+        placed! >= minutesOf(m.rule.start) && placed! + task.minutes <= minutesOf(m.rule.end)) ??
+        rules.find((m) => m.rule?.kind === "priority" || (m.rule?.kind === "small" && task.minutes <= m.rule.minutes));
+      if (matching) output[output.length - 1].reason += ` · Your preference: ${matching.text}`;
+      else if (preferred && !task.essential) output[output.length - 1].reason += " · Preferred time unavailable; using another safe opening";
+    }
   }
   return output.sort(
     (a, b) =>

@@ -1,12 +1,16 @@
 # Hats privacy policy
 
-_Last updated: October 30, 2026_
+_Last updated: November 3, 2026 (proposed update, pending release)_
 
 Hats is a planner for people who wear a lot of hats: family, home, work, friends and yourself. It's built to keep your life on your phone, and to send things elsewhere only when you turn that on.
 
 ## On your phone (always)
 
-Everything you put in Hats is saved on your phone, encrypted: your hats, to-dos, packs (1:1s, invoices, deadlines, care reminders and the rest), calendar, meals and groceries, people and pets, notes, reflections, spending targets and streaks. Photos you attach stay on the phone. Hats has no ads and no analytics or tracking.
+Everything you put in Hats is saved on your phone, encrypted: your hats, to-dos, packs (1:1s, invoices, deadlines, care reminders and the rest), calendar, meals and groceries, people and pets, notes, reflections, spending targets and streaks. Photos you attach stay on the phone. Hats has no ads and no third-party analytics or tracking SDK.
+
+## Private use counts and feedback
+
+Hats keeps small aggregate counts in your profile: days opened (up to 35 days), the first useful plan date, day changes, corrections and accepted responsibilities. These are not sent to an analytics service. You can reset the counts from the feedback screen. Feedback notes are saved only when you choose Save feedback privately; the latest 30 notes are kept, and you can clear them. Neither counts nor feedback are shared with your household. If you enable account sync, they are included in your private profile on the sync server described below. The Share my feedback summary button opens your phone's sharing controls; you choose whether and where to send it.
 
 ## Optional: an account and sync
 

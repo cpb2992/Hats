@@ -1,0 +1,38 @@
+# No updates, releases, or production deploys run in this review workflow.
+name: Review public Hats changes safely
+on:
+  pull_request:
+    branches: [public]
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Check TypeScript
+        run: npm run typecheck
+      - name: Check lint
+        run: npm run lint
+      - name: Run all app tests
+        run: npm test
+      - name: Build browser preview for review
+        run: npx expo export --platform web
+      - name: Install review-only browser tooling
+        run: |
+          npm install --no-save --package-lock=false playwright@1.62.1
+          npx playwright install --with-deps chromium
+      - name: Check dependable planning and first use
+        run: node --import tsx scripts/check-dependable-plan-ui.cjs
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: public-dependable-review-screenshots
+          path: |
+            /tmp/hats-dependable-ui
