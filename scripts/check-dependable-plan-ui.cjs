@@ -69,6 +69,19 @@ async function main() {
     assert.equal(stored.preferences.kidsRoutine,false);assert.equal(stored.people.length,0);assert.ok(stored.productUse.firstPlanOn);
     await first.getByRole('button',{name:'Plan: A real first commitment, 6:00 PM',exact:true}).waitFor();
     await first.screenshot({path:'/tmp/hats-dependable-ui/phone-first-plan.png'});
+    const sharedPage = await browser.newPage({viewport:{width:390,height:844}});
+    const sharedData = freshPersonal(); sharedData.preferences.onboarded = true;
+    sharedData.household = {id:'fixture-family',name:'Sample family',code:'sample',me:'sam',members:[{id:'sam',name:'Sam'},{id:'alex',name:'Alex'}]};
+    sharedData.tasks.push(makeTask('Sample pickup','home',date,{id:'sample-pickup',shared:true,assignee:'sam'}),makeTask('Sample groceries','home',date,{id:'sample-groceries',shared:true,assignee:'alex'}));
+    await sharedPage.addInitScript(data=>{if(!localStorage.getItem('hats.personal.v2'))localStorage.setItem('hats.personal.v2',JSON.stringify(data));},sharedData);
+    await sharedPage.goto(`${base}/family`);
+    await sharedPage.getByRole('button',{name:'Skip the intro',exact:true}).waitFor({state:'hidden'});
+    await sharedPage.getByText('Who’s handling what?',{exact:true}).waitFor();
+    assert.equal(await sharedPage.getByRole('button',{name:'I’ll handle this',exact:true}).count(),1);
+    await sharedPage.getByRole('button',{name:'I’ll handle this',exact:true}).click();
+    await sharedPage.waitForFunction(()=>JSON.parse(localStorage.getItem('hats.personal.v2')).tasks.find(t=>t.id==='sample-pickup').acceptedBy==='sam');
+    await sharedPage.getByText(/You · Accepted/).waitFor();
+    await sharedPage.screenshot({path:'/tmp/hats-dependable-ui/phone-responsibilities.png',fullPage:true});
     console.log('Dependable planner UI: preview before write, apply, Undo, childcare confirmation, corrections, private feedback, first useful plan and phone/fold screenshots passed.');
   }finally{await browser.close();await new Promise(done=>server.close(done));}
 }
