@@ -49,6 +49,8 @@ async function main() {
     await page.screenshot({path:'/tmp/hats-day-ui/phone.png'});
     await page.setViewportSize({width:768,height:900});
     await plan.click({ trial: true });
+    const bounds = await card.boundingBox();
+    assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 768, 'Selected day fits the unfolded screen');
     await page.screenshot({path:'/tmp/hats-day-ui/fold.png'});
     await card.getByRole('button',{name:'Edit day',exact:true}).click();
     await page.getByRole('button',{name:'Regular schedule',exact:true}).click();
