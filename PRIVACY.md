@@ -1,6 +1,6 @@
 # Hats privacy policy
 
-_Last updated: November 3, 2026 (proposed update, pending release)_
+_Last updated: November 4, 2026_
 
 Hats is a planner for people who wear a lot of hats: family, home, work, friends and yourself. It's built to keep your life on your phone, and to send things elsewhere only when you turn that on.
 
@@ -52,4 +52,4 @@ If this policy changes, the new version will be posted here with a new date.
 
 ## Contact
 
-Questions or deletion requests: [your contact email]
+Questions or deletion requests: [cpb2992@gmail.com](mailto:cpb2992@gmail.com)

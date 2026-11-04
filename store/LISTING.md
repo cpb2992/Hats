@@ -72,7 +72,7 @@ Take them from a made-up family set up through the normal setup (no real names o
 - **Accessibility service.** The public build leaves out "Protected family time" (the Android accessibility service), because Google only approves those for real accessibility needs. Personal builds keep it.
 - **Google Calendar.** The read-only Calendar scopes need Google's OAuth consent screen verified for public users (it shows "unverified app" otherwise, and has a 100-user cap). Start that early: it can take a few weeks.
 - **WHOOP: hidden in the public build** until WHOOP approves Hats as a production app. When they do, set `WHOOP_IN_PUBLIC = true` in `src/personal/flavor.ts`.
-- **Privacy policy:** `PRIVACY.md` (add your contact email). URL: https://github.com/cpb2992/Hats/blob/public/PRIVACY.md
+- **Privacy policy:** `PRIVACY.md` (contact: cpb2992@gmail.com). URL: https://github.com/cpb2992/Hats/blob/public/PRIVACY.md
 
 ## Data safety form answers
 
