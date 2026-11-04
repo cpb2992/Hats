@@ -15,15 +15,23 @@ def find(pattern):
             points=re.findall(r'\d+',node.get('bounds',''))
             if len(points)==4:
                 x1,y1,x2,y2=map(int,points)
-                if x2>x1 and y2>y1:return ((x1+x2)//2,(y1+y2)//2)
+                size=re.findall(r'(\d+)x(\d+)',adb('shell','wm','size'))[-1]
+                width,height=map(int,size)
+                if x2>x1 and y2>y1 and 0 < (y1+y2)//2 < height and 0 < (x1+x2)//2 < width:return ((x1+x2)//2,(y1+y2)//2)
     return None
-def wait_for(pattern,seconds=30,tap=False):
+def wait_for(pattern,seconds=30,tap=False,scroll=False):
     end=time.time()+seconds
+    attempts=0
     while time.time()<end:
+        attempts+=1
         pos=find(pattern)
         if pos:
             if tap:adb('shell','input','tap',*pos)
             return
+        if (tap or scroll) and attempts % 4 == 0:
+            size=re.findall(r'(\d+)x(\d+)',adb('shell','wm','size'))[-1]
+            width,height=map(int,size)
+            adb('shell','input','swipe',width//2,height*3//5,width//2,height//3,400)
         time.sleep(1)
     raise AssertionError('UI did not show: '+pattern)
 def shot(name):
@@ -77,7 +85,7 @@ try:
     open_app('hats://day-change?date='+details['date'])
     wait_for('Preview for this date',30);wait_for('Apply day change',tap=True)
     time.sleep(3);adb('shell','am','force-stop',PKG);open_app()
-    wait_for('Only the essentials',40);shot('03-offline-reopen')
+    wait_for('Only the essentials',40,scroll=True);shot('03-offline-reopen')
     note('Offline day change survives process termination and encrypted-store reopening')
     # Simulate a periodic provider refresh after the app process was killed in background.
     adb('shell','input','keyevent','KEYCODE_HOME');adb('shell','am','kill',PKG)
