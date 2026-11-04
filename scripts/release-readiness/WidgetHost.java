@@ -17,10 +17,17 @@ public class WidgetHost extends Activity {
     TextView title=new TextView(this);title.setText("Disposable Hats widget check");layout.addView(title);setContentView(layout);
     for(AppWidgetProviderInfo provider:manager.getInstalledProviders()) {
       if(provider.provider.getPackageName().equals(target)&&provider.provider.getClassName().endsWith("HatsNow")) {
-        int id=host.allocateAppWidgetId();Bundle options=new Bundle();
+        android.content.SharedPreferences prefs=getSharedPreferences("binding",MODE_PRIVATE);
+        int id=prefs.getInt(target,-1);
+        boolean fresh=id<0||manager.getAppWidgetInfo(id)==null;
+        if(fresh)id=host.allocateAppWidgetId();
+        Bundle options=new Bundle();
         options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_WIDTH,320);options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_WIDTH,320);
-        options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,220);options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,220);
-        if(!manager.bindAppWidgetIdIfAllowed(id,provider.provider,options)) throw new IllegalStateException("Widget bind permission was not granted to the disposable host");
+        int height=getIntent().getBooleanExtra("refresh",false)?221:220;
+        options.putInt(AppWidgetManager.OPTION_APPWIDGET_MIN_HEIGHT,height);options.putInt(AppWidgetManager.OPTION_APPWIDGET_MAX_HEIGHT,height);
+        if(fresh&&!manager.bindAppWidgetIdIfAllowed(id,provider.provider,options)) throw new IllegalStateException("Widget bind permission was not granted to the disposable host");
+        prefs.edit().putInt(target,id).apply();
+        manager.updateAppWidgetOptions(id,options);
         AppWidgetHostView view=host.createView(this,id,provider);view.setAppWidget(id,provider);
         layout.addView(view,new LinearLayout.LayoutParams(-1,600));
         Log.i("HATS_WIDGET_CI","BOUND:"+id+":"+provider.provider.flattenToString());return;
