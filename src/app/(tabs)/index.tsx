@@ -304,6 +304,7 @@ export default function Home() {
 
       {/* Day cards */}
       <FlatList
+        key={step}
         ref={list}
         data={days}
         horizontal
@@ -312,7 +313,7 @@ export default function Home() {
         snapToInterval={step}
         decelerationRate="fast"
         disableIntervalMomentum
-        initialScrollIndex={BACK}
+        initialScrollIndex={index}
         getItemLayout={(_, i) => ({ length: step, offset: step * i, index: i })}
         onMomentumScrollEnd={onEnd}
         onScrollEndDrag={(e) => {
