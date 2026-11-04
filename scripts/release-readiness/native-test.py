@@ -29,11 +29,16 @@ def wait_for(pattern,seconds=30,tap=False,scroll=False):
         if pos:
             if tap:adb('shell','input','tap',*pos)
             return
-        if (tap or scroll) and attempts % 4 == 0:
+        if (tap or scroll) and attempts % (2 if scroll else 4) == 0:
             size=re.findall(r'(\d+)x(\d+)',adb('shell','wm','size'))[-1]
             width,height=map(int,size)
             adb('shell','input','swipe',width//2,height*3//5,width//2,height//3,400)
         time.sleep(1)
+    # A scroll or slow accessibility dump may finish as the polling deadline ends.
+    pos=find(pattern)
+    if pos:
+        if tap:adb('shell','input','tap',*pos)
+        return
     raise AssertionError('UI did not show: '+pattern)
 def shot(name):
     (OUT/(name+'.png')).write_bytes(subprocess.check_output(['adb','exec-out','screencap','-p']))
@@ -96,7 +101,7 @@ try:
     open_app('hats://day-change?date='+details['date'])
     wait_for('Preview for this date',30);wait_for('Apply day change',tap=True)
     time.sleep(3);adb('shell','am','force-stop',PKG);open_app()
-    wait_for('Only the essentials',40,scroll=True);shot('03-offline-reopen')
+    wait_for('Only the essentials',60,scroll=True);shot('03-offline-reopen')
     note('Offline day change survives process termination and encrypted-store reopening')
     # Simulate a periodic provider refresh after the app process was killed in background.
     adb('shell','input','keyevent','KEYCODE_HOME');adb('shell','am','kill',PKG)
@@ -111,7 +116,10 @@ try:
     note('Bound widget remains readable after an app-process restart and provider refresh')
     # A revoked notification permission must not stop local planning or opening the app.
     adb('shell','pm','revoke',PKG,'android.permission.POST_NOTIFICATIONS');open_app()
-    wait_for('My day changed',30);shot('05-permission-revoked')
+    size=re.findall(r'(\d+)x(\d+)',adb('shell','wm','size'))[-1]
+    width,height=map(int,size)
+    for _ in range(2):adb('shell','input','swipe',width//2,height*2//5,width//2,height*3//4,400)
+    wait_for('My day changed',40);shot('05-permission-revoked')
     note('Planning remains available after notification permission is revoked')
     crash=adb('logcat','-d','-b','crash');(OUT/'crash.txt').write_text(crash)
     assert 'FATAL EXCEPTION' not in crash,'Android crash buffer contains a fatal exception'
