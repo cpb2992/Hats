@@ -30,8 +30,12 @@ jobs:
           npx playwright install --with-deps chromium
       - name: Check memory, Capture and class schedule import
         run: node --import tsx scripts/check-personal-memory-ui.cjs
+      - name: Check future plans and day-off editing
+        run: node --import tsx scripts/check-personal-day-ui.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
           name: personal-memory-review-screenshots
-          path: /tmp/hats-memory-ui
+          path: |
+            /tmp/hats-memory-ui
+            /tmp/hats-day-ui
