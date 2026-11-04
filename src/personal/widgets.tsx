@@ -44,6 +44,7 @@ export function PersonalWidget({
   return (
     <FlexWidget
       clickAction="OPEN_APP"
+      accessibilityLabel={say ? "Open Hats to capture a thought" : `Hats. ${focus ? task ? nextStep(task) : focus.title : data ? "All clear for now" : "Open Hats to get started"}${timeLabel ? `. ${timeLabel}` : ""}`}
       style={{
         width: "match_parent",
         height: "match_parent",
