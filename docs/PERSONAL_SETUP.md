@@ -1,6 +1,6 @@
 # Personal Hats setup and verification
 
-The personal rebuild is an Expo SDK 58 native app. `src/personal` is the new domain; the original engine and its tests are retained for data compatibility and history. No school routes are exposed in the app. A separate encrypted `hats.personal.v2` key leaves `hats.data.v1` untouched. Importing original Home tasks is explicit and excludes tasks with student links.
+The personal rebuild is an Expo SDK 58 native app. `src/personal` is the new domain; the original engine and its tests are retained for data compatibility and history. Work hours and class periods can be configured in the Teacher/Work hat; no private household or class profile is embedded in the build. A separate encrypted `hats.personal.v2` key leaves `hats.data.v1` untouched. Importing original Home tasks is explicit and excludes tasks with student links.
 
 ## Run
 
@@ -53,7 +53,7 @@ Android text sharing uses a `SEND text/plain` intent filter. Shared text is cons
 
 ## Reminders and widgets
 
-Enable notifications inside Hats. Current tasks remain in the app and widget after dismissing a notification. Modern Android allows dismissal of many ongoing notices. Notification bodies are generic so private notes and personal task details do not appear on the lock screen. Reminder actions open the app to reliably finish a step or reschedule it. Widget actions operate on the separate personal store.
+Enable notifications inside Hats. Current tasks remain in the app and widget after dismissing a notification. Modern Android allows dismissal of many ongoing notices. Reminder bodies name the actual event or task and may include the next step. Android channels request private lock-screen visibility; the device’s notification settings ultimately control what is displayed. Reminder actions open the app to reliably finish a step or reschedule it. Widget actions operate on the separate personal store.
 
 ## Current limits
 

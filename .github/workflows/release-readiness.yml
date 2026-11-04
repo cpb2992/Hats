@@ -57,10 +57,24 @@ jobs:
           java-version: 17
       - uses: gradle/actions/setup-gradle@v4
       - run: npm ci
-      - run: npx expo prebuild --platform android --no-install
+      - name: Reuse an APK only for identical app source
+        id: apk
+        uses: actions/cache/restore@v4
+        with:
+          path: android/app/build/outputs/apk/release/app-release.apk
+          key: hats-native-apk-${{ runner.os }}-${{ hashFiles('src/**', 'assets/**', 'modules/**', 'app.json', 'package-lock.json', 'index.ts') }}
+      - if: steps.apk.outputs.cache-hit != 'true'
+        run: npx expo prebuild --platform android --no-install
       - name: Build installed Android release for emulator
+        if: steps.apk.outputs.cache-hit != 'true'
         working-directory: android
         run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=x86_64
+      - name: Cache the exact-source APK before acceptance checks
+        if: steps.apk.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: android/app/build/outputs/apk/release/app-release.apk
+          key: ${{ steps.apk.outputs.cache-primary-key }}
       - name: Build disposable real widget host
         run: bash scripts/release-readiness/build-widget-host.sh
       - name: Enable KVM
