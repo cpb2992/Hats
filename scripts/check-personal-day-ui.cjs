@@ -28,6 +28,7 @@ async function main() {
     page.on('pageerror', e => errors.push(e.message));
     await page.addInitScript(data => { if (!localStorage.getItem('hats.personal.v2')) localStorage.setItem('hats.personal.v2',JSON.stringify(data)); },d);
     await page.goto(`http://127.0.0.1:8766/?date=${date}`);
+    await page.getByRole('button', { name: 'Skip the intro', exact: true }).waitFor({ state: 'hidden' });
     const plan = page.getByRole('button',{name:'Plan: Date night · dinner out, 7:00 PM',exact:true});
     await plan.waitFor();
     await plan.click({ trial: true });
@@ -37,6 +38,7 @@ async function main() {
     await page.getByRole('button',{name:'Save day',exact:true}).click();
     await page.waitForFunction(date => JSON.parse(localStorage.getItem('hats.personal.v2'))?.workDaysOff?.includes(date),date);
     await page.reload();
+    await page.getByRole('button', { name: 'Skip the intro', exact: true }).waitFor({ state: 'hidden' });
     await plan.waitFor();
     await plan.click({ trial: true });
     await card.getByText('Day off work · just this date',{exact:true}).waitFor();
