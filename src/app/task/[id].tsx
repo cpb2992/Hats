@@ -1,3 +1,5 @@
+import { recordUse } from "../../personal/productUse";
+import { acceptResponsibility, preferEarlier, stopSuggesting } from "../../personal/taskFeedback";
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { usePersonal } from "../../personal/Store";
@@ -68,7 +70,9 @@ export default function Task() {
     }
     mutate((d) => {
       const t = d.tasks.find((t) => t.id === id);
-      if (t)
+      if (t) {
+        if (t.hat !== hat) recordUse(d, today, "corrections");
+        if (t.assignee !== assignee || t.date !== date || t.time !== (time || null) || t.title !== title.trim() || !shared) delete t.acceptedBy;
         Object.assign(t, {
           title: title.trim(),
           date,
@@ -83,6 +87,7 @@ export default function Task() {
           shared: home ? shared || undefined : t.shared,
           assignee: home && shared ? assignee : undefined,
         });
+      }
     });
     say("Task updated.");
     router.back();
@@ -90,6 +95,20 @@ export default function Task() {
   return (
     <Page tabs={false}>
       <Header title="Make it fit your life." back hat={hatDef(hat).art} />
+      {task.shared && task.assignee ? <>
+        <T bold>{task.doneAt ? "Completed" : task.acceptedBy === task.assignee ? "Responsibility accepted" : "Awaiting acceptance"}</T>
+        {task.assignee === home?.me && task.acceptedBy !== task.assignee ? <Button title="I’ll handle this" onPress={() => { mutate(d => { acceptResponsibility(d, task.id, today); }); say("You accepted this responsibility."); }} /> : null}
+      </> : null}
+      <T bold>Help Hats get this right</T>
+      <Row>
+        <Button title="Earlier" small quiet onPress={() => { mutate(d => preferEarlier(d, task, today)); say("Earlier openings preferred for this hat. Review or remove it in What Hats knows."); }} />
+        <Button title="Too much today" small quiet onPress={() => router.push({ pathname: "/day-change", params: { date: today } })} />
+        <Button title="Wrong hat" small quiet onPress={() => say("Choose the right hat below, then Save changes.")} />
+      </Row>
+      {!task.fixed && !task.essential ? <Button title={data.mutedSuggestions?.includes(task.source ?? task.id) ? "Suggest this task again" : "Stop suggesting this task"} small quiet onPress={() => {
+        if (data.mutedSuggestions?.includes(task.source ?? task.id)) { mutate(d => { d.mutedSuggestions = d.mutedSuggestions?.filter(key => key !== (task.source ?? task.id)); }); say("Task suggestions restored."); }
+        else ask("Stop suggesting this task?", "This hides this optional task and future copies from planning. It remains in its hat so you can restore it. Fixed commitments and essential care stay visible.", "Stop suggesting", () => { mutate(d => stopSuggesting(d, task, today)); say("Suggestion hidden. You can restore it here."); });
+      }} /> : null}
       <Field label="Task" value={title} onChangeText={setTitle} />
       <Row>
         {allHats(data.customHats).map((h) => (

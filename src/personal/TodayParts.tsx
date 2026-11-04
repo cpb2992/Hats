@@ -146,32 +146,20 @@ export function StreakStrip() {
 }
 
 /**
- * Routines run themselves. Tapping a step that counts as done means it was
- * skipped; tapping a skipped one puts it back; tapping an upcoming one marks
- * it done early.
+ * Completion is explicit. Tapping checks or reopens the routine.
  */
 export function toggleRoutine(a: Actions, item: TimelineItem, date = a.today) {
-  const passed =
-    date < a.today ||
-    (date === a.today && minutesOfDay(item.end ?? item.time) <= a.nowMin);
   const key = item.key!;
   a.mutate((d) => {
     d.routineDone ??= {};
     const list = d.routineDone[date] ?? [];
-    if (item.skipped) {
-      setSkipped(d, date, key, false);
-      if (!passed) d.routineDone[date] = [...list, key];
-    } else if (item.done) {
-      if (passed) setSkipped(d, date, key, true);
-      else d.routineDone[date] = list.filter((k) => k !== key);
-    } else d.routineDone[date] = [...list, key];
-    for (const day of Object.keys(d.routineDone))
-      if (day < addDays(a.today, -21)) delete d.routineDone[day];
+    setSkipped(d, date, key, false);
+    d.routineDone[date] = item.done ? list.filter(k => k !== key) : [...new Set([...list, key])];
   });
   if (item.done) {
     haptic("tap");
     a.say(
-      passed ? `${item.title} · marked skipped` : `${item.title} · not done`,
+      `${item.title} · not done`,
     );
     return;
   }
@@ -691,7 +679,7 @@ export function Timeline({
           <T size={13} bold muted>
             {showEarlier
               ? "Hide earlier"
-              : `✓ ${earlier.length} earlier · show`}
+              : `${earlier.length} earlier · show status`}
           </T>
         </Pressable>
       ) : null}
@@ -731,14 +719,14 @@ export function Timeline({
           );
         const item = row;
         const checkable =
-          (item.kind === "routine" && !(date > a.today)) ||
+          (item.kind === "routine" && !item.covered && !(date > a.today)) ||
           (item.kind === "task" && isToday);
         const faded =
           item.done || item.skipped || (isToday && isFaded(item, a.nowMin));
         const detail = item.skipped
           ? "Skipped · tap the circle if it happened"
-          : item.auto
-            ? "Done automatically · tap if skipped"
+          : item.elapsed && !item.covered
+            ? "Scheduled time passed · completion unconfirmed"
             : item.detail;
         const removable = item.kind === "event" && item.source === "hats";
         return (

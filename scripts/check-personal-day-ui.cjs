@@ -33,9 +33,9 @@ async function main() {
     await plan.waitFor();
     await plan.click({ trial: true });
     const card = page.getByText('Plans for this day',{exact:true}).locator('..').locator('..');
-    await card.getByRole('button',{name:'Edit day',exact:true}).click();
+    await card.getByRole('button',{name:'My day changed',exact:true}).click();
     await page.getByRole('button',{name:'Day off work',exact:true}).click();
-    await page.getByRole('button',{name:'Save day',exact:true}).click();
+    await page.getByRole('button',{name:'Apply day change',exact:true}).click();
     await page.waitForFunction(date => JSON.parse(localStorage.getItem('hats.personal.v2'))?.workDaysOff?.includes(date),date);
     await page.reload();
     await page.getByRole('button', { name: 'Skip the intro', exact: true }).waitFor({ state: 'hidden' });
@@ -52,9 +52,9 @@ async function main() {
     const bounds = await card.boundingBox();
     assert.ok(bounds && bounds.x >= 0 && bounds.x + bounds.width <= 768, 'Selected day fits the unfolded screen');
     await page.screenshot({path:'/tmp/hats-day-ui/fold.png'});
-    await card.getByRole('button',{name:'Edit day',exact:true}).click();
-    await page.getByRole('button',{name:'Regular schedule',exact:true}).click();
-    await page.getByRole('button',{name:'Save day',exact:true}).click();
+    await card.getByRole('button',{name:'My day changed',exact:true}).click();
+    await page.getByRole('button',{name:'Regular day',exact:true}).click();
+    await page.getByRole('button',{name:'Apply day change',exact:true}).click();
     await page.waitForFunction(() => JSON.parse(localStorage.getItem('hats.personal.v2'))?.workDaysOff?.length === 0);
     assert.deepEqual(errors,[]);
     console.log('Day schedule UI: future date plan, one-day exception, persistence, restoration and phone/fold screenshots passed.');

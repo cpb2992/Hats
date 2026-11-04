@@ -19,7 +19,6 @@ import {
   fromISO,
 } from "../../engine/dates";
 import { didToday, undoEntry } from "../../personal/auto";
-import { useEditor } from "../../personal/Editor";
 import { planDay } from "../../personal/engine";
 import { Hat } from "../../personal/Hat";
 import { type PersonalData, type PersonalHat, hatDef } from "../../personal/model";
@@ -302,6 +301,9 @@ export default function Home() {
         ) : null}
       </View>
 
+      <Pressable accessibilityRole="button" accessibilityLabel="Check save and sync status" onPress={() => router.push("/settings")} style={{ paddingHorizontal: GUTTER, paddingVertical: 5 }}>
+        <T size={11} muted>{a.syncStatus}{data.household ? ` · ${a.familySyncStatus}` : ""}</T>
+      </Pressable>
       {/* Day cards */}
       <FlatList
         key={step}
@@ -381,22 +383,8 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
   const isToday = date === today;
   const { items, allDay } = dayTimeline(data, date, nowMin, today);
   const low = data.lowEnergyDays.includes(date);
-  const editor = useEditor();
   const off = !!data.workDaysOff?.includes(date);
   const plans = items.filter((item) => item.kind === "date" || item.kind === "event" || (item.kind === "task" && item.fixed));
-  const editDay = () => editor.open({
-    title: `Edit ${dayShort(date)} ${fromISO(date).getDate()}`,
-    detail: "Only this date changes. A day off removes school blocks and opens daytime for flexible plans. Calendar events and appointments stay in place.",
-    fields: [{ key: "work", label: "Work schedule", value: off ? "Day off work" : "Regular schedule", options: ["Regular schedule", "Day off work"] }],
-    saveTitle: "Save day",
-    onSave: (values) => {
-      mutate((d) => {
-        d.workDaysOff = (d.workDaysOff ?? []).filter((day) => day !== date);
-        if (values.work === "Day off work") d.workDaysOff.push(date);
-      });
-      say(values.work === "Day off work" ? "Day off saved for this date. Your regular week stays the same." : "Regular schedule restored for this date.");
-    },
-  });
   const lighterEntry = (data.log ?? [])
     .slice()
     .reverse()
@@ -464,7 +452,7 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
           ))}
         </View>
 
-        <Button title="Edit day" small quiet onPress={editDay} />
+        <Button title="My day changed" small quiet onPress={() => router.push({ pathname: "/day-change", params: { date } })} />
         {off ? <T bold color={P.blue}>Day off work · just this date</T> : null}
         {plans.length ? (
           <View style={{ padding: 12, gap: 8, borderRadius: 18, backgroundColor: tone("#DCE9FA") }}>
@@ -600,7 +588,6 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
           </Pressable>
         ) : null}
       </ScrollView>
-      {editor.node}
     </View>
   );
 }

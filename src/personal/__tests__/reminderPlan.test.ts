@@ -122,3 +122,32 @@ test("completed tasks and day-end clear a stale task card", async () => {
   await applyPersonalReminders(f.port, { live: null, scheduled: [] }, true, true);
   assert.deepEqual(f.calls, ["dismiss:personal-now"]);
 });
+
+// Regression: minute refreshes used to cancel alerts one minute before delivery.
+test("imminent alarms survive minute ticks and delayed OS delivery without reposting", () => {
+  const data = setup();
+  data.tasks.push(makeTask("Leave for pickup", "home", date, { fixed: true, time: "14:00", minutes: 30 }));
+  const initial = personalReminderPlan(data, new Date(`${date}T13:58:00`));
+  const alert = initial.scheduled.find(n => n.taskId)!;
+  const existing = [{identifier: alert.identifier, revision: noticeRevision(alert)}];
+  for (const time of ["13:59:00", "13:59:59", "14:00:00", "14:04:00"]) {
+    const desired = personalReminderPlan(data, new Date(`${date}T${time}`)).scheduled;
+    const changes = reminderChanges(existing, desired);
+    assert.ok(!changes.cancel.includes(alert.identifier), time);
+    assert.ok(!changes.schedule.some(n => n.identifier === alert.identifier), time);
+  }
+  const late = personalReminderPlan(data, new Date(`${date}T14:04:00`)).scheduled;
+  assert.ok(!reminderChanges([], late).schedule.some(n => n.identifier === alert.identifier), "do not re-alert after delivery or fresh setup");
+  data.tasks = [];
+  assert.ok(reminderChanges(existing, personalReminderPlan(data,new Date(`${date}T14:04:00`)).scheduled).cancel.includes(alert.identifier), "deletion still cancels immediately");
+});
+
+test("a late-night queued alarm survives midnight without replay on a new install", () => {
+  const data=setup();
+  data.tasks.push(makeTask("Late arrival", "home", date, { fixed:true,time:"23:59" }));
+  const first=personalReminderPlan(data,new Date(`${date}T23:57:00`)).scheduled.find(n=>n.taskId)!;
+  const next=personalReminderPlan(data,new Date("2026-11-04T00:01:00")).scheduled;
+  const changes=reminderChanges([{identifier:first.identifier,revision:noticeRevision(first)}],next);
+  assert.ok(!changes.cancel.includes(first.identifier));
+  assert.ok(!reminderChanges([],next).schedule.some(n=>n.identifier===first.identifier));
+});

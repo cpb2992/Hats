@@ -460,12 +460,12 @@ test("timeline: evening rhythm, alternating bath nights, and what's 'now'", asyn
   const { now, next } = nowAndNext(later, 19 * 60 + 20);
   assert.equal(now?.key, "stories");
   assert.equal(next?.key, "bedtime");
-  // Routines run themselves: steps whose time has passed count as done.
+  // Elapsed routine time is not evidence of completion.
   const home = later.find((i) => i.key === "home")!;
-  assert.equal(home.done, true);
-  assert.equal(home.auto, true);
+  assert.equal(home.done, false);
+  assert.equal(home.elapsed, true);
   assert.equal(home.tag, "home");
-  assert.equal(isFaded(home, 19 * 60 + 20), false);
+  assert.equal(isFaded(home, 19 * 60 + 20), true);
   assert.equal(
     isFaded(
       later.find((i) => i.key === "stories")!,
@@ -653,9 +653,9 @@ test("automation: skipped routines, the log, undo, energy, dinners, Google", asy
   });
   const wed = "2026-10-28";
   const night = 21 * 60;
-  // Yesterday's routine all counted; skipping one sticks and is not "done".
+  // Yesterday's routine is unconfirmed; explicitly skipping one sticks.
   let steps = routineSteps(d, "2026-10-27", { today: wed, nowMin: night });
-  assert.ok(steps.every((s) => s.done && s.auto));
+  assert.ok(steps.every((s) => !s.done && s.elapsed));
   setSkipped(d, "2026-10-27", "bath", true);
   steps = routineSteps(d, "2026-10-27", { today: wed, nowMin: night });
   const bath = steps.find((s) => s.key === "bath");
@@ -667,9 +667,9 @@ test("automation: skipped routines, the log, undo, energy, dinners, Google", asy
   assert.ok(
     routineSteps(d, wed, { today: wed, nowMin: 12 * 60 }).every((s) => !s.done),
   );
-  // The log folds in routine auto-checks, counted in "Hats did N".
-  assert.ok(didToday(d, wed, night) > 0);
-  assert.ok(logView(d, wed, night).some((e) => e.id === `routines:${wed}`));
+  // Elapsed routines never create achievement counts.
+  assert.equal(didToday(d, wed, night), 0);
+  assert.ok(!logView(d, wed, night).some((e) => e.id === `routines:${wed}`));
 
   // Low recovery lightens the day once; undo sticks for that day.
   assert.equal(applyEnergy(d, wed, 70), false);

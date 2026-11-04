@@ -25,8 +25,10 @@ export interface TimelineItem {
   fixed?: boolean;
   /** The hat this belongs to, shown as a tag. */
   tag?: PersonalHat;
-  /** Counted as done because its time passed (tap "Skipped?" if it didn't happen). */
+  /** Legacy display field; routines require explicit completion. */
   auto?: boolean;
+  elapsed?: boolean;
+  covered?: boolean;
   skipped?: boolean;
   /** For events: where it came from. */
   source?: "hats" | "google";
@@ -50,8 +52,7 @@ const hhmm = (n: number) =>
 
 /**
  * The family's evening rhythm for a date (no tasks, no events).
- * Routines run themselves: once a step's time has passed it counts as done,
- * unless you said it was skipped. Pass `clock` to apply that.
+ * Clock marks elapsed time; only an explicit check marks a routine completed.
  */
 /** "Jess’s job" / "Your job" for a shared to-do with someone on it. */
 export function whoseJob(data: PersonalData, t: PersonalTask): string {
@@ -59,7 +60,7 @@ export function whoseJob(data: PersonalData, t: PersonalTask): string {
   if (!home || !t.shared || !t.assignee) return "";
   if (t.assignee === home.me) return "Your job";
   const name = home.members.find((m) => m.id === t.assignee)?.name;
-  return name ? `${name}’s job` : "";
+  return name ? `${name}’s job${t.acceptedBy === t.assignee ? " · accepted" : " · awaiting acceptance"}` : "Awaiting an owner";
 }
 export function routineSteps(
   data: PersonalData,
@@ -67,6 +68,7 @@ export function routineSteps(
   clock?: { today: string; nowMin: number },
 ) {
   const p = data.preferences;
+  if (p.routinesConfigured === false && !data.dinners[date]) return [];
   const r = routinePrefs(data);
   const done = new Set(data.routineDone?.[date] ?? []);
   const skipped = new Set(data.routineSkipped?.[date] ?? []);
@@ -76,7 +78,7 @@ export function routineSteps(
   const chosen = !!data.dinners[date];
   const steps: Omit<TimelineItem, "kind">[] = [];
   const outTonight = data.dates
-    .filter((x) => x.date === date)
+    .filter((x) => x.date === date && x.childcareConfirmed === true)
     .map((x) => ({ start: mins(dateTime(x)) - 30, end: mins(dateTime(x)) + 150 }));
   const TAGS: Record<string, PersonalHat> = {
     home: "home",
@@ -103,7 +105,7 @@ export function routineSteps(
       (date < clock.today ||
         (date === clock.today && mins(end) <= clock.nowMin));
     const isSkipped = skipped.has(key);
-    const auto = passed && !done.has(key) && !isSkipped;
+    const elapsed = passed && !done.has(key) && !isSkipped;
     // On date night, the kids' evening falls to childcare.
     const covered =
       ["dinner", "bath", "stories", "bedtime"].includes(key) &&
@@ -115,9 +117,10 @@ export function routineSteps(
       end,
       title,
       hat,
-      detail: covered ? "Childcare has it tonight · date night" : detail,
-      done: !isSkipped && (done.has(key) || auto),
-      auto,
+      detail: covered ? "Covered by confirmed childcare" : detail,
+      done: !isSkipped && done.has(key),
+      elapsed,
+      covered,
       skipped: isSkipped,
       tag: TAGS[key],
     });
@@ -131,7 +134,7 @@ export function routineSteps(
       "Pickups done · settle in",
       15,
     );
-  if (p.partner)
+  if (p.partner && !data.dayAdjustments?.[date]?.partnerAway)
     add(
       "partner",
       r.partnerHome,
@@ -198,7 +201,7 @@ export function routineSteps(
         30,
       );
     else add("gym", p.gymStart, "Gym", "pompom", "Your time", p.gymMinutes);
-  return steps;
+  return p.routinesConfigured === false ? steps.filter(s => s.key === "dinner" || s.key === "slowcook") : steps;
 }
 
 /** Everything for a day, in time order: routine, calendar events, planned tasks. */
@@ -222,6 +225,11 @@ export function dayTimeline(
   const allDay: { id: string; title: string; hat?: PersonalHat }[] = [];
   if (data.workDaysOff?.includes(date))
     allDay.push({ id: `day-off:${date}`, title: "Day off work" });
+  const adjustment = data.dayAdjustments?.[date];
+  if (adjustment?.essentialsOnly) allDay.push({ id: `essentials:${date}`, title: "Only the essentials" });
+  if (adjustment?.kidsHome) allDay.push({ id: `kids-home:${date}`, title: "Kids home · optional tasks paused" });
+  if (adjustment?.partnerAway) allDay.push({ id: `partner-away:${date}`, title: "Partner unavailable" });
+  if (adjustment?.availableAfter) allDay.push({ id: `late:${date}`, title: `Flexible tasks after ${adjustment.availableAfter}` });
   // The school day. A calendar meeting that falls in an off period (CPT during Specials)
   // takes that block's place instead of showing twice.
   const merged = new Set<string>();
@@ -303,6 +311,7 @@ export function dayTimeline(
       end,
       title: /\bdate\b/i.test(plan.title) ? plan.title : `Date night · ${plan.title}`,
       detail: [
+        data.people.some(p => p.role === "child") && !plan.childcareConfirmed ? "Childcare needs confirmation" : "",
         plan.sharedBy ? `Planned by ${plan.sharedBy}` : "",
         left.length
           ? `Still to do: ${left[0].title.charAt(0).toLowerCase()}${left[0].title.slice(1)}`
@@ -316,7 +325,7 @@ export function dayTimeline(
     });
   }
   for (const x of planDay(data, date, isToday ? nowMin : 0)) {
-    if (!x.time) continue;
+    if (!x.time || (x.task.fixed && x.task.date !== date)) continue;
     items.push({
       id: `task:${x.task.id}`,
       kind: "task",
@@ -365,33 +374,14 @@ export function dayTimeline(
  * (routine or task), otherwise the next one coming up. Past events never count.
  */
 export function nowAndNext(items: TimelineItem[], nowMin: number) {
-  const open = items.filter((i) => !i.done && i.kind !== "event");
-  // Of the steps that have started and are still in their window (+30 min grace),
-  // the most recent one is "now". Older unfinished steps quietly fade instead.
-  // While a date night is on, it's the big card (the evening routine is covered).
-  const dating = open.find(
-    (i) => i.kind === "date" && mins(i.time) <= nowMin && mins(i.end ?? i.time) >= nowMin,
-  );
-  const current =
-    dating ??
-    [...open]
-      .filter(
-        (i) =>
-          mins(i.time) <= nowMin &&
-          (i.kind === "task" || mins(i.end ?? i.time) + 30 >= nowMin),
-      )
-      .sort((a, b) => mins(b.time) - mins(a.time))[0] ?? null;
-  const upcoming = items.filter(
-    (i) =>
-      !i.done &&
-      i.kind !== "event" &&
-      mins(i.time) > nowMin &&
-      i.id !== current?.id,
-  );
-  return {
-    now: current ?? upcoming[0] ?? null,
-    next: current ? (upcoming[0] ?? null) : (upcoming[1] ?? null),
-  };
+  const classNow = items.some(i => i.kind === "work" && i.period && minutesOfDay(i.time) <= nowMin && minutesOfDay(i.end ?? i.time) > nowMin);
+  const open = items.filter(i => !(classNow && i.kind !== "work" && /^(?:work|school|work day|school day)$/i.test(i.title.trim())) && !i.done && !i.covered && minutesOfDay(i.end ?? i.time) > nowMin);
+  const rank = (i: TimelineItem) => i.kind === "date" ? 4 : i.kind === "event" || i.fixed ? 3 : i.kind === "work" ? 2 : 1;
+  const current = open.filter(i => minutesOfDay(i.time) <= nowMin)
+    .sort((a, b) => rank(b) - rank(a) || minutesOfDay(b.time) - minutesOfDay(a.time))[0];
+  const upcoming = open.filter(i => minutesOfDay(i.time) > nowMin)
+    .sort((a, b) => minutesOfDay(a.time) - minutesOfDay(b.time) || rank(b) - rank(a));
+  return { now: current ?? upcoming[0] ?? null, next: current ? upcoming[0] ?? null : upcoming[1] ?? null };
 }
 
 /** A routine step whose window (+30 min) has passed without a check. */

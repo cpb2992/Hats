@@ -161,7 +161,7 @@ export default function Settings() {
         )
           throw new Error("Stories should come after dinner.");
         mutate((d) => {
-          Object.assign(d.preferences, parsed);
+          Object.assign(d.preferences, parsed, { routinesConfigured: true });
         });
         say("Evening rhythm saved.");
       },
@@ -236,6 +236,8 @@ export default function Settings() {
     <Page tabs={false}>
       <Header title="Your life, your settings." back hat="hardhat" />
       <Panel>
+        {data.preferences.routinesConfigured === false && !data.people.length && data.preferences.school?.on === false ? <Button title="Add family and work details" small quiet onPress={() => router.push("/welcome")} /> : null}
+        <Button title="Is Hats helping? Give feedback" small quiet onPress={() => router.push("/feedback")} />
         <T bold>What Hats knows about you</T>
         <T muted>Keep useful context, correct a preference, and review what Hats is learning.</T>
         <Button title="Open personal memory" hat="wizard" onPress={() => router.push("/memory")} />
