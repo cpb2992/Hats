@@ -163,7 +163,7 @@ export default function Settings() {
         )
           throw new Error("Stories should come after dinner.");
         mutate((d) => {
-          Object.assign(d.preferences, parsed);
+          Object.assign(d.preferences, parsed, { routinesConfigured: true });
         });
         say("Evening rhythm saved.");
       },

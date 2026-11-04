@@ -99,6 +99,7 @@ test("first plan requires no household and preserves real data when setup is alr
   createFirstPlan(d,"Pick up prescription",date,"18:00","home",date);
   assert.equal(d.people.length,0);
   assert.equal(d.preferences.kidsRoutine,false);
+  assert.equal(routineSteps(d,date).length,0);
   assert.equal(d.tasks[0].fixed,true);
   assert.equal(d.productUse?.firstPlanOn,date);
   assert.equal(validData(d),true);

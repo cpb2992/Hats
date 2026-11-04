@@ -7,6 +7,7 @@ export function createFirstPlan(data: PersonalData, title: string, date: string,
   if (!data.preferences.onboarded) {
     data.preferences.onboarded = true;
     data.preferences.kidsRoutine = false;
+    data.preferences.routinesConfigured = false;
     data.preferences.bathNights = "off";
     data.preferences.unavailableDays = [];
     data.preferences.school = { on: false };

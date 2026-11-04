@@ -36,6 +36,7 @@ export function applySetup(d: PersonalData, a: SetupAnswers, today: string) {
   p.hatArt = a.work ? { work: a.work.art } : {};
   p.hiddenHats = HAT_IDS.filter((h) => !a.hats.includes(h));
   p.kidsRoutine = kids;
+  p.routinesConfigured = true;
   p.bathNights = kids ? a.baths : "off";
   p.dinnerTime = a.dinner;
   if (kids && a.stories) p.storyTime = a.stories;
