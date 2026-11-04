@@ -1,3 +1,4 @@
+import { Responsibilities } from "../../personal/Responsibilities";
 import { router } from "expo-router";
 import { Pressable, View } from "react-native";
 import { addDays, daysBetween, fmtRelative } from "../../engine/dates";
@@ -75,6 +76,7 @@ export default function Family() {
         hat="party"
       />
 
+      <Responsibilities />
       <Panel tint="#FFF0C2">
         <Row>
           <Hat id="propeller" size={34} tilt={-8} />
