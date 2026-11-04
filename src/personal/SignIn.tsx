@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { Platform } from "react-native";
-import { sendCode, verifyCode } from "./cloud";
+import { isReviewEmail, reviewSignIn, sendCode, verifyCode } from "./cloud";
 import { Button, Field, T } from "./ui";
 
 /**
@@ -18,6 +18,8 @@ export function SignIn({
 }) {
   const [email, setEmail] = useState("");
   const [code, setCode] = useState("");
+  const [password, setPassword] = useState("");
+  const reviewer = isReviewEmail(email);
   const [sent, setSent] = useState(false);
   const [busy, setBusy] = useState(false);
   const run = async (action: () => Promise<void>) => {
@@ -40,7 +42,22 @@ export function SignIn({
         autoComplete="email"
         keyboardType="email-address"
       />
-      <Button
+      {reviewer ? (
+        <>
+          <Field label="Password" value={password} onChangeText={setPassword} secureTextEntry autoCapitalize="none" />
+          <Button
+            title="Sign in"
+            disabled={busy || !password}
+            onPress={() =>
+              run(async () => {
+                const who = await reviewSignIn(email, password);
+                await onSignedIn(who);
+              })
+            }
+          />
+        </>
+      ) : null}
+      {reviewer ? null : <Button
         title={sent ? "Send a new email" : cta}
         disabled={busy || !email.trim()}
         onPress={() =>
@@ -50,8 +67,8 @@ export function SignIn({
             say("Check your email.");
           })
         }
-      />
-      {sent ? (
+      />}
+      {sent && !reviewer ? (
         <>
           <T muted size={13}>
             {Platform.OS === "web"

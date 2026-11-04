@@ -190,6 +190,23 @@ export async function verifyCode(email: string, token: string) {
   await secretSet(EMAIL_PKCE, null);
   return session.user.email as string;
 }
+/**
+ * The Google Play reviewer account. Reviewers can't receive emailed codes, so this one account
+ * (made by hand in the Hats server's Authentication settings, with a password) signs in with
+ * its password. Everyone else signs in with the emailed link or code.
+ */
+export const REVIEW_EMAIL = "play-review@hatsplanner.app";
+export const isReviewEmail = (email: string) => email.trim().toLowerCase() === REVIEW_EMAIL;
+
+export async function reviewSignIn(email: string, password: string) {
+  if (!isReviewEmail(email)) throw new Error("Use the emailed sign-in link or code.");
+  const session = (await request("/auth/v1/token?grant_type=password", {
+    method: "POST",
+    body: JSON.stringify({ email: email.trim().toLowerCase(), password }),
+  })) as Session;
+  await storeSession(session);
+  return session.user.email as string;
+}
 export async function signOut() {
   const raw = await secretGet("hats.cloud.session");
   if (raw) {

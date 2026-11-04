@@ -74,6 +74,16 @@ Take them from a made-up family set up through the normal setup (no real names o
 - **WHOOP: hidden in the public build** until WHOOP approves Hats as a production app. When they do, set `WHOOP_IN_PUBLIC = true` in `src/personal/flavor.ts`.
 - **Privacy policy:** `PRIVACY.md` (contact: cpb2992@gmail.com). URL: https://github.com/cpb2992/Hats/blob/public/PRIVACY.md
 
+## Sign in details (Play Console → App content)
+
+Answer **Yes** (sign-in is optional, but Google counts it). Add sign-in details:
+- **Name:** Reviewer account
+- **Email:** play-review@hatsplanner.app
+- **Password:** the one set on that account in Supabase → Authentication → Users (not stored in this repo)
+- **Any other information:** No account is needed for the core app: tap "Set up Hats", answer the questions, and everything is available. Sign-in is optional (Settings → Account and sync) and adds backup/sync and family sharing. Ordinary users get a one-time code by email; this reviewer account signs in with the password instead: type the email and a password box appears.
+
+The app only shows a password box for that one email (`REVIEW_EMAIL` in `src/personal/cloud.ts`).
+
 ## Data safety form answers
 
 Because of the optional account, sync and family sharing, Hats **does collect** some data. Declare it honestly:
