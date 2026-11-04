@@ -68,6 +68,7 @@ export function routineSteps(
   clock?: { today: string; nowMin: number },
 ) {
   const p = data.preferences;
+  if (p.routinesConfigured === false) return [];
   const r = routinePrefs(data);
   const done = new Set(data.routineDone?.[date] ?? []);
   const skipped = new Set(data.routineSkipped?.[date] ?? []);

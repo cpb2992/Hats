@@ -379,6 +379,8 @@ export interface Preferences {
   hiddenHats?: BuiltInHat[];
   /** Kids' evening routine (bath, stories, bedtime) on Today. On unless turned off. */
   kidsRoutine?: boolean;
+  /** Quick start adds no routine until the user configures one. */
+  routinesConfigured?: boolean;
   /** The afternoon "what's for dinner?" reminder when dinner isn't planned. On unless turned off. */
   dinnerNudge?: boolean;
   /** Light, dark, or follow the phone (the default). */
@@ -897,6 +899,7 @@ export function validData(value: unknown): value is PersonalData {
       (p.hiddenHats === undefined ||
         (Array.isArray(p.hiddenHats) && p.hiddenHats.every(isBuiltInHat))) &&
       (p.kidsRoutine === undefined || typeof p.kidsRoutine === "boolean") &&
+      (p.routinesConfigured === undefined || typeof p.routinesConfigured === "boolean") &&
       (p.dinnerNudge === undefined || typeof p.dinnerNudge === "boolean") &&
       (p.theme === undefined || ["auto", "light", "dark"].includes(p.theme))
     );
