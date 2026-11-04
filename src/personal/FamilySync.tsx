@@ -21,7 +21,7 @@ const OVERLAP_MS = 2 * 60 * 1000;
  * while it's open, and a few seconds after you change something. Renders nothing.
  */
 export function FamilySync() {
-  const { data, ready, absorb, current, today, say } = usePersonal();
+  const { data, ready, absorb, current, today, say, setFamilySyncStatus } = usePersonal();
   const busy = useRef(false);
   const again = useRef(false);
   const lastMembers = useRef(0);
@@ -31,6 +31,7 @@ export function FamilySync() {
   const once = useCallback(async () => {
     const home = current().household;
     if (!home) return;
+    setFamilySyncStatus("Family sync in progress…");
     try {
       // Who's in the family (now and then; it rarely changes).
       if (Date.now() - lastMembers.current > 10 * EVERY_MS) {
@@ -72,10 +73,12 @@ export function FamilySync() {
         markSent(state, out);
       }
       await saveShareState(state);
+      setFamilySyncStatus(changesToSend(current(), state, today).length ? "Family changes waiting to sync" : "Family changes synced");
     } catch {
+      setFamilySyncStatus("Family sync paused · local changes kept; retry when connected");
       // Offline or signed out: try again next time. Nothing local is lost.
     }
-  }, [absorb, current, today, say]);
+  }, [absorb, current, today, say, setFamilySyncStatus]);
 
   /** Runs a round, or queues one more if a round is already going. */
   const run = useCallback(async () => {
@@ -117,9 +120,10 @@ export function FamilySync() {
   // A few seconds after a change here.
   useEffect(() => {
     if (!ready || !homeId) return;
+    setFamilySyncStatus("Family changes waiting to sync");
     const timer = setTimeout(run, 3000);
     return () => clearTimeout(timer);
-  }, [data, ready, homeId, run]);
+  }, [data, ready, homeId, run, setFamilySyncStatus]);
 
   return null;
 }

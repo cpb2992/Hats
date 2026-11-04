@@ -1,3 +1,4 @@
+import { confirmChildcare, changeDateTime } from "../../personal/dateCare";
 import { useState } from "react";
 import { router, useLocalSearchParams } from "expo-router";
 import { Image, Linking, Pressable, View } from "react-native";
@@ -374,6 +375,11 @@ export default function HatPage() {
                   {(date.budget + date.childcare + date.transport).toFixed(2)}
                 </T>
                 {date.note ? <T muted>{date.note}</T> : null}
+                {data.people.some(p => p.role === "child") ? <Check
+                  title="Childcare confirmed for this date"
+                  done={date.childcareConfirmed === true}
+                  onPress={() => mutate(d => { const plan = d.dates.find(p => p.id === date.id); if (plan) confirmChildcare(plan, !plan.childcareConfirmed); })}
+                /> : null}
                 {data.household ? (
                   date.sharedBy ? (
                     <T size={13} muted>
@@ -405,7 +411,7 @@ export default function HatPage() {
                     onPress={() =>
                       mutate((d) => {
                         const p = d.dates.find((x) => x.id === date.id);
-                        if (p) p.steps[index].done = !p.steps[index].done;
+                        if (p) { p.steps[index].done = !p.steps[index].done; if (/confirm childcare/i.test(p.steps[index].title)) confirmChildcare(p, p.steps[index].done); }
                       })
                     }
                   />
@@ -440,7 +446,7 @@ export default function HatPage() {
                           if (!t) throw new Error("Use a time like 7:00 PM.");
                           mutate((d) => {
                             const p = d.dates.find((x) => x.id === date.id);
-                            if (p) p.time = t;
+                            if (p) changeDateTime(p, t);
                           });
                         },
                       })

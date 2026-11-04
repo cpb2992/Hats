@@ -10,7 +10,6 @@ import {
 import { shoppingFor } from "./engine";
 import { suggestRecipes } from "./meals";
 import { sameItem } from "./recipes";
-import { routineSteps } from "./timeline";
 
 /**
  * Automation: the things Hats does on its own, each written to a log
@@ -91,38 +90,8 @@ export function setSkipped(
  * stored: undoing one is the same as tapping "Skipped?".
  */
 export function autoRoutineEntries(
-  data: PersonalData,
-  today: string,
-  nowMin: number,
-): (LogEntry & { keys: string[] })[] {
-  const out: (LogEntry & { keys: string[] })[] = [];
-  for (const date of [today, addDays(today, -1)]) {
-    const steps = routineSteps(data, date, { today, nowMin }).filter(
-      (s) => s.auto,
-    );
-    if (!steps.length) continue;
-    const names = steps.map((s) =>
-      s.key === "partner"
-        ? s.title
-        : s.title.replace(/^Dinner · .*/, "dinner").toLowerCase(),
-    );
-    out.push({
-      id: `routines:${date}`,
-      at: `${date}T23:59:00`,
-      date,
-      hat: "dad",
-      title: `Counted ${list(names)} as done`,
-      detail: "Routines count unless you tap Skipped",
-      keys: steps.map((s) => s.key!),
-    });
-  }
-  return out;
-}
-
-const list = (xs: string[]) =>
-  xs.length <= 1
-    ? (xs[0] ?? "")
-    : `${xs.slice(0, -1).join(", ")} and ${xs[xs.length - 1]}`;
+  _data: PersonalData, _today: string, _nowMin: number,
+): (LogEntry & { keys: string[] })[] { return []; }
 
 /**
  * Low WHOOP recovery → make today lighter (fewer optional to-dos, easier

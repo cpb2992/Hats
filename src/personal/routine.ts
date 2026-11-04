@@ -29,7 +29,7 @@ export function isBathNight(data: PersonalData, date: string) {
 
 export function isWorkday(data: PersonalData, date: string) {
   const closure = eventsOn(data, date).some((e) => e.closure);
-  return data.preferences.unavailableDays.includes(weekday(date)) && !closure;
+  return data.preferences.unavailableDays.includes(weekday(date)) && !closure && !data.workDaysOff?.includes(date);
 }
 
 /** Evening blocks the planner keeps free: dinner, bath (if tonight), stories, bedtime. */

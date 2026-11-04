@@ -227,6 +227,8 @@ export interface PersonalTask {
   sharedBy?: string;
   /** Whose job it is: a household member's id. */
   assignee?: string;
+  /** The assigned member explicitly accepted this responsibility. */
+  acceptedBy?: string;
 }
 export interface Person {
   id: string;
@@ -276,6 +278,8 @@ export interface PersonalEvent {
   sharedBy?: string;
 }
 export interface DatePlan {
+  /** Explicit confirmation, never inferred from a budget or scheduled date. */
+  childcareConfirmed?: boolean;
   id: string;
   date: string;
   /** When it starts, "HH:MM" (7:00 PM when not set). */
@@ -393,6 +397,7 @@ export const ROUTINE_DEFAULTS = {
 };
 export interface PersonalData {
   version: 2;
+  memory?: import("./memory").MemoryState;
   preferences: Preferences;
   tasks: PersonalTask[];
   people: Person[];
@@ -405,6 +410,13 @@ export interface PersonalData {
   dates: DatePlan[];
   spending: Spending[];
   wishes: Wish[];
+  /** One-date work exceptions; the regular week stays unchanged. */
+  workDaysOff?: string[];
+  dayAdjustments?: Record<string, { availableAfter?: string; essentialsOnly?: boolean; kidsHome?: boolean; partnerAway?: boolean }>;
+  mutedSuggestions?: string[];
+  productFeedback?: { date: string; helped: boolean; missing: string }[];
+  /** Local aggregate research counters only; no tracking SDK or automatic upload. */
+  productUse?: { days: string[]; firstPlanOn?: string; dayChanges: number; corrections: number; sharedAccepted: number };
   lowEnergyDays: string[];
   activities: Record<string, string>;
   finishedActivities: string[];
@@ -535,6 +547,28 @@ export function validData(value: unknown): value is PersonalData {
     const optional = (x: unknown, type: "string" | "boolean") =>
       x === undefined || typeof x === type;
     const h = v.household;
+    if (v.productFeedback !== undefined && (!Array.isArray(v.productFeedback) || v.productFeedback.length > 30 || !v.productFeedback.every(e => e && validDate(e.date) && typeof e.helped === "boolean" && text(e.missing) && e.missing.length <= 2000))) return false;
+    if (v.mutedSuggestions !== undefined && !strings(v.mutedSuggestions)) return false;
+    if (v.dayAdjustments !== undefined && (!v.dayAdjustments || typeof v.dayAdjustments !== "object" || Array.isArray(v.dayAdjustments) || !Object.entries(v.dayAdjustments).every(([date, a]) => validDate(date) && a && typeof a === "object" && !Array.isArray(a) && (a.availableAfter === undefined || time(a.availableAfter)) && [a.essentialsOnly, a.kidsHome, a.partnerAway].every(x => x === undefined || typeof x === "boolean")))) return false;
+    if (v.productUse !== undefined && (!v.productUse || !Array.isArray(v.productUse.days) || !v.productUse.days.every(validDate) || (v.productUse.firstPlanOn !== undefined && !validDate(v.productUse.firstPlanOn)) || ![v.productUse.dayChanges, v.productUse.corrections, v.productUse.sharedAccepted].every(x => Number.isInteger(x) && x >= 0))) return false;
+    if (v.workDaysOff !== undefined && (!Array.isArray(v.workDaysOff) || !v.workDaysOff.every(validDate))) return false;
+    if (v.memory !== undefined) {
+      const m = v.memory;
+      if (!m || typeof m.learnFromCompletions !== "boolean" ||
+        !strings(m.dismissed) || !Array.isArray(m.items) ||
+        !m.items.every((item) => item && text(item.id) && item.id.length > 0 &&
+          text(item.text) && item.text.trim().length > 0 && item.text.length <= 2000 &&
+          isHatId(item.hat) && ["you", "pattern"].includes(item.source) &&
+          text(item.createdAt) && Number.isFinite(Date.parse(item.createdAt)) &&
+          text(item.updatedAt) && Number.isFinite(Date.parse(item.updatedAt)) &&
+          (item.expiresOn === undefined || validDate(item.expiresOn)) &&
+          (item.rule === undefined || (item.rule && (
+            item.rule.kind === "priority" ||
+            (item.rule.kind === "small" && Number.isInteger(item.rule.minutes) && item.rule.minutes >= 5 && item.rule.minutes <= 120) ||
+            (item.rule.kind === "window" && time(item.rule.start) && time(item.rule.end) && item.rule.start < item.rule.end)
+          )))) || new Set(m.items.map((item) => item.id)).size !== m.items.length)
+        return false;
+    }
     if (
       h !== undefined &&
       (!h ||
@@ -710,7 +744,7 @@ export function validData(value: unknown): value is PersonalData {
           typeof t.essential === "boolean" &&
           optional(t.shared, "boolean") &&
           optional(t.sharedBy, "string") &&
-          optional(t.assignee, "string"),
+          optional(t.assignee, "string") && optional(t.acceptedBy, "string"),
       )
     )
       return false;
@@ -783,7 +817,7 @@ export function validData(value: unknown): value is PersonalData {
           money(d.transport) &&
           steps(d.steps) &&
           optional(d.surprise, "boolean") &&
-          optional(d.sharedBy, "string"),
+          optional(d.sharedBy, "string") && optional(d.childcareConfirmed, "boolean"),
       )
     )
       return false;
