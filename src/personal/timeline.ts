@@ -68,7 +68,7 @@ export function routineSteps(
   clock?: { today: string; nowMin: number },
 ) {
   const p = data.preferences;
-  if (p.routinesConfigured === false) return [];
+  if (p.routinesConfigured === false && !data.dinners[date]) return [];
   const r = routinePrefs(data);
   const done = new Set(data.routineDone?.[date] ?? []);
   const skipped = new Set(data.routineSkipped?.[date] ?? []);
@@ -201,7 +201,7 @@ export function routineSteps(
         30,
       );
     else add("gym", p.gymStart, "Gym", "pompom", "Your time", p.gymMinutes);
-  return steps;
+  return p.routinesConfigured === false ? steps.filter(s => s.key === "dinner" || s.key === "slowcook") : steps;
 }
 
 /** Everything for a day, in time order: routine, calendar events, planned tasks. */
