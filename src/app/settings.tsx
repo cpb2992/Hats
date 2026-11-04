@@ -1015,4 +1015,3 @@ export default function Settings() {
     </Page>
   );
 }
-

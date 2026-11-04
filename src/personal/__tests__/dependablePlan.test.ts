@@ -100,6 +100,10 @@ test("first plan requires no household and preserves real data when setup is alr
   assert.equal(d.people.length,0);
   assert.equal(d.preferences.kidsRoutine,false);
   assert.equal(routineSteps(d,date).length,0);
+  d.dinners[date] = "chosen-meal";
+  assert.ok(routineSteps(d,date).some(s => s.key === "dinner"), "An explicitly chosen dinner is visible even before general routines are configured");
+  assert.ok(routineSteps(d,date).every(s => s.key === "dinner" || s.key === "slowcook"));
+  delete d.dinners[date];
   assert.equal(d.tasks[0].fixed,true);
   assert.equal(d.productUse?.firstPlanOn,date);
   assert.equal(validData(d),true);

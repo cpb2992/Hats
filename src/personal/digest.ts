@@ -25,7 +25,7 @@ export function dayLine(data: PersonalData, date: string) {
   for (const p of plans.slice(0, 4)) bits.push(`${fmtTime(p.time, true)} ${p.title}`);
   if (plans.length > 4) bits.push(`+${plans.length - 4} more`);
   const d = dinnerFor(data, date);
-  if (data.preferences.routinesConfigured !== false) bits.push(d.planned && d.meal ? `Dinner: ${d.meal.name}` : "Dinner: not planned yet");
+  if (data.preferences.routinesConfigured !== false || d.planned) bits.push(d.planned && d.meal ? `Dinner: ${d.meal.name}` : "Dinner: not planned yet");
   return { count: allDay.length + plans.length + (school.length ? 1 : 0), line: bits.join(" · ") };
 }
 
