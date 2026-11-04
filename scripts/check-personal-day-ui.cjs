@@ -30,7 +30,7 @@ async function main() {
     await page.goto(`http://127.0.0.1:8766/?date=${date}`);
     const plan = page.getByRole('button',{name:'Plan: Date night · dinner out, 7:00 PM',exact:true});
     await plan.waitFor();
-    await plan.scrollIntoViewIfNeeded();
+    await plan.click({ trial: true });
     const card = page.getByText('Plans for this day',{exact:true}).locator('..').locator('..');
     await card.getByRole('button',{name:'Edit day',exact:true}).click();
     await page.getByRole('button',{name:'Day off work',exact:true}).click();
@@ -38,7 +38,7 @@ async function main() {
     await page.waitForFunction(date => JSON.parse(localStorage.getItem('hats.personal.v2'))?.workDaysOff?.includes(date),date);
     await page.reload();
     await plan.waitFor();
-    await plan.scrollIntoViewIfNeeded();
+    await plan.click({ trial: true });
     await card.getByText('Day off work · just this date',{exact:true}).waitFor();
     const stored = await page.evaluate(() => JSON.parse(localStorage.getItem('hats.personal.v2')));
     assert.deepEqual(stored.preferences.unavailableDays,[0,1,2,3,4,5,6]);
@@ -46,7 +46,7 @@ async function main() {
     mkdirSync('/tmp/hats-day-ui',{recursive:true});
     await page.screenshot({path:'/tmp/hats-day-ui/phone.png'});
     await page.setViewportSize({width:768,height:900});
-    await plan.scrollIntoViewIfNeeded();
+    await plan.click({ trial: true });
     await page.screenshot({path:'/tmp/hats-day-ui/fold.png'});
     await card.getByRole('button',{name:'Edit day',exact:true}).click();
     await page.getByRole('button',{name:'Regular schedule',exact:true}).click();
