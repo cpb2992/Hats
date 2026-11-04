@@ -8,9 +8,9 @@ import {
   type WidgetTaskHandlerProps,
 } from "react-native-android-widget";
 import { nowMinutes, todayISO, fmtTime } from "../engine/dates";
-import { finishStep, nextStep, planDay, reschedule } from "./engine";
+import { finishStep, nextStep, reschedule } from "./engine";
 import { type PersonalData, hatDef } from "./model";
-import { chooseWidgetNext } from "./nextUp";
+import { dayTimeline, nowAndNext, minutesOfDay } from "./timeline";
 import { hatSvg } from "./hatArt";
 import { loadPersonal, savePersonal } from "./storage";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -26,9 +26,10 @@ export function PersonalWidget({
   const now = nowMinutes(clock);
   const today = todayISO(clock);
   const say = name === "HatsSay";
-  const selection = chooseWidgetNext(data && !say ? planDay(data, today, now) : [], today, now);
-  const task = selection.item?.task ?? null;
-  const timeLabel = selection.item?.time ? fmtTime(selection.item.time, true) : "";
+  const focus = data && !say ? nowAndNext(dayTimeline(data, today, now, today).items, now).now : null;
+  const task = data?.tasks.find(t => t.id === focus?.taskId) ?? null;
+  const timeLabel = focus ? fmtTime(focus.time, true) : "";
+  const selection = { phase: focus ? minutesOfDay(focus.time) <= now ? "now" : "upcoming" : "clear" };
   const home = name === "HatsLog";
   const nextHeader =
     selection.phase === "now"
@@ -63,8 +64,8 @@ export function PersonalWidget({
               ? "wizard"
               : home
                 ? "cap"
-                : task
-                  ? hatDef(task.hat, data?.customHats).art
+                : focus
+                  ? focus.hat
                   : "sunhat",
             64,
           )}
@@ -91,8 +92,8 @@ export function PersonalWidget({
             ? "A thought worth keeping."
             : !data
               ? "Open Hats to get started."
-              : task
-                ? nextStep(task)
+              : focus
+                ? task ? nextStep(task) : focus.title
                 : selection.phase === "clear"
                   ? "You're caught up for now."
                   : "Nothing scheduled next."
@@ -157,7 +158,9 @@ export function PersonalWidget({
               ? "Open Hats to talk or type."
               : !data
                 ? "Your plan will appear here."
-                : selection.phase === "clear"
+                : focus
+                  ? `${timeLabel}${focus.detail ? ` · ${focus.detail}` : ""}`
+                  : selection.phase === "clear"
                   ? "Enjoy the breathing room."
                   : "Other tasks can wait for an opening."
           }

@@ -32,6 +32,8 @@ jobs:
         run: node --import tsx scripts/check-personal-memory-ui.cjs
       - name: Check future plans and day-off editing
         run: node --import tsx scripts/check-personal-day-ui.cjs
+      - name: Check dependable planning and first use
+        run: node --import tsx scripts/check-dependable-plan-ui.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
@@ -39,3 +41,4 @@ jobs:
           path: |
             /tmp/hats-memory-ui
             /tmp/hats-day-ui
+            /tmp/hats-dependable-ui

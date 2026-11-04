@@ -302,6 +302,9 @@ export default function Home() {
         ) : null}
       </View>
 
+      <Pressable accessibilityRole="button" accessibilityLabel="Check save and sync status" onPress={() => router.push("/settings")} style={{ paddingHorizontal: GUTTER, paddingVertical: 5 }}>
+        <T size={11} muted>{a.syncStatus}{data.household ? ` · ${a.familySyncStatus}` : ""}</T>
+      </Pressable>
       {/* Day cards */}
       <FlatList
         key={step}
@@ -464,6 +467,7 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
           ))}
         </View>
 
+        <Button title="My day changed" small quiet onPress={() => router.push({ pathname: "/day-change", params: { date } })} />
         <Button title="Edit day" small quiet onPress={editDay} />
         {off ? <T bold color={P.blue}>Day off work · just this date</T> : null}
         {plans.length ? (

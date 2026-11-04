@@ -80,6 +80,7 @@ export function materialize(data: PersonalData, today: string): boolean {
       source,
       date: today,
       doneAt: null,
+      acceptedBy: undefined,
       steps: latest.steps.map((s) => ({ title: s.title, done: false })),
       deferred: 0,
       createdAt: new Date().toISOString(),
@@ -101,7 +102,7 @@ export function dayWindows(
 ): { start: number; end: number }[] {
   const p = data.preferences;
   const weekdayBusy = isWorkday(data, date);
-  const start = minutesOf(weekdayBusy ? p.homeTime : p.weekendStart);
+  const start = Math.max(minutesOf(weekdayBusy ? p.homeTime : p.weekendStart), minutesOf(data.dayAdjustments?.[date]?.availableAfter ?? "00:00"));
   const end = minutesOf(weekdayBusy ? p.endTime : p.weekendEnd);
   let windows = end > start ? [{ start, end }] : [];
   const blocked = eventsOn(data, date)
@@ -139,7 +140,7 @@ export function planDay(
   excludeId?: string,
 ): PlannedTask[] {
   const candidates = data.tasks.filter(
-    (t) => !t.doneAt && t.date <= date && t.id !== excludeId,
+    (t) => !t.doneAt && t.date <= date && t.id !== excludeId && (!t.shared || !t.assignee || t.assignee === data.household?.me) && (t.essential || t.fixed || !data.mutedSuggestions?.includes(t.source ?? t.id)),
   );
   const low = data.lowEnergyDays.includes(date);
   const sorted = [...candidates].sort(
@@ -152,7 +153,7 @@ export function planDay(
       a.createdAt.localeCompare(b.createdAt),
   );
   const used: { start: number; end: number }[] = [];
-  for (const task of sorted.filter((t) => t.fixed && t.time))
+  for (const task of sorted.filter((t) => t.fixed && t.time && t.date === date))
     used.push({
       start: minutesOf(task.time!),
       end: minutesOf(task.time!) + task.minutes,
@@ -170,7 +171,7 @@ export function planDay(
       });
       continue;
     }
-    if (!task.essential && optional >= (low ? 1 : 3)) {
+    if (!task.essential && (data.dayAdjustments?.[date]?.essentialsOnly || data.dayAdjustments?.[date]?.kidsHome || optional >= (low ? 1 : 3))) {
       output.push({
         task,
         date,

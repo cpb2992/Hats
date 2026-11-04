@@ -134,6 +134,9 @@ export function sharedFromLocal(d: PersonalData): Map<string, SharedItem> {
         steps: t.steps.map((s) => ({ title: s.title, done: s.done })),
         note: t.note || undefined,
         assignee: t.assignee,
+        acceptedBy: t.acceptedBy,
+        fixed: t.fixed,
+        essential: t.essential,
       });
   for (const p of d.dates)
     if (!p.surprise)
@@ -144,6 +147,7 @@ export function sharedFromLocal(d: PersonalData): Map<string, SharedItem> {
         title: p.title,
         budget: p.budget,
         childcare: p.childcare,
+        childcareConfirmed: p.childcareConfirmed,
         transport: p.transport,
         steps: p.steps.map((s) => ({ title: s.title, done: s.done })),
         note: p.note,
@@ -261,7 +265,10 @@ const okTask = (p: P) =>
   (p.doneAt === null || str(p.doneAt, 40)) &&
   steps(p.steps) &&
   (p.note === undefined || str(p.note, 2000)) &&
-  (p.assignee === undefined || str(p.assignee, 60));
+  (p.assignee === undefined || str(p.assignee, 60)) &&
+  (p.acceptedBy === undefined || str(p.acceptedBy, 60)) &&
+  (p.fixed === undefined || typeof p.fixed === "boolean") &&
+  (p.essential === undefined || typeof p.essential === "boolean");
 const okDate = (p: P) =>
   str(p.id, 100) &&
   validDate(p.date) &&
@@ -269,6 +276,7 @@ const okDate = (p: P) =>
   str(p.title) &&
   money(p.budget) &&
   money(p.childcare) &&
+  (p.childcareConfirmed === undefined || typeof p.childcareConfirmed === "boolean") &&
   money(p.transport) &&
   steps(p.steps) &&
   str(p.note, 2000);
@@ -376,6 +384,8 @@ function applyOne(d: PersonalData, r: RemoteRow & { kind: SharedKind; payload: P
         date: p.date as string,
         time: p.time as string | null,
         minutes: p.minutes as number,
+        ...(typeof p.fixed === "boolean" ? { fixed: p.fixed } : {}),
+        ...(typeof p.essential === "boolean" ? { essential: p.essential } : {}),
         doneAt: p.doneAt as string | null,
         steps: (p.steps as Step[]).map((s) => ({ title: s.title, done: s.done })),
       };
@@ -386,6 +396,8 @@ function applyOne(d: PersonalData, r: RemoteRow & { kind: SharedKind; payload: P
         else delete mine.note;
         if (p.assignee !== undefined) mine.assignee = p.assignee as string;
         else delete mine.assignee;
+        if (p.acceptedBy !== undefined) mine.acceptedBy = p.acceptedBy as string;
+        else delete mine.acceptedBy;
       } else {
         const task: PersonalTask = {
           id: key,
@@ -398,6 +410,9 @@ function applyOne(d: PersonalData, r: RemoteRow & { kind: SharedKind; payload: P
           deferred: 0,
           shared: true,
         };
+        if (p.acceptedBy !== undefined) task.acceptedBy = p.acceptedBy as string;
+        if (typeof p.fixed === "boolean") task.fixed = p.fixed;
+        if (typeof p.essential === "boolean") task.essential = p.essential;
         if (by) task.sharedBy = by;
         if (p.note !== undefined) task.note = p.note as string;
         if (p.assignee !== undefined) task.assignee = p.assignee as string;
@@ -415,6 +430,7 @@ function applyOne(d: PersonalData, r: RemoteRow & { kind: SharedKind; payload: P
         title: p.title as string,
         budget: p.budget as number,
         childcare: p.childcare as number,
+        childcareConfirmed: p.childcareConfirmed === true,
         transport: p.transport as number,
         steps: (p.steps as Step[]).map((s) => ({ title: s.title, done: s.done })),
         note: p.note as string,

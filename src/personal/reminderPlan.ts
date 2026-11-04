@@ -1,8 +1,8 @@
 import { addDays, fmtTime, nowMinutes, todayISO } from "../engine/dates";
 import { dinnerNudge, eveningDigest, morningDigest } from "./digest";
-import { nextStep, planDay } from "./engine";
+import { nextStep } from "./engine";
 import type { PersonalData } from "./model";
-import { dayTimeline, minutesOfDay, type TimelineItem } from "./timeline";
+import { dayTimeline, minutesOfDay, nowAndNext } from "./timeline";
 
 export interface Notice {
   identifier: string;
@@ -19,17 +19,8 @@ export const noticeRevision = (n: Notice) => JSON.stringify([n.title, n.body, n.
 /** A real item and its time, never an empty "ready when you are" placeholder. */
 export function currentPlanNotice(data: PersonalData, date: string, now: number): Notice | null {
   const { items } = dayTimeline(data, date, now, date);
-  const classPeriodNow = items.some((i) => i.kind === "work" && i.period &&
-    minutesOfDay(i.time) <= now && minutesOfDay(i.end ?? i.time) > now);
-  // Finished windows, including old fixed tasks, must not masquerade as current.
-  const open = items.filter((i) => !i.done && minutesOfDay(i.end ?? i.time) > now &&
-    !(classPeriodNow && i.kind !== "work" && /^(?:work|school|work day|school day)$/i.test(i.title.trim())) &&
-    !(i.fixed && data.tasks.find((t) => t.id === i.taskId)?.date !== date));
-  const rank = (i: TimelineItem) => i.kind === "date" ? 4 : i.kind === "event" || i.fixed ? 3 : i.kind === "work" ? 2 : 1;
-  const active = open.filter((i) => minutesOfDay(i.time) <= now)
-    .sort((a, b) => rank(b) - rank(a) || minutesOfDay(b.time) - minutesOfDay(a.time))[0];
-  const item = active ?? open.filter((i) => minutesOfDay(i.time) > now)
-    .sort((a, b) => minutesOfDay(a.time) - minutesOfDay(b.time))[0];
+  const item = nowAndNext(items, now).now;
+  const active = item && minutesOfDay(item.time) <= now;
   if (!item) return null;
   const task = data.tasks.find((t) => t.id === item.taskId);
   const flexibleReady = !!task && !task.fixed && minutesOfDay(item.time) <= now + 5;
@@ -69,14 +60,18 @@ export function personalReminderPlan(data: PersonalData, clock = new Date()): { 
         url: "url" in say ? String(say.url) : name === "evening" ? `/?date=${addDays(day, 1)}` : "/", at: at(day, time).toISOString() });
     }
   }
-  for (const item of planDay(data, today, now)) {
-    if (!item.time) continue;
-    const when = at(item.date, item.time);
-    if (when.getTime() <= clock.getTime() + 60000) continue;
-    if (scheduled.filter((n) => n.taskId).length >= 12) break;
-    scheduled.push({ identifier: `personal-task-${item.task.id}`, title: item.task.title,
-      body: `${fmtTime(item.time, true)} · ${item.task.steps.length ? `Next: ${nextStep(item.task)} · ` : ""}${item.task.minutes} min`,
-      url: "/", taskId: item.task.id, at: when.toISOString() });
+  for (let offset = 0; offset < 7; offset++) {
+    const day = addDays(today, offset);
+    const timeline = dayTimeline(data, day, offset === 0 ? now : 0, today);
+    for (const item of timeline.items) {
+      if (!item.eventId && item.kind !== "date" && item.kind !== "event" && !(item.kind === "task" && (item.fixed || offset === 0))) continue;
+      const when = at(day, item.time);
+      if (when.getTime() <= clock.getTime() + 60000 || scheduled.length >= 60) continue;
+      const task = data.tasks.find(t => t.id === item.taskId);
+      scheduled.push({ identifier: `personal-plan-${day}-${item.id}`, title: item.title,
+        body: `${fmtTime(item.time, true)}${task ? ` · ${task.steps.length ? `Next: ${nextStep(task)} · ` : ""}${task.minutes} min` : ""}${item.detail ? ` · ${item.detail}` : ""}`,
+        url: `/?date=${day}`, ...(task ? { taskId: task.id } : {}), at: when.toISOString() });
+    }
   }
   return { live: currentPlanNotice(data, today, now), scheduled };
 }
