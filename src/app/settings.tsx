@@ -236,7 +236,7 @@ export default function Settings() {
     <Page tabs={false}>
       <Header title="Your life, your settings." back hat="hardhat" />
       <Panel>
-        <Button title="Set up family and work" small quiet onPress={() => router.push("/welcome")} />
+        {data.productUse?.firstPlanOn && !data.people.length && data.preferences.school?.on === false ? <Button title="Add family and work details" small quiet onPress={() => router.push("/welcome")} /> : null}
         <Button title="Is Hats helping? Give feedback" small quiet onPress={() => router.push("/feedback")} />
         <T bold>What Hats knows about you</T>
         <T muted>Keep useful context, correct a preference, and review what Hats is learning.</T>

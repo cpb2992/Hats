@@ -25,6 +25,7 @@ export default function Feedback() {
       setMissing(""); say("Feedback saved in your private Hats data. Nothing sent.");
     }} />
     {(data.productFeedback ?? []).slice().reverse().map((entry, i) => <Panel key={`${entry.date}-${i}`}><T bold>{entry.date} · {entry.helped ? "Helped" : "Needs work"}</T><T>{entry.missing}</T></Panel>)}
+    <Button title="Reset private usage counts" quiet onPress={() => { mutate(d => { delete d.productUse; }); say("Counts reset. Today starts a fresh history; no feedback was removed."); }} />
     <Button title="Share my feedback summary" quiet onPress={() => {
       const entries = data.productFeedback ?? [];
       Share.share({ message: `Hats feedback — shared by choice\nDays opened in last 7: ${days}\nDay changes: ${use?.dayChanges ?? 0}\nCorrections: ${use?.corrections ?? 0}\nAccepted responsibilities: ${use?.sharedAccepted ?? 0}\n\n${entries.map(e => `${e.date} · ${e.helped ? "Helped" : "Needs work"}\n${e.missing}`).join("\n\n")}` }).catch(() => say("Could not open sharing."));

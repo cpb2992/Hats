@@ -679,7 +679,7 @@ export function Timeline({
           <T size={13} bold muted>
             {showEarlier
               ? "Hide earlier"
-              : `✓ ${earlier.length} earlier · show`}
+              : `${earlier.length} earlier · show status`}
           </T>
         </Pressable>
       ) : null}

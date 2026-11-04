@@ -176,7 +176,6 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
       if (!fn(next)) return false;
       generation.current++;
       undoRef.current = null;
-      if (next.tasks.some(t => !t.source?.startsWith("starter-") && !ref.current.tasks.some(old => old.id === t.id))) recordUse(next, todayISO(), "firstPlan");
       next.updatedAt = new Date().toISOString();
       meta.current.dirty = true;
       setSyncStatus(meta.current.owner ? "Saved on device · sync pending" : "Saved on this device");
@@ -209,7 +208,6 @@ export function PersonalProvider({ children }: { children: ReactNode }) {
     async (next: PersonalData) => {
       await preserveBeforeImport(ref.current);
       generation.current++;
-      if (next.tasks.some(t => !t.source?.startsWith("starter-") && !ref.current.tasks.some(old => old.id === t.id))) recordUse(next, todayISO(), "firstPlan");
       next.updatedAt = new Date().toISOString();
       meta.current.dirty = true;
       await persist(next);

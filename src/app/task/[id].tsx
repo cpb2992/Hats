@@ -96,7 +96,7 @@ export default function Task() {
     <Page tabs={false}>
       <Header title="Make it fit your life." back hat={hatDef(hat).art} />
       {task.shared && task.assignee ? <>
-        <T bold>{task.acceptedBy === task.assignee ? "Responsibility accepted" : "Awaiting acceptance"}</T>
+        <T bold>{task.doneAt ? "Completed" : task.acceptedBy === task.assignee ? "Responsibility accepted" : "Awaiting acceptance"}</T>
         {task.assignee === home?.me && task.acceptedBy !== task.assignee ? <Button title="I’ll handle this" onPress={() => { mutate(d => { acceptResponsibility(d, task.id, today); }); say("You accepted this responsibility."); }} /> : null}
       </> : null}
       <T bold>Help Hats get this right</T>
