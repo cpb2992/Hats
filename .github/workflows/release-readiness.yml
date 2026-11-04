@@ -62,7 +62,7 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: android/app/build/outputs/apk/release/app-release.apk
-          key: hats-native-apk-${{ runner.os }}-${{ hashFiles('src/**', 'assets/**', 'modules/**', 'app.json', 'package-lock.json', 'index.ts') }}
+          key: hats-native-apk-${{ runner.os }}-${{ hashFiles('src/**', 'assets/**', 'modules/**', '*.json', '*.js', '*.ts', 'plugins/**', 'patches/**') }}
       - if: steps.apk.outputs.cache-hit != 'true'
         run: npx expo prebuild --platform android --no-install
       - name: Build installed Android release for emulator
