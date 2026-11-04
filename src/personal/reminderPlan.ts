@@ -12,6 +12,8 @@ export interface Notice {
   taskId?: string;
   /** ISO timestamp for a scheduled alert; absent for the live Android card. */
   at?: string;
+  /** Keep an already queued alarm during OS delivery delay; never post a new past alert. */
+  retainOnly?: boolean;
 }
 export const ownsNotice = (id: string) => id.startsWith("personal-") || id.startsWith("sync-");
 export const noticeRevision = (n: Notice) => JSON.stringify([n.title, n.body, n.url, n.taskId ?? "", n.at ?? ""]);
@@ -43,11 +45,14 @@ export function personalReminderPlan(data: PersonalData, clock = new Date()): { 
   if (!data.preferences.notifications) return { live: null, scheduled: [] };
   const today = todayISO(clock), now = nowMinutes(clock);
   const scheduled: Notice[] = [];
+  const deliveryGrace = 15 * 60000;
+  const keep = (when: Date) => when.getTime() > clock.getTime() - deliveryGrace;
+  const retain = (when: Date) => when.getTime() <= clock.getTime() ? { retainOnly: true } : {};
   const at = (day: string, time: string) => new Date(`${day}T${time}:00`);
   const dinnerTime = minutesOfDay(data.preferences.dinnerTime ?? "17:45");
   const nudgeMin = Math.max(12 * 60, dinnerTime - 165);
   const nudgeTime = `${String(Math.floor(nudgeMin / 60)).padStart(2, "0")}:${String(nudgeMin % 60).padStart(2, "0")}`;
-  for (let offset = 0; offset < 7; offset++) {
+  for (let offset = -1; offset < 7; offset++) {
     const day = addDays(today, offset);
     const summaries = [
       { name: "morning", time: data.preferences.morningReminder, say: morningDigest(data, day) },
@@ -55,22 +60,22 @@ export function personalReminderPlan(data: PersonalData, clock = new Date()): { 
       { name: "dinner", time: nudgeTime, say: data.preferences.dinnerNudge === false ? null : dinnerNudge(data, day) },
     ];
     for (const { name, time, say } of summaries) {
-      if (!say || at(day, time).getTime() <= clock.getTime()) continue;
+      if (!say || !keep(at(day, time))) continue;
       scheduled.push({ identifier: `personal-${name}-${day}`, title: say.title, body: say.body,
-        url: "url" in say ? String(say.url) : name === "evening" ? `/?date=${addDays(day, 1)}` : "/", at: at(day, time).toISOString() });
+        url: "url" in say ? String(say.url) : name === "evening" ? `/?date=${addDays(day, 1)}` : "/", at: at(day, time).toISOString(), ...retain(at(day, time)) });
     }
   }
-  for (let offset = 0; offset < 7; offset++) {
+  for (let offset = -1; offset < 7; offset++) {
     const day = addDays(today, offset);
     const timeline = dayTimeline(data, day, offset === 0 ? now : 0, today);
     for (const item of timeline.items) {
       if (!item.eventId && item.kind !== "date" && item.kind !== "event" && !(item.kind === "task" && (item.fixed || offset === 0))) continue;
       const when = at(day, item.time);
-      if (when.getTime() <= clock.getTime() + 60000 || scheduled.length >= 60) continue;
+      if (!keep(when) || scheduled.length >= 60) continue;
       const task = data.tasks.find(t => t.id === item.taskId);
       scheduled.push({ identifier: `personal-plan-${day}-${item.id}`, title: item.title,
         body: `${fmtTime(item.time, true)}${task ? ` · ${task.steps.length ? `Next: ${nextStep(task)} · ` : ""}${task.minutes} min` : ""}${item.detail ? ` · ${item.detail}` : ""}`,
-        url: `/?date=${day}`, ...(task ? { taskId: task.id } : {}), at: when.toISOString() });
+        url: `/?date=${day}`, ...(task ? { taskId: task.id } : {}), at: when.toISOString(), ...retain(when) });
     }
   }
   return { live: currentPlanNotice(data, today, now), scheduled };
@@ -83,7 +88,7 @@ export function reminderChanges(existing: SavedNotice[], desired: Notice[]) {
   const previous = new Map(existing.map((n) => [n.identifier, n]));
   return {
     cancel: existing.filter((n) => ownsNotice(n.identifier) && (!wanted.has(n.identifier) || n.revision !== noticeRevision(wanted.get(n.identifier)!))).map((n) => n.identifier),
-    schedule: desired.filter((n) => previous.get(n.identifier)?.revision !== noticeRevision(n)),
+    schedule: desired.filter((n) => !n.retainOnly && previous.get(n.identifier)?.revision !== noticeRevision(n)),
   };
 }
 

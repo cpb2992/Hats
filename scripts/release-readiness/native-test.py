@@ -2,6 +2,7 @@
 import json, os, re, subprocess, time, pathlib, xml.etree.ElementTree as ET
 OUT=pathlib.Path('release-results');OUT.mkdir(exist_ok=True)
 PKG=json.load(open('app.json'))['expo']['android']['package']
+failures=[]
 
 def adb(*args):
     return subprocess.check_output(['adb',*map(str,args)],text=True,stderr=subprocess.STDOUT)
@@ -80,8 +81,12 @@ try:
         if re.search(r'NotificationRecord[^\n]*personal-plan-[^\n]*native-ci-task',notices):posted=True;break
         time.sleep(3)
     (OUT/'notifications.txt').write_text(adb('shell','dumpsys','notification','--noredact'))
-    assert posted,'OS did not post the timed reminder while Hats was in the background'
-    note('Scheduled reminder delivered while Hats is in the background')
+    (OUT/'alarms.txt').write_text(adb('shell','dumpsys','alarm'))
+    (OUT/'runtime.txt').write_text(adb('logcat','-d'))
+    if posted:note('Scheduled reminder delivered while Hats is in the background')
+    else:
+        failures.append('OS did not post the timed reminder while Hats was in the background')
+        print('FAIL: '+failures[-1],flush=True)
     # Save a one-day change with no network, then kill/reopen the installed app.
     adb('shell','svc','wifi','disable');adb('shell','svc','data','disable')
     open_app('hats://day-change?date='+details['date'])
@@ -104,6 +109,7 @@ try:
     crash=adb('logcat','-d','-b','crash');(OUT/'crash.txt').write_text(crash)
     assert 'FATAL EXCEPTION' not in crash,'Android crash buffer contains a fatal exception'
     note('No fatal Android crashes')
+    assert not failures,'; '.join(failures)
 except Exception:
     try:shot('failure');(OUT/'crash.txt').write_text(adb('logcat','-d','-b','crash'))
     except Exception:pass
