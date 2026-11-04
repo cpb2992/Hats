@@ -46,6 +46,8 @@ def note(message):
 try:
     adb('install','-r','android/app/build/outputs/apk/release/app-release.apk')
     adb('shell','pm','grant',PKG,'android.permission.POST_NOTIFICATIONS')
+    # Keep the fresh review build offline so a live OTA cannot replace the code under test.
+    adb('shell','svc','wifi','disable');adb('shell','svc','data','disable')
     adb('logcat','-c');open_app()
     wait_for('Start with one real plan|Import my setup or backup',60)
     # The fixture uses the same validated import and encrypted storage as a real backup.
@@ -60,7 +62,7 @@ try:
     if not find('hats-native-ci'):
         if find('Show roots|navigation drawer'):wait_for('Show roots|navigation drawer',tap=True)
         wait_for('Downloads',tap=True)
-    wait_for('hats-native-ci',tap=True)
+    wait_for(r'^hats-native-ci\.json\|',tap=True)
     wait_for('Native active event',40);shot('01-installed-plan')
     note('Native backup import and first day render')
     # Install a real host and bind the installed provider, not a made-up widget id.
@@ -93,7 +95,7 @@ try:
     match=re.search(r'BOUND:(\d+):([^\s]+)',logs);assert match,'Widget host did not report a real binding'
     adb('shell','am','broadcast','-a','android.appwidget.action.APPWIDGET_UPDATE','-n',match.group(2),'--eia','appWidgetIds',match.group(1))
     adb('shell','am','start','-W','-n','com.hats.ci.widgethost/.WidgetHost','--es','target',PKG)
-    wait_for('Native active event',40);shot('04-background-widget')
+    wait_for('Native scheduled reminder',40);shot('04-background-widget')
     note('Bound widget remains readable after an app-process restart and provider refresh')
     # A revoked notification permission must not stop local planning or opening the app.
     adb('shell','pm','revoke',PKG,'android.permission.POST_NOTIFICATIONS');open_app()
