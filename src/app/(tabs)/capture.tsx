@@ -51,10 +51,11 @@ export default function Capture() {
     hat?: PersonalHat;
     kind?: Kind;
     text?: string;
+    date?: string;
   }>();
   return (
     <CaptureForm
-      key={`${params.hat ?? ""}:${params.kind ?? ""}:${params.text ?? ""}`}
+      key={`${params.hat ?? ""}:${params.kind ?? ""}:${params.text ?? ""}:${params.date ?? ""}`}
       params={params}
     />
   );
@@ -62,7 +63,7 @@ export default function Capture() {
 function CaptureForm({
   params,
 }: {
-  params: { hat?: PersonalHat; kind?: Kind; text?: string };
+  params: { hat?: PersonalHat; kind?: Kind; text?: string; date?: string };
 }) {
   const { data, mutate, today, nowMin, say, celebrate } = usePersonal();
   const [flipped, setFlipped] = useState<Record<number, boolean>>({});
@@ -142,8 +143,13 @@ function CaptureForm({
     if (!focused.current) return;
     say("Voice capture stopped. You can keep typing or try again.");
   });
+  // Opened from a day's "Add" button: anything without its own day lands on that day.
+  const [forDay, setForDay] = useState(
+    params.date && /^\d{4}-\d{2}-\d{2}$/.test(params.date) && params.date !== today ? params.date : "",
+  );
   const understood = understand(text, data, today, hat, nowMin).map((u, i) => ({
     ...u,
+    date: forDay && !u.heard.date && !u.repeat ? forDay : u.date,
     hat: manual ? hat : u.hat,
     kind: flipped[i] ? (u.kind === "event" ? "task" : "event") : u.kind,
   })) as Understood[];
@@ -227,6 +233,7 @@ function CaptureForm({
         });
     });
     setText("");
+    setForDay("");
     setPhoto("");
     setFlipped({});
     if (kind === "task" && understood.length) {
@@ -306,6 +313,12 @@ function CaptureForm({
           />
         ))}
       </ScrollView>
+      {forDay && kind === "task" ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+          <T bold color={P.blue}>Adding to {fmtLong(forDay)}</T>
+          <Chip title="Use today instead" onPress={() => setForDay("")} />
+        </View>
+      ) : null}
       {kind === "reflection" ? (
         <Panel>
           <T bold>Make room for your feelings before responding.</T>

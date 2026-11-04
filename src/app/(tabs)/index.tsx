@@ -452,7 +452,10 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
           ))}
         </View>
 
-        <Button title="My day changed" small quiet onPress={() => router.push({ pathname: "/day-change", params: { date } })} />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
+          <Button title="+ Add to-do or event" small onPress={() => router.push({ pathname: "/capture", params: { kind: "task", date } })} />
+          <Button title="My day changed" small quiet onPress={() => router.push({ pathname: "/day-change", params: { date } })} />
+        </View>
         {off ? <T bold color={P.blue}>Day off work · just this date</T> : null}
         {plans.length ? (
           <View style={{ padding: 12, gap: 8, borderRadius: 18, backgroundColor: tone("#DCE9FA") }}>

@@ -34,6 +34,8 @@ jobs:
         run: node --import tsx scripts/check-personal-day-ui.cjs
       - name: Check dependable planning and first use
         run: node --import tsx scripts/check-dependable-plan-ui.cjs
+      - name: Check adding a to-do or event to a chosen day
+        run: node --import tsx scripts/check-add-to-day-ui.cjs
       - uses: actions/upload-artifact@v4
         if: always()
         with:
