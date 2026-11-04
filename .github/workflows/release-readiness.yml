@@ -20,7 +20,7 @@ jobs:
       - run: npm ci
       - uses: supabase/setup-cli@v1
         with:
-          version: latest
+          version: 3.0.0
       - name: Start disposable local Auth and database
         run: |
           mkdir -p "$RUNNER_TEMP/hats-local"
@@ -35,7 +35,11 @@ jobs:
         run: node --import tsx scripts/release-readiness/backend.test.ts
       - name: Stop disposable services
         if: always()
-        run: cd "$RUNNER_TEMP/hats-local" && supabase stop --no-backup
+        run: |
+          if [ -d "$RUNNER_TEMP/hats-local" ]; then
+            cd "$RUNNER_TEMP/hats-local"
+            supabase stop --no-backup
+          fi
   android:
     runs-on: ubuntu-latest
     timeout-minutes: 55

@@ -9,6 +9,7 @@ import { sharedFromLocal, mergeRemote, type ShareState, type RemoteRow } from ".
 import { acceptResponsibility } from "../../src/personal/taskFeedback";
 
 async function main() {
+  assert.ok(process.env.HATS_LOCAL_STATUS, "Disposable local-backend status file is required");
   const config = JSON.parse(readFileSync(process.env.HATS_LOCAL_STATUS!, "utf8"));
   const base = new URL(config.API_URL);
   assert.ok(["127.0.0.1", "localhost"].includes(base.hostname), "Only a disposable local backend may be tested");
