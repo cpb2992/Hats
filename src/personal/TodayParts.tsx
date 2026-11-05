@@ -613,26 +613,25 @@ export function Timeline({
             return (
               <Pressable
                 key={e.id}
-                accessibilityRole={mine || e.hat ? "button" : undefined}
+                accessibilityRole={a.data.events.some((x) => x.id === e.id) || e.hat ? "button" : undefined}
                 accessibilityLabel={`All day: ${e.title}`}
                 accessibilityHint={
                   mine
-                    ? "Shows options"
-                    : e.hat
-                      ? `Opens ${hatDef(e.hat).name}`
-                      : undefined
+                    ? "Shows options, including edit"
+                    : a.data.events.some((x) => x.id === e.id)
+                      ? "Opens the source event information"
+                      : e.hat
+                        ? `Opens ${hatDef(e.hat).name}`
+                        : undefined
                 }
-                disabled={!mine && !e.hat}
+                disabled={!a.data.events.some((x) => x.id === e.id) && !e.hat}
                 onPress={() =>
-                  a.data.events.some((x) => x.id === e.id)
-                    ? setOpen(
-                        open === `allday:${e.id}` ? null : `allday:${e.id}`,
-                      )
-                    : e.hat &&
-                      router.push({
-                        pathname: "/hat/[id]",
-                        params: { id: e.hat },
-                      })
+                  mine
+                    ? setOpen(open === `allday:${e.id}` ? null : `allday:${e.id}`)
+                    : a.data.events.some((x) => x.id === e.id)
+                      ? router.push({ pathname: "/plan-edit", params: { kind: "event", id: e.id } })
+                      : e.hat &&
+                        router.push({ pathname: "/hat/[id]", params: { id: e.hat } })
                 }
                 style={{
                   flexDirection: "row",
