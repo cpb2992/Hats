@@ -491,6 +491,7 @@ function EventOptions({
     return (
       <View style={{ gap: 6, flexBasis: "100%" }}>
         {sharing}
+        <Button title="Edit event" small onPress={() => router.push({ pathname: "/plan-edit", params: { kind: "event", id: eventId } })} />
         <Row>
           <Button
             title={`Repeat every ${dayName}`}
@@ -523,6 +524,7 @@ function EventOptions({
   return (
     <View style={{ gap: 6, flexBasis: "100%" }}>
       {sharing}
+      <Button title="Edit event" small onPress={() => router.push({ pathname: "/plan-edit", params: { kind: "event", id: eventId } })} />
       <Row>
         <Button
           title="Skip just this one"
@@ -611,26 +613,25 @@ export function Timeline({
             return (
               <Pressable
                 key={e.id}
-                accessibilityRole={mine || e.hat ? "button" : undefined}
+                accessibilityRole={a.data.events.some((x) => x.id === e.id) || e.hat ? "button" : undefined}
                 accessibilityLabel={`All day: ${e.title}`}
                 accessibilityHint={
                   mine
-                    ? "Shows options"
-                    : e.hat
-                      ? `Opens ${hatDef(e.hat).name}`
-                      : undefined
+                    ? "Shows options, including edit"
+                    : a.data.events.some((x) => x.id === e.id)
+                      ? "Opens the source event information"
+                      : e.hat
+                        ? `Opens ${hatDef(e.hat).name}`
+                        : undefined
                 }
-                disabled={!mine && !e.hat}
+                disabled={!a.data.events.some((x) => x.id === e.id) && !e.hat}
                 onPress={() =>
                   mine
-                    ? setOpen(
-                        open === `allday:${e.id}` ? null : `allday:${e.id}`,
-                      )
-                    : e.hat &&
-                      router.push({
-                        pathname: "/hat/[id]",
-                        params: { id: e.hat },
-                      })
+                    ? setOpen(open === `allday:${e.id}` ? null : `allday:${e.id}`)
+                    : a.data.events.some((x) => x.id === e.id)
+                      ? router.push({ pathname: "/plan-edit", params: { kind: "event", id: e.id } })
+                      : e.hat &&
+                        router.push({ pathname: "/hat/[id]", params: { id: e.hat } })
                 }
                 style={{
                   flexDirection: "row",
@@ -787,6 +788,10 @@ export function Timeline({
                           : undefined
                 }
                 onPress={() => {
+                  if (item.kind === "date")
+                    return router.push({ pathname: "/plan-edit", params: { kind: "date", id: item.id.slice(5) } });
+                  if (item.kind === "event" && item.source === "google" && item.eventId)
+                    return router.push({ pathname: "/plan-edit", params: { kind: "event", id: item.eventId } });
                   if (item.taskId)
                     return router.push({
                       pathname: "/task/[id]",

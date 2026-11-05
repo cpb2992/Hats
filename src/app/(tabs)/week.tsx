@@ -175,10 +175,13 @@ function WeekView({
               <T bold color={P.blue}>›</T>
             </Pressable>
             {allDay.map((e) => (
-              <Row key={e.id}>
-                {e.hat ? <Hat id={hatDef(e.hat).art} size={18} /> : null}
-                <T size={13} bold style={{ flex: 1 }}>{e.title}</T>
-              </Row>
+              <Pressable key={e.id} accessibilityRole="button" accessibilityLabel={"All-day event: " + e.title + ". Edit event."} onPress={() => data.events.some((x) => x.id === e.id) ? router.push({ pathname: "/plan-edit", params: { kind: "event", id: e.id } }) : openDay(date)}>
+                <Row>
+                  {e.hat ? <Hat id={hatDef(e.hat).art} size={18} /> : null}
+                  <T size={13} bold style={{ flex: 1 }}>{e.title}</T>
+                  <T size={12} bold color={P.blue}>Edit ›</T>
+                </Row>
+              </Pressable>
             ))}
             {school.length ? (
               <WeekRow
@@ -196,8 +199,12 @@ function WeekView({
                 detail={it.detail}
                 item={it}
                 onPress={() =>
-                  it.taskId
-                    ? router.push({ pathname: "/task/[id]", params: { id: it.taskId } })
+                  it.kind === "date"
+                    ? router.push({ pathname: "/plan-edit", params: { kind: "date", id: it.id.slice(5) } })
+                    : it.kind === "event" && it.eventId
+                      ? router.push({ pathname: "/plan-edit", params: { kind: "event", id: it.eventId } })
+                    : it.taskId
+                      ? router.push({ pathname: "/task/[id]", params: { id: it.taskId } })
                     : it.tag
                       ? router.push({ pathname: "/hat/[id]", params: { id: it.tag } })
                       : openDay(date)
@@ -244,7 +251,7 @@ function WeekRow({ time, title, detail, item, onPress }: { time: string; title: 
         <T size={14} bold numberOfLines={1}>{title}</T>
         {detail ? <T size={11} muted numberOfLines={1}>{detail}</T> : null}
       </View>
-      {item.tag ? <HatTag hat={item.tag} /> : null}
+      {item.kind === "event" || item.kind === "date" ? <T color={P.blue} bold size={12}>Edit ›</T> : item.tag ? <HatTag hat={item.tag} /> : null}
     </Pressable>
   );
 }
