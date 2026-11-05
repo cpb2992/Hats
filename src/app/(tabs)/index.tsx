@@ -462,11 +462,14 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
             <T bold size={14}>Plans for this day</T>
             {plans.map((plan) => (
               <Pressable key={plan.id} disabled={!plan.tag && !plan.taskId} accessibilityRole={plan.tag || plan.taskId ? "button" : undefined} accessibilityLabel={`Plan: ${plan.title}, ${fmtTime(plan.time, true)}`} onPress={() => {
-                if (plan.taskId) router.push({ pathname: "/task/[id]", params: { id: plan.taskId } });
+                if (plan.kind === "date") router.push({ pathname: "/plan-edit", params: { kind: "date", id: plan.id.slice(5) } });
+                else if (plan.kind === "event" && plan.eventId) router.push({ pathname: "/plan-edit", params: { kind: "event", id: plan.eventId } });
+                else if (plan.taskId) router.push({ pathname: "/task/[id]", params: { id: plan.taskId } });
                 else if (plan.tag) router.push({ pathname: "/hat/[id]", params: { id: plan.tag } });
               }} style={{ minHeight: 44, justifyContent: "center", gap: 2 }}>
                 <T bold size={14}>{fmtTime(plan.time, true)} · {plan.title}</T>
                 {plan.detail ? <T muted size={12}>{plan.detail}</T> : null}
+                {plan.kind === "date" || plan.kind === "event" ? <T color={P.blue} bold size={12}>Edit plan ›</T> : null}
               </Pressable>
             ))}
           </View>
