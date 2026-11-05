@@ -110,7 +110,7 @@ export default function Home() {
   // Start on the requested day, instead of briefly showing today and racing a
   // later scroll. A deep-linked day must remain the day used by Add/Edit.
   const [index, setIndex] = useState(() => {
-    const requested = typeof params.date === "string" && /^\\d{4}-\\d{2}-\\d{2}$/.test(params.date)
+    const requested = typeof params.date === "string" && /^\d{4}-\d{2}-\d{2}$/.test(params.date)
       ? days.indexOf(params.date) : -1;
     return requested >= 0 ? requested : BACK;
   });
