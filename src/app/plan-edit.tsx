@@ -24,8 +24,8 @@ function PlanEditor({ kind, id }: { kind: PlanKind; id: string }) {
   const plan = datePlan ?? event;
   const [title, setTitle] = useState(plan?.title ?? "");
   const [date, setDate] = useState(plan?.date ?? a.today);
-  const [start, setStart] = useState(datePlan?.time ?? event?.start ?? "19:00");
-  const [end, setEnd] = useState(event?.end ?? "20:00");
+  const [start, setStart] = useState(fmtTime(datePlan?.time ?? event?.start ?? "19:00", true));
+  const [end, setEnd] = useState(fmtTime(event?.end ?? "20:00", true));
   const [note, setNote] = useState(datePlan?.note ?? "");
   const [location, setLocation] = useState(event?.location ?? "");
   const [allDay, setAllDay] = useState(event?.allDay ?? false);
@@ -80,7 +80,7 @@ function PlanEditor({ kind, id }: { kind: PlanKind; id: string }) {
         <Panel>
           <T bold size={18}>{kind === "date" ? "Date night" : "Calendar event"}</T>
           <Field label={kind === "date" ? "Date idea" : "Event title"} value={title} onChangeText={setTitle} />
-          <Field label="Date (YYYY-MM-DD)" value={date} onChangeText={setDate} placeholder="2026-11-05" />
+          <Field label="Date (YYYY-MM-DD)" value={date} onChangeText={setDate} placeholder="YYYY-MM-DD" />
           {event ? (
             <View style={{ gap: 8 }}>
               <T bold size={13}>When?</T>
@@ -91,10 +91,10 @@ function PlanEditor({ kind, id }: { kind: PlanKind; id: string }) {
             </View>
           ) : null}
           {!allDay || kind === "date" ? (
-            <Field label="Start time" value={fmtTime(start, true)} onChangeText={setStart} placeholder="6:30 PM" />
+            <Field label="Start time" value={start} onChangeText={setStart} placeholder="6:30 PM" />
           ) : null}
           {event && !allDay ? (
-            <Field label="End time" value={fmtTime(end, true)} onChangeText={setEnd} placeholder="8:00 PM" />
+            <Field label="End time" value={end} onChangeText={setEnd} placeholder="8:00 PM" />
           ) : null}
           {event ? (
             <Field label="Location (optional)" value={location} onChangeText={setLocation} />
