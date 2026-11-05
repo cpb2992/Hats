@@ -491,6 +491,7 @@ function EventOptions({
     return (
       <View style={{ gap: 6, flexBasis: "100%" }}>
         {sharing}
+        <Button title="Edit event" small onPress={() => router.push({ pathname: "/plan-edit", params: { kind: "event", id: eventId } })} />
         <Row>
           <Button
             title={`Repeat every ${dayName}`}
@@ -523,6 +524,7 @@ function EventOptions({
   return (
     <View style={{ gap: 6, flexBasis: "100%" }}>
       {sharing}
+      <Button title="Edit event" small onPress={() => router.push({ pathname: "/plan-edit", params: { kind: "event", id: eventId } })} />
       <Row>
         <Button
           title="Skip just this one"
@@ -622,7 +624,7 @@ export function Timeline({
                 }
                 disabled={!mine && !e.hat}
                 onPress={() =>
-                  mine
+                  a.data.events.some((x) => x.id === e.id)
                     ? setOpen(
                         open === `allday:${e.id}` ? null : `allday:${e.id}`,
                       )
@@ -787,6 +789,10 @@ export function Timeline({
                           : undefined
                 }
                 onPress={() => {
+                  if (item.kind === "date")
+                    return router.push({ pathname: "/plan-edit", params: { kind: "date", id: item.id.slice(5) } });
+                  if (item.kind === "event" && item.source === "google" && item.eventId)
+                    return router.push({ pathname: "/plan-edit", params: { kind: "event", id: item.eventId } });
                   if (item.taskId)
                     return router.push({
                       pathname: "/task/[id]",
