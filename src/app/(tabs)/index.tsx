@@ -461,7 +461,7 @@ function DayCard({ date, active }: { date: string; active: boolean }) {
           <View style={{ padding: 12, gap: 8, borderRadius: 18, backgroundColor: tone("#DCE9FA") }}>
             <T bold size={14}>Plans for this day</T>
             {plans.map((plan) => (
-              <Pressable key={plan.id} disabled={!plan.tag && !plan.taskId} accessibilityRole={plan.tag || plan.taskId ? "button" : undefined} accessibilityLabel={`Plan: ${plan.title}, ${fmtTime(plan.time, true)}`} onPress={() => {
+              <Pressable key={plan.id} disabled={!plan.tag && !plan.taskId && plan.kind !== "date" && plan.kind !== "event"} accessibilityRole={plan.tag || plan.taskId || plan.kind === "date" || plan.kind === "event" ? "button" : undefined} accessibilityLabel={`Plan: ${plan.title}, ${fmtTime(plan.time, true)}`} onPress={() => {
                 if (plan.kind === "date") router.push({ pathname: "/plan-edit", params: { kind: "date", id: plan.id.slice(5) } });
                 else if (plan.kind === "event" && plan.eventId) router.push({ pathname: "/plan-edit", params: { kind: "event", id: plan.eventId } });
                 else if (plan.taskId) router.push({ pathname: "/task/[id]", params: { id: plan.taskId } });
