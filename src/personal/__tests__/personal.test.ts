@@ -768,7 +768,7 @@ test("school day: classes on Today, the current period is the big card, CPT take
   const work = early.items.filter((i) => i.kind === "work");
   assert.deepEqual(
     work.map((i) => i.title),
-    ["Homeroom", "CPT Gr. 6-8 Science", "7B Science", "7D Science", "Off period", "Advisory", "Lunch", "7A Science", "7C Science", "Dismissal"],
+    ["Homeroom", "CPT Gr. 6-8 Science", "7B Science", "7D Science", "Prep", "Advisory", "Lunch", "7A Science", "7C Science", "Dismissal"],
   );
   assert.equal(early.items.filter((i) => i.title === "CPT Gr. 6-8 Science").length, 1);
   assert.equal(work[1].detail, "Period 1 · during Specials");
@@ -785,7 +785,7 @@ test("school day: classes on Today, the current period is the big card, CPT take
   assert.equal(now.next?.title, "7D Science");
   // RBR and Specials are off periods, labeled as such.
   const rbr = nowAndNext(dayTimeline(d, thu, 11 * 60 + 40, thu).items, 11 * 60 + 40).now;
-  assert.equal(rbr?.title, "Off period");
+  assert.equal(rbr?.title, "Prep");
   assert.equal(rbr?.detail, "Period 4 · RBR");
   assert.equal(rbr?.block, "off");
   assert.equal(mid.find((i) => i.title === "Homeroom")?.done, true);
@@ -810,7 +810,7 @@ test("school day: classes on Today, the current period is the big card, CPT take
   assert.deepEqual(f, { p2: "7B", p3: "7D", p4: "7B Boost", p5: "Advisory", p6: "7A", p7: "7C" });
   const edited = dayFrom({ ...f, p2: "7c", p4: "rbr", p5: "recess" });
   assert.equal(edited.find((b) => b.period === 2)?.section, "7C");
-  assert.equal(edited.find((b) => b.period === 4)?.title, "Off period");
+  assert.equal(edited.find((b) => b.period === 4)?.title, "Prep");
   assert.equal(edited.find((b) => b.period === 4)?.note, "RBR");
   assert.equal(dayFields(edited).p4, "RBR");
   assert.throws(() => dayFrom({ ...f, p4: "lunch duty" }), /Period 4/);

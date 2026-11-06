@@ -24,9 +24,9 @@ const block = (
   ...(note ? { note } : {}),
 });
 
-/** Students are at Specials (period 1) or RBR (period 4): Chris is off. */
+/** Students are at Specials (period 1) or RBR (period 4): Chris has prep. */
 const off = (start: string, end: string, period: number, note: string) =>
-  block(start, end, "Off period", "off", period, undefined, note);
+  block(start, end, "Prep", "off", period, undefined, note);
 
 const cls = (start: string, end: string, period: number, section: string) =>
   block(start, end, `${section} Science`, "class", period, section);

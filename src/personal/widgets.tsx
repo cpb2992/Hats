@@ -13,6 +13,7 @@ import { type PersonalData, hatDef } from "./model";
 import { dayTimeline, nowAndNext, minutesOfDay } from "./timeline";
 import { hatSvg } from "./hatArt";
 import { loadPersonal, savePersonal } from "./storage";
+import { syncPersonalReminders } from "./reminders";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 
 export function PersonalWidget({
@@ -217,4 +218,8 @@ export async function personalWidgetHandler(props: WidgetTaskHandlerProps) {
   props.renderWidget(
     <PersonalWidget data={data} name={props.widgetInfo.widgetName} />,
   );
+  // Android wakes widgets while the app is closed. Use that moment to move the
+  // "Now" notification on to the current class instead of leaving it stale.
+  if (data)
+    await syncPersonalReminders(data).catch(() => {});
 }
