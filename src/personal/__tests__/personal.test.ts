@@ -771,7 +771,7 @@ test("school day: classes on Today, the current period is the big card, CPT take
     ["Homeroom", "CPT Gr. 6-8 Science", "7B Science", "7D Science", "Prep", "Advisory", "Lunch", "7A Science", "7C Science", "Dismissal"],
   );
   assert.equal(early.items.filter((i) => i.title === "CPT Gr. 6-8 Science").length, 1);
-  assert.equal(work[1].detail, "Period 1 · during Specials");
+  assert.equal(work[1].detail, "Period 1");
   const before = nowAndNext(early.items, 6 * 60 + 50);
   assert.equal(before.now?.title, "Homeroom");
   assert.equal(before.next?.title, "CPT Gr. 6-8 Science");
@@ -1224,4 +1224,26 @@ test("reminders say what's actually on, and dinner nudges only when it's not pla
   assert.equal(dinnerNudge(d, thu), null);
   // Saturday: no school, nothing on.
   assert.equal(eveningDigest(d, "2026-10-31").title, "Tomorrow’s wide open");
+});
+
+test("Thursday period 1 is science CPT even without a calendar event; other days it's prep", async () => {
+  const { dayTimeline, nowAndNext } = await import("../timeline");
+  const { schoolBlocks } = await import("../school");
+  const d = freshPersonal();
+  d.preferences.unavailableDays = [1, 2, 3, 4, 5];
+  const thu = "2026-10-29";
+  const at850 = nowAndNext(dayTimeline(d, thu, 8 * 60 + 50, thu).items, 8 * 60 + 50).now;
+  assert.equal(at850?.title, "Science CPT");
+  assert.equal(at850?.block, "meeting");
+  assert.equal(at850?.detail, "Period 1 · CPT");
+  // Not counted as free time on Thursday.
+  assert.ok(!schoolBlocks(d, thu).some((b) => b.period === 1 && b.kind === "off"));
+  // Monday period 1 stays prep (Specials).
+  const mon = "2026-10-26";
+  const monNow = nowAndNext(dayTimeline(d, mon, 8 * 60 + 50, mon).items, 8 * 60 + 50).now;
+  assert.equal(monNow?.title, "Prep");
+  assert.equal(monNow?.detail, "Period 1 · Specials");
+  // A saved or imported week still gets CPT on Thursday.
+  d.preferences.school = { on: true, week: { "4": schoolBlocks(freshPersonal(), mon) } };
+  assert.equal(schoolBlocks(d, thu).find((b) => b.period === 1)?.title, "Science CPT");
 });

@@ -234,7 +234,8 @@ export function dayTimeline(
   // takes that block's place instead of showing twice.
   const merged = new Set<string>();
   for (const b of schoolBlocks(data, date)) {
-    const meeting = isFree(b)
+    // A calendar copy of a built-in meeting (Thursday CPT) also replaces it.
+    const meeting = isFree(b) || b.kind === "meeting"
       ? data.events.find(
           (e) =>
             eventOn(e, date) &&
@@ -253,7 +254,7 @@ export function dayTimeline(
       end: meeting ? meeting.end : b.end,
       title: meeting ? meeting.title : b.title,
       detail: meeting
-        ? [b.period ? `Period ${b.period}` : "", `during ${b.note ?? b.title}`]
+        ? [b.period ? `Period ${b.period}` : "", b.kind === "meeting" ? "" : `during ${b.note ?? b.title}`]
             .filter(Boolean)
             .join(" · ")
         : period || undefined,

@@ -75,9 +75,19 @@ export const schoolOn = (data: PersonalData) =>
 export function schoolBlocks(data: PersonalData, date: string): SchoolBlock[] {
   if (!schoolOn(data) || !isWorkday(data, date)) return [];
   const week = data.preferences.school?.week ?? STANDARD_WEEK;
-  return [...(week[String(weekday(date))] ?? [])].sort((a, b) =>
-    a.start.localeCompare(b.start),
-  );
+  const wd = weekday(date);
+  return [...(week[String(wd)] ?? [])]
+    .map((b) => (wd === THURSDAY ? thursdayCpt(b) : b))
+    .sort((a, b) => a.start.localeCompare(b.start));
+}
+
+const THURSDAY = 4;
+
+/** Every Thursday, period 1 is science CPT, not prep. Applied when the day is read,
+ *  so it also covers a bell schedule that was saved or imported earlier. */
+export function thursdayCpt(b: SchoolBlock): SchoolBlock {
+  if (b.period !== 1 || b.kind !== "off") return b;
+  return { start: b.start, end: b.end, title: "Science CPT", kind: "meeting", period: 1, note: "CPT" };
 }
 
 /** Off periods while students are elsewhere: when a calendar meeting (like CPT) usually lands. */

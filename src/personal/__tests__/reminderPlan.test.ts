@@ -151,3 +151,15 @@ test("a late-night queued alarm survives midnight without replay on a new instal
   assert.ok(!changes.cancel.includes(first.identifier));
   assert.ok(!reminderChanges([],next).schedule.some(n=>n.identifier===first.identifier));
 });
+test("the live notice says Science CPT on Thursday period 1 and Prep on other days", () => {
+  const data = setup();
+  data.preferences.school = { on: true };
+  data.preferences.unavailableDays = [1, 2, 3, 4, 5];
+  const thu = currentPlanNotice(data, "2026-11-05", 8 * 60 + 50)!;
+  assert.match(thu.title, /Now: Science CPT/);
+  assert.match(thu.body, /Period 1/);
+  const wed = currentPlanNotice(data, "2026-11-04", 8 * 60 + 50)!;
+  assert.match(wed.title, /Now: Prep/);
+  assert.match(wed.body, /Specials/);
+  assert.match(currentPlanNotice(data, "2026-11-05", 9 * 60 + 40)!.title, /Now: 7B Science/);
+});

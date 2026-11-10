@@ -5,11 +5,11 @@ import { makeTask, finishStep } from "../engine";
 import { prepWindow } from "../prep";
 import { keepMemory } from "../memory";
 
-const date = "2026-11-05";
+const date = "2026-11-04"; // a Wednesday (Thursday period 1 is CPT)
 function setup() {
   const d = freshPersonal();
-  d.preferences.unavailableDays = [4];
-  d.preferences.school = { on: true, week: { "4": [
+  d.preferences.unavailableDays = [3];
+  d.preferences.school = { on: true, week: { "3": [
     { start: "08:00", end: "08:40", title: "Prep", kind: "off", note: "Planning", period: 1 },
     { start: "08:45", end: "09:25", title: "8X Science", kind: "class", section: "8X", period: 2 },
   ] } };
@@ -30,9 +30,9 @@ test("prep uses the actual bell window with a five minute wrap-up buffer", () =>
 test("class time, a meeting block, disabled school and a closure are never prep", () => {
   const d = setup();
   assert.equal(prepWindow(d, date, 8 * 60 + 50), null);
-  d.preferences.school!.week!["4"][0].kind = "meeting";
+  d.preferences.school!.week!["3"][0].kind = "meeting";
   assert.equal(prepWindow(d, date, 8 * 60 + 10), null);
-  d.preferences.school!.week!["4"][0].kind = "off";
+  d.preferences.school!.week!["3"][0].kind = "off";
   d.preferences.school!.on = false;
   assert.equal(prepWindow(d, date, 8 * 60 + 10), null);
   d.preferences.school!.on = true;
@@ -62,10 +62,10 @@ test("fixed commitments reserve time instead of being recommended as flexible wo
 test("future, completed, other people's and non-work tasks never enter the prep queue", () => {
   const d = setup();
   d.tasks.push(makeTask("Home", "home", date, { minutes: 5 }));
-  d.tasks.push(makeTask("Tomorrow", "work", "2026-11-06", { minutes: 5 }));
+  d.tasks.push(makeTask("Tomorrow", "work", "2026-11-05", { minutes: 5 }));
   d.tasks.push(makeTask("Someone else's", "work", date, { minutes: 5, assignee: "other" }));
   d.tasks.push(makeTask("Call after 3", "work", date, { minutes: 5, time: "15:00" }));
-  d.tasks[1].doneAt = "2026-11-05T08:00:00Z";
+  d.tasks[1].doneAt = "2026-11-04T08:00:00Z";
   assert.deepEqual(prepWindow(d, date, 8 * 60 + 10)!.candidates.map((t) => t.id), ["print"]);
 });
 test("finishing the suggested step advances the real task, with no schedule rewrite", () => {
@@ -93,7 +93,7 @@ test("essential and overdue work retain priority; finding candidates never mutat
   const before = JSON.stringify(d);
   assert.equal(prepWindow(d, date, 490)!.candidates[0].id, "reply");
   assert.equal(JSON.stringify(d), before);
-  d.tasks[0].date = "2026-11-04";
+  d.tasks[0].date = "2026-11-03";
   d.tasks[1].essential = false;
   assert.equal(prepWindow(d, date, 490)!.candidates[0].id, "print");
 });
@@ -110,4 +110,10 @@ test("protected personal sessions and a hidden work hat suppress prep suggestion
   d.protectedUntil = null;
   d.preferences.hiddenHats = ["work"];
   assert.equal(prepWindow(d, date, 490), null);
+});
+test("Thursday period 1 is science CPT, never prep", () => {
+  const d = setup();
+  d.preferences.unavailableDays = [4];
+  d.preferences.school!.week = { "4": d.preferences.school!.week!["3"] };
+  assert.equal(prepWindow(d, "2026-11-05", 8 * 60 + 10), null);
 });
