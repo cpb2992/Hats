@@ -1,0 +1,3 @@
+<resources>
+  <string name="hats_focus_description">During a protected session you start, Hats detects when a selected distracting app opens and returns you to the home screen. It reads only the app package name, not messages, screen contents, or typed text. No accessibility data is sent anywhere. You can end a session in Hats or disable this service at any time.</string>
+</resources>

@@ -7,9 +7,9 @@ if (Platform.OS === 'android') {
   try {
     /* eslint-disable @typescript-eslint/no-require-imports */
     const { registerWidgetTaskHandler } = require('react-native-android-widget') as typeof import('react-native-android-widget');
-    const { widgetTaskHandler } = require('./src/widgets/task-handler') as typeof import('./src/widgets/task-handler');
+    const { personalWidgetHandler } = require('./src/personal/widgets') as typeof import('./src/personal/widgets');
     /* eslint-enable @typescript-eslint/no-require-imports */
-    registerWidgetTaskHandler(widgetTaskHandler);
+    registerWidgetTaskHandler(personalWidgetHandler);
   } catch (e) {
     console.warn('Hats widgets unavailable', e);
   }

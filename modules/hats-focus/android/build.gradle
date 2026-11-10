@@ -1,0 +1,11 @@
+plugins {
+  id 'com.android.library'
+  id 'expo-module-gradle-plugin'
+}
+group = 'expo.modules.hatsfocus'
+version = '1.0.0'
+expoModule { v2 true }
+android {
+  namespace 'expo.modules.hatsfocus'
+  defaultConfig { versionCode 1; versionName '1.0.0' }
+}

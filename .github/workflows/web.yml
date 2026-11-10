@@ -1,0 +1,58 @@
+# Publishes Hats as a web app on EAS Hosting, so anyone (iPhone included) can open it in the
+# browser and choose Share → Add to Home Screen. Family sharing works between the web app
+# and the Android app. Runs on every push, or Actions → "Hats on the web" → Run workflow.
+#
+# Uses the same EXPO_TOKEN repository secret as the over-the-air updates.
+name: Hats on the web
+
+on:
+  push:
+    branches: [codex/hats-personal-life]
+    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+
+concurrency:
+  group: web
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - uses: expo/expo-github-action@v9
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - run: npm ci
+
+      - name: Build the web app
+        run: |
+          set -o pipefail
+          npx expo export --platform web 2>&1 | tee step.log || {
+            echo "::error title=Building the web app failed::$(tail -n 15 step.log | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          }
+
+      # The first run picks the web address; after that it stays the same.
+      - name: Publish
+        run: |
+          deploy() { eas deploy --prod --non-interactive "$@" > deploy.log 2>&1; local s=$?; cat deploy.log; return $s; }
+          ok=
+          for name in hats-family hats-family-app wear-hats; do
+            if deploy --dev-domain "$name"; then ok=1; break; fi
+            if grep -q "cannot be changed" deploy.log; then deploy && ok=1; break; fi
+            grep -q "already taken" deploy.log || break
+          done
+          if [ -z "$ok" ]; then
+            echo "::error title=Publishing failed::$(tail -n 15 deploy.log | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          fi
+          url=$(grep -Eo 'https://[a-z0-9-]+\.expo\.app' deploy.log | grep -v -- '--' | tail -n 1)
+          echo "::notice title=Hats on the web::${url:-Published. Open expo.dev → Hats → Hosting for the address.}"
+          echo "Hats on the web: ${url}" >> "$GITHUB_STEP_SUMMARY"
