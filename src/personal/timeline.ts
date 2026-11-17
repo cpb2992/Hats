@@ -377,13 +377,28 @@ export function dayTimeline(
 export function nowAndNext(items: TimelineItem[], nowMin: number) {
   const classNow = items.some(i => i.kind === "work" && i.period && minutesOfDay(i.time) <= nowMin && minutesOfDay(i.end ?? i.time) > nowMin);
   const open = items.filter(i => !(classNow && i.kind !== "work" && /^(?:work|school|work day|school day)$/i.test(i.title.trim())) && !i.done && !i.covered && minutesOfDay(i.end ?? i.time) > nowMin);
-  const rank = (i: TimelineItem) => i.kind === "date" ? 4 : i.kind === "event" || i.fixed ? 3 : i.kind === "work" ? 2 : 1;
-  const current = open.filter(i => minutesOfDay(i.time) <= nowMin)
-    .sort((a, b) => rank(b) - rank(a) || minutesOfDay(b.time) - minutesOfDay(a.time))[0];
+  const started = open.filter(i => minutesOfDay(i.time) <= nowMin);
+  const latestFirst = (a: TimelineItem, b: TimelineItem) => minutesOfDay(b.time) - minutesOfDay(a.time);
+  // While you're teaching (a class, Boost, homeroom, advisory, CPT), that block is
+  // "now", even if a long calendar event or a to-do overlaps it.
+  const teaching = started.filter(isTeaching).sort(latestFirst)[0];
+  // In any other school block (prep, lunch), something that started before the block
+  // (a day-long calendar event) doesn't take its place; a meeting that starts in it does.
+  const block = started.filter(i => i.kind === "work").sort(latestFirst)[0];
+  const rank = (i: TimelineItem) =>
+    block && i.kind !== "work" && minutesOfDay(i.time) < minutesOfDay(block.time) ? 0
+      : i.kind === "date" ? 4 : i.kind === "event" || i.fixed ? 3 : i.kind === "work" ? 2 : 1;
+  const current = teaching ?? [...started].sort((a, b) => rank(b) - rank(a) || latestFirst(a, b))[0];
   const upcoming = open.filter(i => minutesOfDay(i.time) > nowMin)
     .sort((a, b) => minutesOfDay(a.time) - minutesOfDay(b.time) || rank(b) - rank(a));
   return { now: current ?? upcoming[0] ?? null, next: current ? upcoming[0] ?? null : upcoming[1] ?? null };
 }
+
+/** School blocks where Chris is with students or in CPT, not a plain "Work 9–5" span. */
+const isTeaching = (i: TimelineItem) =>
+  i.kind === "work" &&
+  (i.block === "class" || i.block === "boost" || i.block === "advisory" || i.block === "meeting" ||
+    (i.block === "homeroom" && /^homeroom$/i.test(i.title.trim())));
 
 /** A routine step whose window (+30 min) has passed without a check. */
 export function isFaded(item: TimelineItem, nowMin: number) {
