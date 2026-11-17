@@ -2,12 +2,18 @@
   "expo": {
     "name": "Hats",
     "slug": "hats-focus",
+    "owner": "cpb2992",
     "scheme": "hats",
-    "version": "1.0.0",
+    "extra": {
+      "eas": {
+        "projectId": "677aeaf0-1d27-4a66-b255-2ab4e83ff64e"
+      }
+    },
+    "version": "2.0.0",
     "orientation": "default",
     "icon": "./assets/icon.png",
-    "userInterfaceStyle": "dark",
-    "backgroundColor": "#0D110F",
+    "userInterfaceStyle": "automatic",
+    "backgroundColor": "#FFF4E3",
     "ios": {
       "supportsTablet": true,
       "bundleIdentifier": "com.hatsfocus.app",
@@ -18,12 +24,24 @@
     "android": {
       "package": "com.hatsfocus.app",
       "adaptiveIcon": {
-        "backgroundColor": "#F3F1EA",
+        "backgroundColor": "#F7C948",
         "foregroundImage": "./assets/android-icon-foreground.png",
         "backgroundImage": "./assets/android-icon-background.png",
         "monochromeImage": "./assets/android-icon-monochrome.png"
       },
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "versionCode": 2,
+      "intentFilters": [
+        {
+          "action": "SEND",
+          "category": [
+            "DEFAULT"
+          ],
+          "data": {
+            "mimeType": "text/plain"
+          }
+        }
+      ]
     },
     "web": {
       "favicon": "./assets/favicon.png",
@@ -37,10 +55,10 @@
         {
           "image": "./assets/splash-icon.png",
           "imageWidth": 120,
-          "backgroundColor": "#0D110F",
+          "backgroundColor": "#FFF4E3",
           "dark": {
             "image": "./assets/splash-icon.png",
-            "backgroundColor": "#0D110F"
+            "backgroundColor": "#FFF4E3"
           }
         }
       ],
@@ -48,7 +66,7 @@
         "expo-notifications",
         {
           "icon": "./assets/notification-icon.png",
-          "color": "#F2C14E"
+          "color": "#3D65A2"
         }
       ],
       [
@@ -73,8 +91,8 @@
           "widgets": [
             {
               "name": "HatsNow",
-              "label": "Hats · Now",
-              "description": "Your one thing, with Focus and Done. Shows your class when you're teaching.",
+              "label": "Hats \u00b7 Now",
+              "description": "Your personal home life, with a useful next step.",
               "minWidth": "250dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
@@ -85,8 +103,8 @@
             },
             {
               "name": "HatsLog",
-              "label": "Hats · Caseload +1",
-              "description": "Tap a student to log a data point. The class in front of you comes first.",
+              "label": "Hats \u00b7 Home life",
+              "description": "Your personal home life, with a useful next step.",
               "minWidth": "250dp",
               "minHeight": "110dp",
               "targetCellWidth": 4,
@@ -97,8 +115,8 @@
             },
             {
               "name": "HatsSay",
-              "label": "Hats · Say anything",
-              "description": "One tap to capture a thought out loud.",
+              "label": "Hats \u00b7 Say anything",
+              "description": "Your personal home life, with a useful next step.",
               "minWidth": "110dp",
               "minHeight": "50dp",
               "targetCellWidth": 2,
@@ -118,10 +136,23 @@
           }
         }
       ],
-      "expo-secure-store"
+      "expo-secure-store",
+      "expo-web-browser",
+      "expo-sharing"
     ],
     "experiments": {
       "typedRoutes": false
+    },
+    "runtimeVersion": {
+      "policy": "fingerprint"
+    },
+    "updates": {
+      "url": "https://u.expo.dev/677aeaf0-1d27-4a66-b255-2ab4e83ff64e",
+      "requestHeaders": {
+        "expo-channel-name": "personal"
+      },
+      "checkAutomatically": "ON_LOAD",
+      "fallbackToCacheTimeout": 0
     }
   }
 }

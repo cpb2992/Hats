@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <meta httpEquiv="X-UA-Compatible" content="IE=edge" />
+    <!-- viewport-fit=cover lets Hats draw under the iPhone status bar; screens pad themselves with the safe area. -->
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <title>Hats</title>
+    <meta name="description" content="You wear a lot of hats. Keep them all in one place." />
+    <!-- Added to an iPhone Home Screen, Hats opens full screen with its own icon. -->
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Hats" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
+    <link rel="manifest" href="/manifest.json" />
+    <!-- Hats draws its own dark mode; "only light" stops browsers repainting its colors on top. -->
+    <meta name="color-scheme" content="only light" />
+    <meta name="theme-color" content="#FFF4E3" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#10151E" media="(prefers-color-scheme: dark)" />
+    <!-- The `react-native-web` recommended style reset: https://necolas.github.io/react-native-web/docs/setup/#root-element -->
+    <style id="expo-reset">
+      html, body { height: 100%; }
+      body { overflow: hidden; background-color: #FFF4E3; overscroll-behavior: none; -webkit-tap-highlight-color: transparent; }
+      @media (prefers-color-scheme: dark) { body { background-color: #10151E; } }
+      #root { display: flex; height: 100%; flex: 1; }
+    </style>
+  </head>
+  <body>
+    <noscript>Hats needs JavaScript to run.</noscript>
+    <div id="root"></div>
+  </body>
+</html>

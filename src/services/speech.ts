@@ -12,9 +12,9 @@ export function speechAvailable(): boolean {
 }
 
 /** Starts listening. Returns false if the microphone or speech permission was refused. */
-export async function startListening(): Promise<boolean> {
+export async function startListening(shouldStart: () => boolean = () => true): Promise<boolean> {
   const perm = await ExpoSpeechRecognitionModule.requestPermissionsAsync();
-  if (!perm.granted) return false;
+  if (!perm.granted || !shouldStart()) return false;
   ExpoSpeechRecognitionModule.start({
     lang: 'en-US',
     interimResults: true,

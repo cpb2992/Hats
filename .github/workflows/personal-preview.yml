@@ -1,0 +1,114 @@
+# Ships Hats to your phone.
+#
+# Every push sends an over-the-air update to the "personal" channel: the installed app
+# downloads it in the background and offers a one-tap restart (or shows it the next time
+# Hats opens). No reinstall needed.
+#
+# A new APK is built only when the native side changes: a new native library, the widget
+# module, or app.json settings like the icon. Each app has a "runtime version" (a
+# fingerprint of its native side), and an update only lands on apps with the same one, so
+# an update can never break an app it doesn't fit. Releases list the runtime they carry.
+# To force a fresh APK: Actions → "Hats personal preview" → Run workflow → Build a new app.
+#
+# One-time setup: an Expo access token (same Expo account as Desk) as the repository
+# secret EXPO_TOKEN. Without it, every push builds a new APK as before.
+name: Hats personal preview
+on:
+  push:
+    branches: [codex/hats-personal-life]
+    paths-ignore: ['**.md', 'docs/**']
+  workflow_dispatch:
+    inputs:
+      build:
+        description: Build a new app (APK) even if an update would do
+        type: boolean
+        default: false
+permissions:
+  contents: write
+concurrency:
+  group: personal-preview-${{ github.ref }}
+  cancel-in-progress: false
+jobs:
+  android:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npm run typecheck
+      - run: npm run lint
+      - run: npm test
+
+      - name: Update or new app?
+        id: plan
+        env:
+          GH_TOKEN: ${{ github.token }}
+          HAS_EXPO: ${{ secrets.EXPO_TOKEN != '' }}
+          FORCE: ${{ inputs.build }}
+        run: |
+          rv=$(npx expo-updates runtimeversion:resolve --platform android | tail -n 1 | node -e "let s='';process.stdin.on('data',d=>s+=d).on('end',()=>console.log(JSON.parse(s).runtimeVersion))")
+          echo "runtime=$rv" >> "$GITHUB_OUTPUT"
+          # Is there already an app for this runtime? Each release's notes name its runtime.
+          have=$(gh api "repos/${{ github.repository }}/releases?per_page=50" --jq "[.[] | select((.body // \"\") | contains(\"Runtime $rv\"))] | length")
+          if [ "$HAS_EXPO" != "true" ] || [ "$FORCE" = "true" ] || [ "$have" = "0" ]; then build=true; else build=false; fi
+          echo "build=$build" >> "$GITHUB_OUTPUT"
+          echo "expo=$HAS_EXPO" >> "$GITHUB_OUTPUT"
+          if [ "$HAS_EXPO" != "true" ]; then
+            echo "::warning title=No over-the-air updates yet::Add the Expo access token as the repository secret EXPO_TOKEN (Settings → Secrets and variables → Actions). Building a new APK instead."
+          fi
+          echo "Runtime $rv · new app: $build · update: $HAS_EXPO" >> "$GITHUB_STEP_SUMMARY"
+
+      - uses: expo/expo-github-action@v9
+        if: steps.plan.outputs.expo == 'true'
+        with:
+          eas-version: latest
+          token: ${{ secrets.EXPO_TOKEN }}
+      - name: Send an update to the installed app
+        if: steps.plan.outputs.expo == 'true'
+        run: |
+          set -o pipefail
+          msg="$(git log -1 --pretty=%s | cut -c1-120)"
+          eas update --channel personal --platform android --environment preview --message "$msg" --non-interactive 2>&1 | tee step.log || {
+            echo "::error title=Sending the update failed::$(tail -n 15 step.log | sed ':a;N;$!ba;s/\n/%0A/g')"
+            exit 1
+          }
+          echo "::notice title=Update sent::Hats picks it up the next time it opens or comes back to the front."
+
+      - uses: actions/setup-java@v4
+        if: steps.plan.outputs.build == 'true'
+        with:
+          distribution: temurin
+          java-version: 17
+      - uses: gradle/actions/setup-gradle@v4
+        if: steps.plan.outputs.build == 'true'
+      - if: steps.plan.outputs.build == 'true'
+        run: npx expo prebuild --platform android --no-install
+      - name: Build Android preview
+        if: steps.plan.outputs.build == 'true'
+        working-directory: android
+        run: ./gradlew assembleRelease --no-daemon -PreactNativeArchitectures=arm64-v8a
+      - if: steps.plan.outputs.build == 'true'
+        run: cp android/app/build/outputs/apk/release/app-release.apk Hats-Personal.apk
+      - uses: actions/upload-artifact@v4
+        if: steps.plan.outputs.build == 'true'
+        with:
+          name: Hats-Personal
+          path: Hats-Personal.apk
+      - uses: softprops/action-gh-release@v2
+        if: steps.plan.outputs.build == 'true'
+        with:
+          tag_name: personal-preview-${{ github.run_number }}
+          target_commitish: ${{ github.sha }}
+          name: Hats Personal Preview ${{ github.run_number }}
+          prerelease: true
+          make_latest: false
+          body: |
+            Personal-life rebuild with hats. Download Hats-Personal.apk (not the older Hats.apk builds). Provider connections require private setup; no personal profile is embedded in this public build. Preview is signed with the standard development key.
+
+            After this, changes arrive as over-the-air updates until the next release.
+            Runtime ${{ steps.plan.outputs.runtime }}
+          files: Hats-Personal.apk

@@ -1,0 +1,225 @@
+import { Platform } from "react-native";
+import {
+  FlexWidget,
+  SvgWidget,
+  TextWidget,
+  requestPinWidget,
+  requestWidgetUpdate,
+  type WidgetTaskHandlerProps,
+} from "react-native-android-widget";
+import { nowMinutes, todayISO, fmtTime } from "../engine/dates";
+import { finishStep, nextStep, reschedule } from "./engine";
+import { type PersonalData, hatDef } from "./model";
+import { dayTimeline, nowAndNext, minutesOfDay } from "./timeline";
+import { hatSvg } from "./hatArt";
+import { loadPersonal, savePersonal } from "./storage";
+import { syncPersonalReminders } from "./reminders";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+
+export function PersonalWidget({
+  data,
+  name,
+}: {
+  data: PersonalData | null;
+  name: string;
+}) {
+  const clock = new Date();
+  const now = nowMinutes(clock);
+  const today = todayISO(clock);
+  const say = name === "HatsSay";
+  const focus = data && !say ? nowAndNext(dayTimeline(data, today, now, today).items, now).now : null;
+  const task = data?.tasks.find(t => t.id === focus?.taskId) ?? null;
+  const timeLabel = focus ? fmtTime(focus.time, true) : "";
+  const selection = { phase: focus ? minutesOfDay(focus.time) <= now ? "now" : "upcoming" : "clear" };
+  const home = name === "HatsLog";
+  const nextHeader =
+    selection.phase === "now"
+      ? "HATS · HAPPENING NOW"
+      : selection.phase === "upcoming"
+        ? "HATS · UP NEXT"
+        : selection.phase === "flexible"
+          ? "HATS · FREE WINDOW"
+          : selection.phase === "waiting"
+            ? "HATS · ROOM TO BREATHE"
+            : "HATS · ALL CLEAR";
+  return (
+    <FlexWidget
+      clickAction="OPEN_APP"
+      accessibilityLabel={say ? "Open Hats to capture a thought" : `Hats. ${focus ? task ? nextStep(task) : focus.title : data ? "All clear for now" : "Open Hats to get started"}${timeLabel ? `. ${timeLabel}` : ""}`}
+      style={{
+        width: "match_parent",
+        height: "match_parent",
+        backgroundColor: "#FFF4E3",
+        borderRadius: 24,
+        borderWidth: 2,
+        borderBottomWidth: 5,
+        borderColor: "#1D2D45",
+        padding: 16,
+        flexDirection: "column",
+        justifyContent: "space-between",
+      }}
+    >
+      <FlexWidget style={{ flexDirection: "row", alignItems: "center" }}>
+        <SvgWidget
+          svg={hatSvg(
+            say
+              ? "wizard"
+              : home
+                ? "cap"
+                : focus
+                  ? focus.hat
+                  : "sunhat",
+            64,
+          )}
+          style={{ width: 34, height: 34, marginRight: 8 }}
+        />
+        <TextWidget
+          text={
+            say
+              ? "HATS · CAPTURE"
+              : home
+                ? "HATS · HOME LIFE"
+                : nextHeader
+          }
+          style={{
+            fontSize: 12,
+            fontFamily: "InterTight-Bold",
+            color: "#1D2D45",
+          }}
+        />
+      </FlexWidget>
+      <TextWidget
+        text={
+          say
+            ? "A thought worth keeping."
+            : !data
+              ? "Open Hats to get started."
+              : focus
+                ? task ? nextStep(task) : focus.title
+                : selection.phase === "clear"
+                  ? "You're caught up for now."
+                  : "Nothing scheduled next."
+        }
+        maxLines={2}
+        style={{
+          fontSize: 21,
+          fontFamily: "BricolageGrotesque-SemiBold",
+          color: "#192A41",
+        }}
+      />
+      {task && !say ? (
+        <FlexWidget
+          style={{
+            flexDirection: "row",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "match_parent",
+          }}
+        >
+          <TextWidget
+            text={`${hatDef(task.hat, data?.customHats).name}${timeLabel ? ` · ${timeLabel}` : ""}`}
+            maxLines={1}
+            truncate="END"
+            style={{ fontSize: 12, color: "#566476" }}
+          />
+          <FlexWidget
+            clickAction="PERSONAL_DONE"
+            clickActionData={{ id: task.id }}
+            accessibilityLabel="Complete the next step"
+            style={{
+              padding: 10,
+              backgroundColor: "#F7C948",
+              borderRadius: 16,
+              borderWidth: 2,
+              borderColor: "#1D2D45",
+            }}
+          >
+            <TextWidget
+              text="Step done ✓"
+              style={{ fontSize: 13, color: "#1D2D45" }}
+            />
+          </FlexWidget>
+          {!task.fixed ? (
+            <FlexWidget
+            clickAction="PERSONAL_LATER"
+            clickActionData={{ id: task.id }}
+            accessibilityLabel="Move to the next available time"
+            style={{ padding: 10 }}
+          >
+            <TextWidget
+              text="Later"
+              style={{ fontSize: 13, color: "#192A41" }}
+            />
+            </FlexWidget>
+          ) : null}
+        </FlexWidget>
+      ) : (
+        <TextWidget
+          text={
+            say
+              ? "Open Hats to talk or type."
+              : !data
+                ? "Your plan will appear here."
+                : focus
+                  ? `${timeLabel}${focus.detail ? ` · ${focus.detail}` : ""}`
+                  : selection.phase === "clear"
+                  ? "Enjoy the breathing room."
+                  : "Other tasks can wait for an opening."
+          }
+          style={{ fontSize: 13, color: "#566476" }}
+        />
+      )}
+    </FlexWidget>
+  );
+}
+export async function updatePersonalWidgets(data: PersonalData) {
+  if (Platform.OS !== "android") return;
+  for (const widgetName of ["HatsNow", "HatsLog", "HatsSay"])
+    await requestWidgetUpdate({
+      widgetName,
+      renderWidget: () => <PersonalWidget data={data} name={widgetName} />,
+    }).catch(() => {});
+}
+export async function pinPersonalWidget() {
+  if (Platform.OS !== "android") return false;
+  return requestPinWidget({ widgetName: "HatsNow" });
+}
+export async function personalWidgetHandler(props: WidgetTaskHandlerProps) {
+  if (props.widgetAction === "WIDGET_DELETED") return;
+  let data: PersonalData | null = null;
+  try {
+    data = await loadPersonal();
+  } catch {
+    /* Do not replace unreadable data. */
+  }
+  if (data && props.widgetAction === "WIDGET_CLICK") {
+    const task = data.tasks.find(
+      (t) => t.id === String(props.clickActionData?.id ?? ""),
+    );
+    let changed = false;
+    if (task && props.clickAction === "PERSONAL_DONE") {
+      finishStep(task);
+      changed = true;
+    }
+    if (task && props.clickAction === "PERSONAL_LATER")
+      changed = reschedule(data, task.id, todayISO(), nowMinutes());
+    if (changed) {
+      data.updatedAt = new Date().toISOString();
+      await savePersonal(data);
+      const raw = await AsyncStorage.getItem("hats.personal.sync-meta");
+      const meta = raw ? JSON.parse(raw) : { owner: null, revision: 0 };
+      await AsyncStorage.setItem(
+        "hats.personal.sync-meta",
+        JSON.stringify({ ...meta, dirty: true }),
+      );
+      await updatePersonalWidgets(data);
+    }
+  }
+  props.renderWidget(
+    <PersonalWidget data={data} name={props.widgetInfo.widgetName} />,
+  );
+  // Android wakes widgets while the app is closed. Use that moment to move the
+  // "Now" notification on to the current class instead of leaving it stale.
+  if (data)
+    await syncPersonalReminders(data).catch(() => {});
+}
